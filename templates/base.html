@@ -1,0 +1,21 @@
+{% load url from future %}  
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<html>
+<head>
+<title>{% block title %}Page title{% endblock %}</title>
+</head>
+
+<body>
+<div class="logout_button" style="text-align:right">
+<a href="{% url 'django.contrib.auth.views.logout' %}">logout</a>
+</div> 
+<div class="content">
+{% block content %}
+If you can see this, then the django template author forgot to put block
+delimiters around the content block. Go laugh at him.
+{% endblock %}
+</div>
+</body>
+</html>

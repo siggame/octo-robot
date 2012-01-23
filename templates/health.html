@@ -1,0 +1,27 @@
+{% extends "thunderdome/base.html" %}
+{% load url from future %}
+
+{% block title %}
+ACM SIG-Game MegaMiner Arena (Thunderdome)
+{% endblock %}
+
+{% block content %}
+<h1>Arena</h1>
+
+<h2>Queue's Eye View</h2>
+Game requests in the queue: {{ ready_requests }}<br>
+Game requests reserved: {{ running_requests }}<br>
+
+<h2>Database's View</h2>
+New Games: {{ new_games }}</br>
+Scheduled Games: {{ scheduled_games }}</br>
+Running Games: {{ running_games }}</br>
+Complete Games: {{ complete_games }}</br>
+Failed Games: {{ failed_games }}<br>
+
+<h2>Match Statuses</h2>
+{% for match in matches %}
+  <a href="{% url 'thunderdome.views.view_match' match_id=match.id %}">{{ match.id }}</a> - {{ match.status }}<br>
+{% endfor %}
+
+{% endblock %}

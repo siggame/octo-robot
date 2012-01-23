@@ -1,0 +1,13 @@
+Game #{{game.pk}} 
+{% if game.gamelog_url %}
+  <a href="{{ game.gamelog_url }}">gamelog</a>
+{% endif %}<br />
+{% for data in game.gamedata_set.all %}
+  {% if data.won %}
+    <font color='green'>
+  {% else %}
+    <font color='red'>
+  {% endif %}
+  {{ data.client.name }} - {{ data.version }}
+  </font><br>
+{% endfor %}
