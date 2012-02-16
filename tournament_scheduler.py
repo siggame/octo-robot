@@ -1,6 +1,11 @@
 #!/usr/bin/env python
-### Missouri S&T ACM SIG-Game Arena (Thunderdome)
-#####
+"""
+Missouri S&T ACM SIG-Game Arena (Thunderdome)
+
+A task process that starts the referees (who play the matches.)
+
+@author: Matthew Nuckolls <mannr4@mst.edu>
+"""
 
 # Some magic to get a standalone python program hooked in to django
 import sys
@@ -19,6 +24,11 @@ import random
 from thunderdome.models import Game, GameData, Match
 
 def main():
+    """
+    Starts the main tournament managment loops. Creates a beanstalk
+    connection and watches for signals from processes that they are
+    requeststing matches.
+    """
     stalk = beanstalkc.Connection()
     stalk.watch('game-requests')
     championships = list(Match.objects.filter(root=True))
@@ -30,6 +40,14 @@ def main():
     
 
 def generate_speculative_game(match):
+    """
+    Traverses the tree to identify matches that should be played. Keeps the
+    tournament moving forward.
+    
+    @param match: The root match to try and fulfill the dependencies for.
+    @pre: A match tree needs to be played.
+    @post: Some dependency of match is scheduled to be played.
+    """
     traverse = [match]
     closed = set([match.id])
     needy_matches = list()
@@ -105,9 +123,15 @@ def generate_speculative_game(match):
 
 
 def maintain_bracket(match):
-    ### do a breadth first search down the dependency tree, looking
-    ### for solvable dependencies. except it's not a dependency tree.
-    ### it's a tournament bracket. which is jock-speak for dependency tree.
+    """
+    Updates the state of the bracket so that the speculative scheduler can
+    determine which dependencies have already been fulfilled.    
+
+    @pre: The bracket state may have changed
+    @post: Does a breadth first search down the dependency tree, looking
+    for solvable dependencies. except it's not a dependency tree.
+    it's a tournament bracket. which is jock-speak for dependency tree.
+    """
     matchlist = list()
     closed = set()
     matchlist.append(match)
@@ -126,6 +150,12 @@ def maintain_bracket(match):
             
             
 def maintain_match(match):
+    """
+    Determines and attempts to resolve dependencies to get a single match
+    scheduled in the tournament. Schedules all the subgames of a match.
+
+    @param match: The match to attempt to play.
+    """ 
     ### Check on a single match, get it going if possible
     if match.status == 'Complete':
         return
@@ -220,7 +250,7 @@ def maintain_match(match):
             game.save()
             match.games.remove(game)
             
-#    count = match.wins_to_win + min([p0wins,p1wins]) - len(real_games)
+    #count = match.wins_to_win + min([p0wins,p1wins]) - len(real_games)
     count = (match.wins_to_win * 2) - 1 - len(real_games)
     for i in xrange(count):
         game = get_game_from_pool(match)
@@ -240,6 +270,11 @@ def maintain_match(match):
 
     
 def get_game_from_pool(match):
+    """
+    Picks a game from the game pool.
+    
+    @param: The match to find games from.
+    """
     for game in list(Game.objects.filter(claimed=False).order_by('id')):
         gd = list(game.gamedata_set.all())
         if gd[0].client == match.p0 and gd[1].client == match.p1:
@@ -250,14 +285,17 @@ def get_game_from_pool(match):
 
 
 def SUS(population, n, weight):
-    ### @brief  roulette wheel selection, select n individuals
-    ### @pre    None
-    ### @post   None
-    ### @param  population the set from which individuals are to be chosen
-    ### @param  n the number of individuals to choose
-    ### @param  weight the function that determines the weight of an individual
-    ###           hint: lambda functions work well here
-    ### @return A list of randomly chosen individuals
+    """
+    roulette wheel selection, select n individuals
+   
+    @pre    None
+    @post   None
+    @param  population the set from which individuals are to be chosen
+    @param  n the number of individuals to choose
+    @param  weight the function that determines the weight of an individual
+             hint: lambda functions work well here
+    @return A list of randomly chosen individuals
+    """
     result = list()
     weight_range = sum([weight(x) for x in population])
     spacing = weight_range / n

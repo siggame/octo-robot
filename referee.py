@@ -1,5 +1,11 @@
 #!/usr/bin/env python
-### Missouri S&T ACM SIG-Game Arena (Thunderdome)
+"""
+Missouri S&T ACM SIG-Game Arena (Thunderdome) This is the referee code.
+The referee is responsible for compiling the clients, starting the clients
+and recovering from the aftermath
+
+@author: Matthew Nuckols <mannr4@mst.edu>
+"""
 #####
 
 from datetime import datetime
@@ -32,6 +38,11 @@ from thunderdome.models import Game
 from threading import Thread
 
 class Smile_And_Nod(Thread):
+    """
+    Watches a pipe until it is empty.
+    
+    @cvar pipe: The pipe to observe
+    """
     def __init__(self, pipe):
         Thread.__init__(self)
         self.pipe = pipe
@@ -45,6 +56,10 @@ class Smile_And_Nod(Thread):
 stalk = None
 
 def main():
+    """
+    Initializer. Connects to the globally shared stalk and starts watching for
+    game requests
+    """
     global stalk
     stalk = beanstalkc.Connection()
     
@@ -54,6 +69,25 @@ def main():
     
 
 def looping():
+    """
+    Recurring job to start games. Attempts to spend a brief period attempting
+    to reserve a job. Fetches the newest version of the clients, checks for
+    embargoes against the player, then tries to compile the client.
+
+    Once that is complete it tries to start the game and fetch the id of the
+    newly created game. It then starts threads to watch the two clients for
+    termination.
+
+    To detect game termination this thread will watch the log file for the
+    ability to write (which indicates the OS is done with it. The gamelog
+    is parsed and then the winner is extracted. 
+
+    Result is written to the database and the job is removed from the beanstalk
+    queue.
+
+    @pre: The stalk global is ready to be accessed.
+    @post: There has been an attempt at playing a game.
+    """ 
     global stalk
     # get a game
     job = stalk.reserve(timeout=2)
@@ -171,6 +205,11 @@ def looping():
 
     
 def compile_client(client):
+    """
+    Launches a sub process which runs make on the specified client
+    
+    @cvar client: A Client object which we would like to try and compile.   
+    """
     return subprocess.call(['make'], cwd=client.name,
                            stdout=file("/dev/null", "w"),
                            stderr=subprocess.STDOUT)
@@ -178,6 +217,13 @@ def compile_client(client):
 
 from bz2 import BZ2File
 def parse_gamelog(game_number):
+    """
+    Given a specified game_number, accesses that log and unpacks it, then
+    searches the log for the the winner.
+
+    @param game_number: The log to access.
+    @return The player number who won, or none if the operation fails.
+    """
     ### Determine winner by parsing that last s-expression in the gamelog
     ### the gamelog is now compressed.
     f = BZ2File("%s/logs/%s.glog" % (server_path, game_number), 'r')
@@ -192,6 +238,18 @@ def parse_gamelog(game_number):
 import md5
     
 def push_gamelog(game, game_number):
+    """
+    Pushes a gamelog to an Amazon S3 Storage Bucket.
+    
+    @param game: The game model that should be updated with the url of the
+        uploaded file.
+    @param game_number: The number of the game, which is resolved to be the
+        name of the log.
+
+    @pre: Both the game and the log exist
+    @post: The log is uplaoded to S3 and the the game model is updated with
+        the url of the uploaded file.
+    """
     ### Push the gamelog to S3
     bucket_name = os.environ['S3_BUCKET']
     access_cred = os.environ['ACCESS_CRED']
@@ -212,6 +270,14 @@ def push_gamelog(game, game_number):
     
     
 def update_local_repo(client):
+    """
+    Updates this referee's copy of the player's code.
+    
+    @param client: The player whose code we should try to pull.
+    @pre: None
+    @post: If the code has changed, the client in question will have its
+        embargo flag cleared.
+    """
     base_path = os.environ['CLIENT_PREFIX']
     subprocess.call(['git', 'clone',                           # might fail
                      '%s/%s.git' % (base_path, client.name)],  # don't care
