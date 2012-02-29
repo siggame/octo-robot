@@ -19,6 +19,8 @@ def main():
     start_server()
     start_referee(1, "%s/server" % os.getcwd())
     start_referee(2, "%s/server" % os.getcwd())
+    start_referee(3, "%s/server" % os.getcwd())
+    start_referee(4, "%s/server" % os.getcwd())
     while True:
         time.sleep(1)
 
@@ -26,7 +28,7 @@ def main():
 def start_server():
     command = ['python', 'main.py', '-arena']
     return subprocess.Popen(command, cwd='server',
-                            stdout=file("/dev/null", "w"),
+                            stdout=file("server-output.txt", "w"),
                             stderr=subprocess.STDOUT)
 
         
