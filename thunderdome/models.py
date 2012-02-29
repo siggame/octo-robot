@@ -1,4 +1,4 @@
-#####
+####
 ### Missouri S&T ACM SIG-Game Arena (Thunderdome)
 #####
 
@@ -19,10 +19,21 @@ from django.db.models import Max
 class Client(models.Model):
     ### A competitor in the arena
     name            = models.CharField(max_length=100)
-    current_version = models.CharField(max_length=100, default='')
+    current_version = models.CharField(max_length=100, default='', null=True)
     embargoed       = models.BooleanField(default=False) # fail to compile?
+    eligible        = models.BooleanField(default=True)
+    repo            = models.CharField(max_length=200, default='')
     seed            = models.IntegerField(default=0)
-        
+    score           = models.FloatField(default=0.0)
+    rating          = models.IntegerField(default=2300)
+
+    def inc_score(self, delta):
+        # wishing for an atomic increment
+        c = Client.objects.get(pk=self.pk)
+        c.score += delta
+        c.save()
+        self.score = c.score
+    
     def last_game(self):
         last = self.games_played.all().aggregate(Max('pk'))
         if last['pk__max']:
@@ -38,10 +49,12 @@ class Client(models.Model):
             return datetime(1970,1,1,0,0)
     
     def fitness(self):
-        if self.games_played.count() == 0:
-            return 0
-        else:
-            return self.games_won.count() / float(self.games_played.count())
+        return self.rating
+        #games_complete = self.games_played.filter(status="Complete").count()
+        #if games_complete == 0:
+        #    return 0
+        #else:
+        #    return self.score / games_complete
     
     def __unicode__(self):
         return self.name
@@ -59,11 +72,16 @@ class Game(models.Model):
                                    default='New')
     priority    = models.IntegerField(default=1000)
     gamelog_url = models.CharField(max_length=200, default='')
+    p0out_url   = models.CharField(max_length=200, default='')
+    p1out_url   = models.CharField(max_length=200, default='')
     visualized  = models.DateTimeField(default=datetime(1970,1,1),null=True)
     completed   = models.DateTimeField(null=True)
     claimed     = models.BooleanField(default=True)
     tournament  = models.BooleanField(default=False)
     stats       = models.TextField(default='') # holds extra stuff via JSON
+    class Meta():
+        ordering = ['-completed', '-id']
+        
     
     def schedule(self):
         if self.status != 'New':
@@ -93,11 +111,16 @@ class GameData(models.Model):
     client     = models.ForeignKey(Client)
     compiled   = models.NullBooleanField()
     won        = models.NullBooleanField()
-    version    = models.CharField(max_length=100, default='')
+    output_url = models.CharField(max_length=200, default='')
+    version    = models.CharField(max_length=100, default='', null=True)
     stats      = models.TextField(default='') # holds extra stuff via JSON
 
     def __unicode__(self):
         return u"%s - %s" % (self.game.pk, self.client.name)
+    
+    class Meta():
+        ordering = ['id']
+
 
 
 class InjectedGameForm(forms.Form):
@@ -132,6 +155,7 @@ class Match(models.Model):
     mother_type = models.TextField(default='win')
     status      = models.TextField(default='Waiting')
     root        = models.BooleanField(default=False)
+    tournament  = models.IntegerField(default=2)
     
     def __unicode__(self):
         return u"%s - %s" % (self.p0.name, self.p1.name)

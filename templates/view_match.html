@@ -10,6 +10,9 @@ Match #{{ match.id }}
   Match #{{ match.id }} - {{ match.status }}
 </h1>
 
+{% if match.status == "Complete" %}
+  <a href="{% url 'thunderdome.views.representative_game' match_id=match.id%}">Representative Game</a></br>
+{% endif %}
 Parent Matches:<br>
 <ul>
   {% if match.father %}
