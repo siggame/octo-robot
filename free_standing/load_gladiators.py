@@ -7,7 +7,7 @@ f = open('user-data', 'r')
 user_data = f.read()
 f.close()
 
-count = 10 
+count = 1
 print "spinning up %i gladiators..." % count
 conn = boto.connect_ec2(access_cred, secret_cred)
 gladiator_image = conn.get_image('ami-89b779e0')

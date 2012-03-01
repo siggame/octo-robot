@@ -18,10 +18,15 @@ Scheduled Games: {{ scheduled_games }}</br>
 Running Games: {{ running_games }}</br>
 Complete Games: {{ complete_games }}</br>
 Failed Games: {{ failed_games }}<br>
+Last Game Completed: {{ last }}<br>
 
 <h2>Match Statuses</h2>
 {% for match in matches %}
-  <a href="{% url 'thunderdome.views.view_match' match_id=match.id %}">{{ match.id }}</a> - {{ match.status }}<br>
+  <a href="{% url 'thunderdome.views.view_match' match_id=match.id %}">{{ match.id }}</a> - {{ match.status }}
+  {% if match.status == 'Complete' %}
+    <a href="{% url 'thunderdome.views.visualize_match' match_id=match.id %}">visualize</a>
+  {% endif %}
+  <br>
 {% endfor %}
 
 {% endblock %}

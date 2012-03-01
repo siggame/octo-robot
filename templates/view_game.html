@@ -13,7 +13,7 @@ Game #{{ game.pk }}
     Status: {{ game.status }}<br>
     Priority: {{ game.priority }}<br>
     {% if game.gamelog_url|length > 0 %}
-      <a href="{{ game.gamelog_url }}">gamelog</a><br>
+      <a href="{{ game.gamelog_url }}">gamelog</a> <a href="/uard/thunderdome/visualize/{{ game.id }}">visualize</a>
     {% endif %}
     {{ game.stats }}
     <hr>

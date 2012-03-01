@@ -5,7 +5,7 @@
 {% endblock %}
 
 {% block content %}
-<h1>{{ client1.name }} vs {{ client2.name }}</h1>
+<h1>{{ client1.name }} ({{ c1wins }}) vs {{ client2.name }} ({{ c2wins }})</h1>
 {% for game in games %}
   {% include 'thunderdome/single_game_block.html' %}
   <hr>

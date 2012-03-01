@@ -26,12 +26,12 @@ def main():
 
 
 def grab_filename(url):
-    m = re.search('\d+\.glog$', url)
+    m = re.search('\d+-[\w]+\.glog$', url)
     return m.group(0) if m else None
 
 
 def grab_game_number(url):
-    m = re.search('(\d+)\.glog$', url)
+    m = re.search('(\d+)-[\w]+\.glog$', url)
     return m.group(1) if m else None
 
 

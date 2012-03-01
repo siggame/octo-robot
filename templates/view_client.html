@@ -5,7 +5,10 @@
 {% endblock %}
 
 {% block content %}
-    <h1>{{ client.name }}</h1>
+    <h1>{{ client.name }}</h1> 
+    rating: {{ client.rating }}<br>
+    score: {{ client.score }}<br>
+    games: {{ client.games_played.count }}<br>
     Current Version:
     {% if client.embargoed %}
     <font color='red'>{{ client.current_version }} This version does not compile!
