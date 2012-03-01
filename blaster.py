@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 """
 Missouri S&T ACM SIG-Game Arena (Thunderdome)
 
@@ -8,15 +8,11 @@ A task process that starts the referees (who play the matches.)
 """
 
 # Some magic to get a standalone python program hooked in to django
-import sys, os
-sys.path = ['/home/gladiator', '/home/gladiator/djangolol'] + sys.path
-
-from django.core.management import setup_environ
-import settings
-
-setup_environ(settings)
+import bootstrap
 
 # Non-Django 3rd Party Imports
+import os
+import sys
 import subprocess
 import time
 
@@ -52,11 +48,15 @@ def start_referee(ref_id, server_path):
     @param ref_id: The identifier for the referee. Unique to the system.
     @param server_path: path to the server.
     """
+    #Give the symlinked referees the bootstrapped path
+    #For the djangos
+    env = os.environ.copy()
+    env['PYTHONPATH'] = os.pathsep.join(sys.path)
     subprocess.call(['rm', '-rf', str(ref_id)])
     subprocess.call(['mkdir', str(ref_id)])
     subprocess.call(['ln', '../referee.py'], cwd='%s/' % ref_id)
     command = ['./referee.py', server_path]
-    return subprocess.Popen(command, cwd=str(ref_id))
+    return subprocess.Popen(command, cwd=str(ref_id),env=env)
 
 #def start_referee(server_path):
 #    command = ['./referee.py', server_path]

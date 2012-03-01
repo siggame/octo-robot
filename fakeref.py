@@ -6,12 +6,7 @@ from datetime import datetime
 import sys
 
 # Some magic to get a standalone python program hooked in to django
-sys.path = ['/home/gladiator', '/home/gladiator/djangolol'] + sys.path
-
-from django.core.management import setup_environ
-import settings
-
-setup_environ(settings)
+import bootstrap
 
 # Non-Django 3rd Party Imports
 import json               # special strings

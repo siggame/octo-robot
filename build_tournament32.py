@@ -3,14 +3,10 @@
 #####
 
 # Some magic to get a standalone python program hooked in to django
+import bootstrap
+
 import sys
 sys.path = ['/srv/', '/srv/uard/'] + sys.path
-
-from django.core.management import setup_environ
-import settings
-
-setup_environ(settings)
-
 # Non-Django 3rd Party Imports
 
 # My Imports

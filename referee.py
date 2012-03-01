@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 """
 Missouri S&T ACM SIG-Game Arena (Thunderdome) This is the referee code.
 The referee is responsible for compiling the clients, starting the clients
@@ -18,13 +18,7 @@ else:
     (junk, server_path) = sys.argv
 
 # Some magic to get a standalone python program hooked in to django
-import sys
-sys.path = ['/home/gladiator', '/home/gladiator/djangolol'] + sys.path
-
-from django.core.management import setup_environ
-import settings
-
-setup_environ(settings)
+import bootstrap
 
 # Non-Django 3rd Party Imports
 import re, json               # special strings
