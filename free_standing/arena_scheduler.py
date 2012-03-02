@@ -18,9 +18,11 @@ import beanstalkc
 import random
 import urllib, json
 from time import sleep
+from datetime import datetime
 
 # My Imports
 from thunderdome.models import Client, Game, GameData
+from thunderdome.views import compute_scoreboard
 
 def main():
     stalk = beanstalkc.Connection()
@@ -34,6 +36,7 @@ def main():
                 schedule_a_game()
         except:
             pass
+        compute_scoreboard()
         sleep(1)
     
     
@@ -43,6 +46,7 @@ def schedule_a_game():
 #        print client.name
     
     if len(clients) < 2:
+        print "No clients!"
         return
     worst_client = min(clients, key = lambda x: x.last_game())
     clients.remove(worst_client)

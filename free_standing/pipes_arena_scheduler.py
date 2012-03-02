@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 ### Missouri S&T ACM SIG-Game Arena (Thunderdome)
 #####
 
@@ -6,13 +6,10 @@ game_name = 'chess-2012'
 queue_len = 5
 
 # Some magic to get a standalone python program hooked in to django
+import bootstrap
 import sys
 sys.path = ['/srv/uard', '/srv'] + sys.path
 
-from django.core.management import setup_environ
-import settings
-
-setup_environ(settings)
 
 # Non-Django 3rd Party Imports
 import beanstalkc
