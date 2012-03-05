@@ -2,17 +2,16 @@
 ### Missouri S&T ACM SIG-Game Arena (Thunderdome)
 #####
 
-# referee no longer allowed to touch database
-# pipes only!
-
-# os.environ['CLIENT_PREFIX']
-# os.environ['SERVER_PATH']
-# os.environ['SERVER_HOST']
-# os.environ['GAME_NAME']
-# os.environ['S3_PREFIX']
-# os.environ['ACCESS_CRED']
-# os.environ['SECRET_CRED']
-# os.environ['BEANSTALK_HOST']
+# debugging
+import os
+os.environ['ACCESS_CRED']='AKIAIZX76FSWZCJPHGXQ'
+os.environ['SECRET_CRED']='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'
+os.environ['S3_PREFIX']='siggame-glog'
+os.environ['GAME_NAME']='chess-2012'
+os.environ['CLIENT_PREFIX']='ssh://mnuck@r99acm.device.mst.edu:2222'
+os.environ['SERVER_HOST']='localhost'
+os.environ['SERVER_PATH']='/home/gladiator/arena/server'
+os.environ['BEANSTALK_HOST']='r09mannr4.device.mst.edu'
 
 from datetime import datetime
 
@@ -38,7 +37,8 @@ def looping():
     job = stalk.reserve()
     game = json.loads(job.body)
     print "processing game", game['number']
-    
+        
+    # get latest client code
     for client in game['clients']:
         update_local_repo(client)
         
@@ -48,7 +48,7 @@ def looping():
             with file('%s-%s.txt' % (prefix, suffix), 'w') as f:
                 f.write('empty')
     
-    # get and compile the clients
+    # compile the clients
     game['status'] = "Building"
     stalk.put(json.dumps(game))
     for client in game['clients']:
@@ -57,7 +57,7 @@ def looping():
         print "result for make in %s was %s" % (client['name'], 
                                                 client['compiled'])
 
-    # handle a failed game
+    # fail the game if someone didn't compile
     if not all([x['compiled'] for x in game['clients']]):
         print "failing the game, someone didn't compile"
         game['status'] = "Failed"
@@ -71,47 +71,67 @@ def looping():
     server_host = os.environ['SERVER_HOST']
     players = list()
     for cl in game['clients']:
-        time.sleep(5)
+        time.sleep(5) # ensures ['clients'][0] plays as p0
         players.append(
             subprocess.Popen(['bash', 'run', server_host, game['number']], 
                              stdout=file('%s-stdout.txt' % cl['name'], 'w'),
                              stderr=file('%s-stderr.txt' % cl['name'], 'w'),
                              cwd=cl['name']))
     
-
-    # FIXME if .poll() is not None then a process has ended
-    #       this indicates that it has blown up 
-    #       before connecting to the server
-    
     # game is running. watch for gamelog
     print "running..."
     server_path = os.environ['SERVER_PATH']
     game['status'] = "Running"
     stalk.put(json.dumps(game))
-    while not os.access("%s/logs/%s.glog" % (server_path, game['number']), 
-                        os.F_OK):
+    p0_good = True
+    p1_good = True
+    glog_done = False
+    while p0_good and p1_good and not glog_done:
         job.touch()
-        time.sleep(10)
+        time.sleep(5)
+        p0_good = players[0].poll() is None
+        p1_good = players[1].poll() is None
+        glog_done = os.access("%s/logs/%s.glog" % \
+                                  (server_path, game['number']), os.F_OK)
     
+    try:
+        [x.terminate() for x in players]
+    except OSError:
+        pass
+    
+    print "pushing data blocks..."
+    push_datablocks(game)
+    
+    if not glog_done: # no glog, game did not terminate correctly
+        print "game %s early termination, broken client" % game['number']
+        game['status'] = "Failed"
+        game['completed'] = str(datetime.now())
+        if not p0_good:
+            game['clients'][0]['broken'] = True
+        if not p1_good:
+            game['clients'][1]['broken'] = True
+        stalk.put(json.dumps(game))
+        job.delete()
+        return
+        
     # figure out who won by reading the gamelog
     print "determining winner..."
     winner = parse_gamelog(game['number'])
-    if winner == '0':
-        game['winner'] = game['clients'][0]
-        game['loser']  = game['clients'][1]
-    elif winner == '1':
-        game['winner'] = game['clients'][0]
-        game['loser']  = game['clients'][1]
-    elif winner == '2':
+    if winner == '2':
         game['tied'] = True
-    
+        print game['clients'][0]['name'], "and", game['clients'][1]['name'], "tied!"
+    else:
+        if winner == '0':
+            game['winner'] = game['clients'][0]
+            game['loser']  = game['clients'][1]
+        elif winner == '1':
+            game['winner'] = game['clients'][1]
+            game['loser']  = game['clients'][0]
+        print game['winner']['name'], "beat", game['loser']['name']
+        
     # clean up
-    print "cleaning up..."
-    [x.terminate() for x in players]
     print "pushing gamelog..."
     push_gamelog(game)
-    print "pushing data blocks..."
-    push_datablocks(game)
     game['status'] = "Complete"
     game['completed'] = str(datetime.now())
     stalk.put(json.dumps(game))
@@ -197,7 +217,7 @@ def update_local_repo(client):
     subprocess.call(['git', 'pull'], cwd=client['name'],
                     stdout=file('%s-gitout.txt' % client['name'], 'a'),
                     stderr=subprocess.STDOUT)
-    subprocess.call(['git', 'checkout', client['current_version']],
+    subprocess.call(['git', 'checkout', client['tag']],
                     stdout=file('%s-gitout.txt' % client['name'], 'a'),
                     stderr=subprocess.STDOUT,
                     cwd=client['name'])
