@@ -3,7 +3,7 @@
 #####
 
 game_name = 'chess-2012'
-queue_len = 5
+queue_len = 5 
 
 # Some magic to get a standalone python program hooked in to django
 import bootstrap
@@ -53,7 +53,7 @@ def schedule_a_game():
     game = Game.objects.create()
     [GameData(game=game, client=x).save() for x in players]
     
-    payload_d = { 'number'         : game.pk,
+    payload_d = { 'number'         : str(game.pk),
                   'status'         : "Scheduled",
                   'clients'        : list(),
                   'time_scheduled' : str(time.time())}

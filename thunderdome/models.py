@@ -1,6 +1,6 @@
 ####
 ### Missouri S&T ACM SIG-Game Arena (Thunderdome)
-#####
+####
 
 # Standard Imports
 from datetime import datetime,timedelta
@@ -72,8 +72,8 @@ class Game(models.Model):
                                    default='New')
     priority    = models.IntegerField(default=1000)
     gamelog_url = models.CharField(max_length=200, default='')
-    p0out_url   = models.CharField(max_length=200, default='')
-    p1out_url   = models.CharField(max_length=200, default='')
+    p0out_url   = models.CharField(max_length=200, default='') # unused
+    p1out_url   = models.CharField(max_length=200, default='') # unused
     visualized  = models.DateTimeField(default=datetime(1970,1,1),null=True)
     completed   = models.DateTimeField(null=True)
     claimed     = models.BooleanField(default=True)
