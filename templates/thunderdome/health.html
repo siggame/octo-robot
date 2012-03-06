@@ -29,4 +29,29 @@ Last Game Completed: {{ last }}<br>
   <br>
 {% endfor %}
 
+<h2>Node Throughput</h2>
+<table border='1'>
+<tr>
+    <th>Node</th>
+    <th>Games Completed</th>
+    <th>Games per Hour</th>
+    <th>LMT</th>
+    <th>Inst. Rate</th>
+    <th>Current Game</th>
+    <th>Last Update</th>
+</tr>
+{% for key,value in rates.items %}
+<tr><td>{{key}}</td><td></td><td>{{value.rate}}</td><td colspan='3'></td><td>{{value.last_update}}</td></tr>
+{% for ref in value.refs %}
+<tr>
+    <td>\- Ref {{ref.referee_id}}</td>
+    <td>{{ref.games_completed}}</td>
+    <td>{{ref.compute_rate|floatformat:2}}</td>
+    <td>{{ref.last_match_time_pretty}}</td>
+    <td>{{ref.instant_rate|floatformat:2}}</td>
+    <td>{{ref.current_game}}</td>
+    <td>{{ref.last_update}}</td>
+{% endfor %}
+{% endfor %}
+</table>
 {% endblock %}

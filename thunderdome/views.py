@@ -15,7 +15,7 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Max
 
 # My Imports
-from thunderdome.models import Game, Client, GameData, InjectedGameForm, Match
+from thunderdome.models import Game, Client, GameData, InjectedGameForm, Match, Referee
 from datetime import datetime
 
 def matchup_odds(client1, client2):
@@ -75,6 +75,21 @@ def health(request):
     p['matches'].sort(key=lambda x: x.status, reverse=True)
     
     p['last'] = Game.objects.all().aggregate(Max('completed'))['completed__max']
+    # Compute the overall node throughput
+    refs = Referee.objects.all()
+    rates = dict()
+    for x in refs:
+        try:
+            rates[x.blaster_id]['rate'] += x.compute_rate()
+            rates[x.blaster_id]['refs'].append(x)
+        except KeyError:
+            rates[x.blaster_id] = dict()
+            rates[x.blaster_id]['rate'] = x.compute_rate()
+            rates[x.blaster_id]['last_update'] = x.last_update
+            rates[x.blaster_id]['refs'] = [x]
+        if x.last_update > rates[x.blaster_id]['last_update']:
+            rates[x.blaster_id]['last_update'] = x.last_update
+    p['rates'] = rates
     return render_to_response('thunderdome/health.html', p)
 
 

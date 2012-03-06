@@ -10,7 +10,7 @@ and recovering from the aftermath
 
 from datetime import datetime
 
-import sys
+import sys, os
 if len(sys.argv) != 2:
     print "referee.py server_path"
     exit()
@@ -25,9 +25,10 @@ import re, json               # special strings
 import beanstalkc, boto       # networky
 import subprocess, os         # shellish
 import random, time
+import socket
 
 # My Imports
-from thunderdome.models import Game
+from thunderdome.models import Game,Referee
 
 stalk = None
 
@@ -38,7 +39,7 @@ def main():
     """
     global stalk
     stalk = beanstalkc.Connection()
-    
+    Referee.objects.get_or_create(blaster_id=socket.gethostname(),referee_id=os.getpid())
     stalk.watch('game-requests')
     while True:
         looping()
@@ -65,6 +66,7 @@ def looping():
     @post: There has been an attempt at playing a game.
     """ 
     global stalk
+    time_start = datetime.today()
     # get a game
     job = stalk.reserve(timeout=2)
     if job is None:
@@ -72,6 +74,10 @@ def looping():
     game_id = json.loads(job.body)['game_id']
     game = Game.objects.get(pk=game_id)
     print "processing game", game_id
+
+    (me,c) = Referee.objects.get_or_create(blaster_id=socket.gethostname(),referee_id=os.getpid())
+    me.current_game = game
+    me.save() 
 
     gamedatas = list(game.gamedata_set.all())
     gamedatas.sort(key = lambda x: x.pk)
@@ -127,7 +133,7 @@ def looping():
                              stdout=file('%s-stdout.txt' % x.client.name, 'w'),
                              stderr=file('%s-stderr.txt' % x.client.name, 'w'),
                              cwd=x.client.name))
-    
+     
 
     # FIXME if .poll() is not None then a process has ended
     #       this indicates that it has blown up 
@@ -177,7 +183,11 @@ def looping():
     game.save()
     job.delete()
     print "%s done %s" % (str(game.pk), str(datetime.now()))
-
+    (me,c) = Referee.objects.get_or_create(blaster_id=socket.gethostname(),referee_id=os.getpid())
+    me.current_game = None
+    me.games_completed += 1
+    me.last_match_time = (datetime.today()-time_start).total_seconds()
+    me.save() 
     
 def compile_client(client):
     """

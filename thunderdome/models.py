@@ -3,7 +3,7 @@
 #####
 
 # Standard Imports
-from datetime import datetime
+from datetime import datetime,timedelta
 
 # Non-Django 3rd Party Imports
 import beanstalkc
@@ -159,3 +159,31 @@ class Match(models.Model):
     
     def __unicode__(self):
         return u"%s - %s" % (self.p0.name, self.p1.name)
+
+class Referee(models.Model):
+    blaster_id = models.CharField(max_length=200,default='')
+    referee_id = models.CharField(max_length=20,default='')
+    started = models.DateTimeField(auto_now_add=True)
+    last_update = models.DateTimeField(auto_now=True)
+    current_game = models.ForeignKey(Game, null=True, blank=True)
+    last_match_time = models.IntegerField(default=0)
+    games_completed = models.IntegerField(default=0)
+    
+    def __unicode__(self):
+        rate = self.compute_rate()
+        return u"Ref %s (Blaster %s) %s Games Per Hour" % (referee_id, blaster_id, rate)
+
+    def compute_rate(self):
+        time_alive = (datetime.today()-self.started).total_seconds()
+        rate = (self.games_completed/(time_alive/3600))
+        return rate
+
+    def instant_rate(self):
+        time_alive = (datetime.today()-self.last_update).total_seconds()
+        if self.last_match_time > 0:
+            time_alive += self.last_match_time
+        rate = (2/(time_alive/3600))
+        return rate
+
+    def last_match_time_pretty(self):
+        return timedelta(seconds=self.last_match_time) 
