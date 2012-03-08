@@ -1,0 +1,47 @@
+{% extends "thunderdome/base.html" %}
+{% load url from future %}
+
+
+{% block title %}
+ACM SIG-Game MegaMiner Arena (Thunderdome)
+{% endblock %}
+
+{% block head %}
+<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <script type="text/javascript">
+      google.load("visualization", "1", {packages:["corechart"]});
+      google.setOnLoadCallback(drawChart);
+      function drawChart() {
+        var data = new google.visualization.DataTable();
+        data.addColumn('datetime', 'Time');
+        {% for ref, rate_table in chart.items %}
+        data.addColumn('number', '{{ref}}');
+        {% endfor %}
+        {% for ref, rate_table in chart.items %}
+        {% if forloop.first %}
+        data.addRows({{rate_table|length}});
+        {% endif %}
+        {% for item in rate_table %}
+        data.setCell({{forloop.counter0}},0, new Date({{item.0.year}},{{item.0.month}},{{item.0.day}},
+            {{item.0.hour}},{{item.0.minute}},{{item.0.second}}))
+        data.setCell({{forloop.counter0}},{{forloop.parentloop.counter}},{{item.1}})
+        {% endfor %}
+        {% endfor %}
+
+        var options = {
+          title: 'Arena Performance',
+          isStacked: true,
+          vAxis: {title: 'Games Per Hour'},
+          hAxis: {title: 'Time'}
+        };
+
+        var chart = new google.visualization.AreaChart(document.getElementById('chart_div'));
+        chart.draw(data, options);
+      }
+    </script>
+{% endblock %}
+
+{% block content %}
+<h1>Arena</h1>
+<div id='chart_div' style='width: 900px; height:500px;'></div>
+{% endblock %}

@@ -16,7 +16,7 @@ from django.db.models import Max
 
 # My Imports
 from thunderdome.models import Game, Client, GameData, InjectedGameForm, Match, Referee
-from datetime import datetime
+from datetime import datetime,timedelta
 
 def matchup_odds(client1, client2):
     # manual join. fix this if you know how
@@ -77,21 +77,23 @@ def health(request):
     p['last'] = Game.objects.all().aggregate(Max('completed'))['completed__max']
     # Compute the overall node throughput
     refs = Referee.objects.all()
-    rates = dict()
-    for x in refs:
-        try:
-            rates[x.blaster_id]['rate'] += x.compute_rate()
-            rates[x.blaster_id]['refs'].append(x)
-        except KeyError:
-            rates[x.blaster_id] = dict()
-            rates[x.blaster_id]['rate'] = x.compute_rate()
-            rates[x.blaster_id]['last_update'] = x.last_update
-            rates[x.blaster_id]['refs'] = [x]
-        if x.last_update > rates[x.blaster_id]['last_update']:
-            rates[x.blaster_id]['last_update'] = x.last_update
-    p['rates'] = rates
+    p['refs'] = refs
     return render_to_response('thunderdome/health.html', p)
 
+
+def chart(request):
+    refs = Referee.objects.all()
+    result = dict()
+    out = dict()
+    earliest_start = min([ref.started for ref in refs])
+    for ref in refs:
+        period = datetime.today()-earliest_start
+        step = timedelta(minutes=10)
+        interval = timedelta(minutes=30)
+        table = ref.rate_table(period, step, interval)
+        result['%s/%s' % (ref.blaster_id,ref.referee_id)] = table
+    out['chart'] = result
+    return render_to_response('thunderdome/chart.html',out)
 
 @login_required
 def inject(request):

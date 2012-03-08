@@ -5,8 +5,6 @@ Configuration file for the arena to try and limit the repeated code.
 """
 DJANGO_PATH = '/home/scj7t4/arena'
 DJANGO_CORE = None
-BEANSTALK_SERVER = 'localhost'
-BEANSTALK_PORT = 11300
 
 import sys
 sys.path = [DJANGO_PATH] + sys.path

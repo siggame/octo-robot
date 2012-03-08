@@ -9,17 +9,14 @@ queue_len = 1
 import sys
 sys.path = ['/srv/uard', '/srv'] + sys.path
 
-from django.core.management import setup_environ
-import settings
-
-setup_environ(settings)
+import bootstrap
 
 # Non-Django 3rd Party Imports
 import beanstalkc
 import json
 
 # My Imports
-from thunderdome.models import Client, Game, GameData
+from thunderdome.models import Client, Game, GameData, Referee
 
 stalk = None
 
@@ -33,17 +30,23 @@ def main():
         job = stalk.reserve()
         request = json.loads(job.body)
         game = Game.objects.get(id=int(request['number']))
-        
+        game.started = request['started'] 
         game.stats = job.body
         game.status = request['status']
         if game.status in ["Complete", "Failed"]:
             if 'gamelog_url' in request:
-                game.gamelog_url = request['gamelog_url']
+                try:
+                    game.gamelog_url = request['gamelog_url']
+                except KeyError:
+                    pass
             if 'completed' in request:
                 game.completed = request['completed']
             handle_completion(request, game)
         game.save()
         job.delete()
+        (r,c) = Referee.objects.get_or_create(blaster_id=request['blaster_id'],referee_id=request['referee_id'])
+        r.games.add(game)
+        r.save()
         print "Game", request['number'], "status", request['status']
         
 
@@ -61,7 +64,10 @@ def handle_completion(request, game):
         gd.compiled = clidict[gd.client.name]['compiled']
         if not gd.compiled or 'broken' in clidict[gd.client.name]:
             gd.client.embargoed = True
-        gd.output_url = clidict[gd.client.name]['output_url']
+        try:
+            gd.output_url = clidict[gd.client.name]['output_url']
+        except KeyError:
+            pass
         if 'tied' in request:
             gd.client.score += 0.5
         gd.client.save()

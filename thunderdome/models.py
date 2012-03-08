@@ -75,14 +75,14 @@ class Game(models.Model):
     p0out_url   = models.CharField(max_length=200, default='') # unused
     p1out_url   = models.CharField(max_length=200, default='') # unused
     visualized  = models.DateTimeField(default=datetime(1970,1,1),null=True)
+    started     = models.DateTimeField(null=True)
     completed   = models.DateTimeField(null=True)
     claimed     = models.BooleanField(default=True)
     tournament  = models.BooleanField(default=False)
     stats       = models.TextField(default='') # holds extra stuff via JSON
     class Meta():
-        ordering = ['-completed', '-id']
-        
-    
+        ordering = ['-completed', '-id']   
+ 
     def schedule(self):
         if self.status != 'New':
             return False
@@ -103,6 +103,9 @@ class Game(models.Model):
 
     def __unicode__(self):
         return unicode(self.pk)
+
+    def game_time(self):
+        return (self.completed-self.started)
 
 
 class GameData(models.Model):
@@ -165,25 +168,54 @@ class Referee(models.Model):
     referee_id = models.CharField(max_length=20,default='')
     started = models.DateTimeField(auto_now_add=True)
     last_update = models.DateTimeField(auto_now=True)
-    current_game = models.ForeignKey(Game, null=True, blank=True)
-    last_match_time = models.IntegerField(default=0)
-    games_completed = models.IntegerField(default=0)
-    
+    games = models.ManyToManyField(Game)    
+    dead = models.BooleanField()
+    stats = models.TextField(default='') # holds extra stuff via JSON
+ 
     def __unicode__(self):
         rate = self.compute_rate()
         return u"Ref %s (Blaster %s) %s Games Per Hour" % (referee_id, blaster_id, rate)
 
-    def compute_rate(self):
-        time_alive = (datetime.today()-self.started).total_seconds()
-        rate = (self.games_completed/(time_alive/3600))
+    def compute_rate(self,only_complete=True,slice_end=None,slice_start=None):
+        if slice_end == None:
+            slice_end = datetime.today()
+        print "bing!"
+        if slice_start == None:
+            slice_start = self.started
+        print slice_start
+        time_alive = (slice_end-slice_start).total_seconds()
+        print "alive: %s" % time_alive
+        games_completed = self.games.filter(completed__gte=slice_start,completed__lt=slice_end)        
+        if only_complete:
+            games_completed = games_completed.filter(status='Complete').count()
+        else:
+            games_completed = games_completed.count()
+        print games_completed
+        rate = (games_completed/(time_alive/3600))
+        return rate
+    
+    def last_match(self,only_complete=False):
+        if only_complete:
+            game = self.games.filter(status='Completed')
+        else:
+            game = self.games.all()
+        if game.count() < 1:
+            return None
+        else:
+            return game.order_by('-pk')[0]
+
+    def games_completed(self):
+        return self.games.filter(status='Complete').count()
+        
+
+    def rate_table(self,time_period,step,interval,only_complete=True):
+        rate = []
+        slice_start = datetime.today()-time_period
+        slice_end = slice_start+interval
+        while slice_end <= (datetime.today()):
+            rate.append((slice_end,self.compute_rate(only_complete,slice_end,slice_start)))
+            slice_start = slice_start+step
+            slice_end = slice_end+step
         return rate
 
-    def instant_rate(self):
-        time_alive = (datetime.today()-self.last_update).total_seconds()
-        if self.last_match_time > 0:
-            time_alive += self.last_match_time
-        rate = (2/(time_alive/3600))
-        return rate
 
-    def last_match_time_pretty(self):
-        return timedelta(seconds=self.last_match_time) 

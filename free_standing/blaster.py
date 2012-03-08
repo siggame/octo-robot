@@ -56,8 +56,8 @@ def start_referee(ref_id, server_path):
     env['PYTHONPATH'] = os.pathsep.join(sys.path)
     subprocess.call(['rm', '-rf', str(ref_id)])
     subprocess.call(['mkdir', str(ref_id)])
-    subprocess.call(['ln', '../referee.py'], cwd='%s/' % ref_id)
-    command = ['./referee.py', server_path]
+    subprocess.call(['ln', '../referee_new.py'], cwd='%s/' % ref_id)
+    command = ['./referee_new.py', server_path]
     return subprocess.Popen(command, cwd=str(ref_id),env=env)
 
 #def start_referee(server_path):

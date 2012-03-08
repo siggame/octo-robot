@@ -4,14 +4,12 @@
 
 # debugging
 import os
-os.environ['ACCESS_CRED']='AKIAIZX76FSWZCJPHGXQ'
-os.environ['SECRET_CRED']='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'
-os.environ['S3_PREFIX']='siggame-glog'
+os.environ['S3_PREFIX']='actionbucket3000'
 os.environ['GAME_NAME']='chess-2012'
-os.environ['CLIENT_PREFIX']='ssh://mnuck@r99acm.device.mst.edu:2222'
+os.environ['CLIENT_PREFIX']='ssh://r99acm.device.mst.edu:2222'
 os.environ['SERVER_HOST']='localhost'
-os.environ['SERVER_PATH']='/home/gladiator/arena/server'
-os.environ['BEANSTALK_HOST']='r09mannr4.device.mst.edu'
+os.environ['SERVER_PATH']='/home/scj7t4/arena/free_standing/server'
+os.environ['BEANSTALK_HOST']='localhost'
 
 from datetime import datetime
 
@@ -20,6 +18,7 @@ import re, json               # special strings
 import beanstalkc, boto       # networky
 import subprocess, os         # shellish
 import random, time
+import socket
 
 stalk = None
 
@@ -37,6 +36,10 @@ def looping():
     job = stalk.reserve()
     game = json.loads(job.body)
     print "processing game", game['number']
+
+    game['blaster_id'] = socket.gethostname()
+    game['referee_id'] = os.getpid()
+    game['started'] = str(datetime.now())
         
     # get latest client code
     for client in game['clients']:
@@ -141,6 +144,7 @@ def looping():
     
 def compile_client(client):
     ''' Compile the client and return the code returned by make '''
+    print 'Making %s%s' % (os.getcwd(),client['name'])
     subprocess.call(['make', 'clean'], cwd=client['name'],
                     stdout=file("/dev/null", "w"),
                     stderr=subprocess.STDOUT)
