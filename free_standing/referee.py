@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 """
 Missouri S&T ACM SIG-Game Arena (Thunderdome) This is the referee code.
 The referee is responsible for compiling the clients, starting the clients
