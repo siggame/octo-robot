@@ -23,8 +23,8 @@ def main():
     start_server()
     start_referee(1, "%s/server" % os.getcwd())
     start_referee(2, "%s/server" % os.getcwd())
-    start_referee(3, "%s/server" % os.getcwd())
-    start_referee(4, "%s/server" % os.getcwd())
+    #start_referee(3, "%s/server" % os.getcwd())
+    #start_referee(4, "%s/server" % os.getcwd())
     while True:
         time.sleep(1)
 

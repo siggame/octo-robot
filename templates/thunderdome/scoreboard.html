@@ -4,28 +4,15 @@
 Scoreboard
 {% endblock %}
 
+{% block head %}
+<script type="text/javascript">
+$.getScript('/chart/scoreboard');
+$.getScript('/chart/throughput');
+</script>
+{% endblock %}
+
 {% block content %}
     <h1>Scoreboard</h1>
-    <table border=1>
-      <tr>
-	<td align='right'>vs</td>
-        {% for client in clients %}
-          <td align='center'>
-	    {{ client.name }}
-	  </td>
-        {% endfor %}
-      </tr>
-      {% for client in clients %}
-      <tr>
-	<td align='right'>
-	  <a href='view_client/{{ client.pk }}'>{{ client.name }}</a>
-	</td>
-	{% for entry in client.row %}
-	  <td align='center'>
-	    <a href='matchup/{{ entry.0 }}vs{{ entry.1 }}'>{{ entry.2 }}</a>
-	  </td>
-	{% endfor %}
-      </tr>
-      {% endfor %}
-    </table>
+<div id="scoreboard_table"></div>
+<div id="throughput_chart" style="width: 100%; height: 500px;"></div>
 {% endblock %}

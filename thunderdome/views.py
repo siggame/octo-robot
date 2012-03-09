@@ -7,12 +7,14 @@ import beanstalkc
 import boto
 import re
 
+
 # Django Imports
 from django.shortcuts import render_to_response, get_object_or_404
 from django.http import HttpResponseRedirect, HttpResponse
 from django.core.context_processors import csrf
 from django.contrib.auth.decorators import login_required
 from django.db.models import Max
+from django.core.cache import cache
 
 # My Imports
 from thunderdome.models import Game, Client, GameData, InjectedGameForm, Match, Referee
@@ -76,24 +78,19 @@ def health(request):
     
     p['last'] = Game.objects.all().aggregate(Max('completed'))['completed__max']
     # Compute the overall node throughput
-    refs = Referee.objects.all()
+    refs = Referee.objects.all().order_by('-pk')
     p['refs'] = refs
     return render_to_response('thunderdome/health.html', p)
 
-
-def chart(request):
-    refs = Referee.objects.all()
-    result = dict()
+def throughput_chart(request):
     out = dict()
-    earliest_start = min([ref.started for ref in refs])
-    for ref in refs:
-        period = datetime.today()-earliest_start
-        step = timedelta(minutes=10)
-        interval = timedelta(minutes=30)
-        table = ref.rate_table(period, step, interval)
-        result['%s/%s' % (ref.blaster_id,ref.referee_id)] = table
-    out['chart'] = result
-    return render_to_response('thunderdome/chart.html',out)
+    out['chart'] = cache.get('throughput_chart','')
+    return render_to_response('thunderdome/throughput_chart.html',out)
+
+def scoreboard_chart(request):
+    out = dict()
+    out['chart'] = cache.get('scoreboard_chart','')
+    return render_to_response('thunderdome/scoreboard_chart.html',out)
 
 @login_required
 def inject(request):
@@ -148,8 +145,8 @@ def scoreboard(request):
             grid[c1][c2] = 0
 
     for c1 in clients:
-        for game in c1.games_won.all():
-            grid[c1][game.loser] +=1
+        for c2 in clients:
+            grid[c1][c2] = c1.games_won.filter(loser=c2).count()
                 
     # Sort the clients by winningness
     clients = list(clients)
@@ -173,10 +170,7 @@ def matchup(request, client1_id, client2_id):
     client2 = get_object_or_404(Client, pk=client2_id)
     
     # manual join. fix this if you know how
-    c1games = set(client1.games_played.all())
-    c2games = set(client2.games_played.all())    
-    shared_games = list(c1games & c2games)
-    shared_games.sort(key=lambda x: x.pk, reverse=True)
+    shared_games = Game.objects.filter(clients=client2).filter(clients=client1).order_by('-pk')
 
     c1wins = len([x for x in shared_games if x.winner == client1])
     c2wins = len([x for x in shared_games if x.winner == client2])

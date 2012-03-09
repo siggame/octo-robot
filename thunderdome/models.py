@@ -75,7 +75,6 @@ class Game(models.Model):
     p0out_url   = models.CharField(max_length=200, default='') # unused
     p1out_url   = models.CharField(max_length=200, default='') # unused
     visualized  = models.DateTimeField(default=datetime(1970,1,1),null=True)
-    started     = models.DateTimeField(null=True)
     completed   = models.DateTimeField(null=True)
     claimed     = models.BooleanField(default=True)
     tournament  = models.BooleanField(default=False)
@@ -179,18 +178,14 @@ class Referee(models.Model):
     def compute_rate(self,only_complete=True,slice_end=None,slice_start=None):
         if slice_end == None:
             slice_end = datetime.today()
-        print "bing!"
         if slice_start == None:
             slice_start = self.started
-        print slice_start
         time_alive = (slice_end-slice_start).total_seconds()
-        print "alive: %s" % time_alive
         games_completed = self.games.filter(completed__gte=slice_start,completed__lt=slice_end)        
         if only_complete:
             games_completed = games_completed.filter(status='Complete').count()
         else:
             games_completed = games_completed.count()
-        print games_completed
         rate = (games_completed/(time_alive/3600))
         return rate
     
@@ -212,8 +207,29 @@ class Referee(models.Model):
         rate = []
         slice_start = datetime.today()-time_period
         slice_end = slice_start+interval
+        seen_nonzero = False
+        trailing_zero = False
         while slice_end <= (datetime.today()):
-            rate.append((slice_end,self.compute_rate(only_complete,slice_end,slice_start)))
+            curr = self.compute_rate(only_complete,slice_end,slice_start)
+            if curr > 0 and seen_nonzero == False and len(rate) > 0:
+                rate.pop()
+                rate.append((slice_end-step,0.0))
+                rate.append((slice_end,curr))
+            elif curr == 0 and seen_nonzero == True:
+                if trailing_zero == True:
+                    rate.append((slice_end,None))
+                else:
+                    rate.append((slice_end,0.0))
+                    trailing_zero = True
+            elif curr > 0:
+                rate.append((slice_end,curr))
+            else:
+                rate.append((slice_end,None))
+            
+            if curr > 0:
+                seen_nonzero = True
+                trailing_zero = False
+        
             slice_start = slice_start+step
             slice_end = slice_end+step
         return rate
