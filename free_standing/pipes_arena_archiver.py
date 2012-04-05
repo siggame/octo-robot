@@ -20,12 +20,18 @@ from thunderdome.models import Client, Game, GameData, Referee
 from datetime import datetime,timedelta
 from gviz_api import DataTable
 from django.core.cache import cache
+from multiprocessing import Process
+import time
+
+import os
+import settings
 
 stalk = None
 
 def main():
     result_tube = "game-results-%s" % game_name
-    next_run = processing()  
+    p = Process(target=processing)
+    p.start()
 
     global stalk
     stalk = beanstalkc.Connection()
@@ -43,8 +49,6 @@ def main():
             if 'completed' in request:
                 game.completed = request['completed']
             #Recompute the scoreboard and throughput
-            if datetime.today() > next_run:
-                next_run = processing()
             handle_completion(request, game)
         game.save()
         job.delete()
@@ -54,11 +58,14 @@ def main():
         print "Game", request['number'], "status", request['status']
         
 def processing():
-    start = datetime.today()
-    compute_throughput()
-    compute_scoreboard()
-    td = datetime.today()-start
-    return max(td*2,timedelta(seconds=30))+datetime.today()
+    while True:
+        start = datetime.today()
+        compute_throughput()
+        compute_scoreboard()
+        td = datetime.today()-start
+        delay = max(td*2,timedelta(seconds=30)).total_seconds()
+        print "Next run in %s secs" % delay
+        time.sleep(delay)
 
 def compute_throughput():
     refs = Referee.objects.all().order_by('pk')
@@ -67,9 +74,10 @@ def compute_throughput():
     out = dict()
     formatted = dict()
     earliest_start = min([ref.started for ref in refs])
-    period = datetime.today()-earliest_start
-    step = timedelta(minutes=10)
-    interval = timedelta(minutes=30)
+    step = (datetime.today()-earliest_start)/50
+    step = max([step,timedelta(minutes=5)])
+    interval = step*6
+    period = datetime.today()-earliest_start+interval
     for ref in refs:
         table = ref.rate_table(period, step, interval)
         v0 = None
@@ -83,7 +91,14 @@ def compute_throughput():
     desc =  [('Time','datetime')]
     desc += [('%s/%s' % (ref.blaster_id,ref.referee_id),'number') for ref in refs]
     dt = DataTable(desc,struct)
-    cache.set('throughput_chart',dt.ToJSCode('data'))
+    try:
+        path = os.path.join(settings.STATIC_ROOT,'throughput.js')
+        f = open(path,'w')
+        f.write(dt.ToJSCode('data'))
+        f.close()
+    except IOError:
+        print "Couldn't write throughput"
+        pass
     print "Throughput chart computed!"
 
 def compute_scoreboard():
@@ -118,7 +133,13 @@ def compute_scoreboard():
             tmp.append(link)
         struct.append(tmp)
     dt = DataTable(desc,struct)
-    cache.set('scoreboard_chart',dt.ToJSCode('data'))
+    try:
+        f = open(os.path.join(settings.STATIC_ROOT,'scoreboard.js'),'w')
+        f.write(dt.ToJSCode('data'))
+        f.close()
+    except IOError:
+        print "Couldn't write scoreboard"
+        pass
     print "Scoreboard Computed!"
     pass
 

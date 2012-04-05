@@ -6,9 +6,10 @@
 import beanstalkc
 import boto
 import re
-
+import os
 
 # Django Imports
+import settings
 from django.shortcuts import render_to_response, get_object_or_404
 from django.http import HttpResponseRedirect, HttpResponse
 from django.core.context_processors import csrf
@@ -84,12 +85,26 @@ def health(request):
 
 def throughput_chart(request):
     out = dict()
-    out['chart'] = cache.get('throughput_chart','')
+    try:
+        path = os.path.join(settings.STATIC_ROOT,'throughput.js')
+        print path
+        f = open(path)
+        out['chart'] = f.read()
+        f.close()
+    except IOError:
+        print "Couldn't open throughput"
+        out['chart'] = ""
     return render_to_response('thunderdome/throughput_chart.html',out)
 
 def scoreboard_chart(request):
     out = dict()
-    out['chart'] = cache.get('scoreboard_chart','')
+    try:
+        f = open(os.path.join(settings.STATIC_ROOT,'scoreboard.js'))
+        out['chart'] = f.read()
+        f.close()
+    except IOError:
+        print "Couldn't open scoreboard"
+        out['chart'] = ""
     return render_to_response('thunderdome/scoreboard_chart.html',out)
 
 @login_required
