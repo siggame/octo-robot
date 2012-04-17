@@ -1,0 +1,13 @@
+{% extends "thunderdome/base.html" %}
+
+{% block title %}
+{{ client1.name }} vs {{ client2.name }}
+{% endblock %}
+
+{% block content %}
+<h1>{{ client1.name }} ({{ c1wins }}) vs {{ client2.name }} ({{ c2wins }})</h1>
+{% for game in games %}
+  {% include 'thunderdome/single_game_block.html' %}
+  <hr>
+{% endfor %}
+{% endblock %}

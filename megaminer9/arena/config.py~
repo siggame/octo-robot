@@ -1,0 +1,13 @@
+game_name = 'megaminerai-9-space'
+
+django_paths = ['/django', '/django/siggame']
+
+req_queue_len = 5
+
+arena_ami='ami-1e32ea77'
+tournament_ami='ami-????????'
+
+beanstalk_host = 'ec2-23-22-40-10.compute-1.amazonaws.com'
+
+access_cred='AKIAIZX76FSWZCJPHGXQ'
+secret_cred='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'
