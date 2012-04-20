@@ -45,7 +45,7 @@ cd 2
 cd ..
 
 EOF
-""" % (access_cred, secret_cred, beanstalk_host, game_name)
+""" % (access_cred, secret_cred, game_name, beanstalk_host)
 
 import boto
 
