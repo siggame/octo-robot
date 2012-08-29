@@ -153,7 +153,7 @@ def parse_gamelog(game_number):
         the gamelog is now compressed. '''
     server_path = os.environ['SERVER_PATH']
     f = BZ2File("%s/logs/%s.glog" % (server_path, game_number), 'r')
-    log = f.readline()
+    log = f.read()
     f.close()
     match = re.search("\"game-winner\" (\d+) \"[^\"]+\" (\d+)", log)
     if match:
