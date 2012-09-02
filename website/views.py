@@ -19,7 +19,7 @@ from django.core.cache import cache
 
 # My Imports
 from thunderdome.models import Game, Client, GameData, InjectedGameForm, Match, Referee
-from datetime import datetime,timedelta
+from datetime import datetime, timedelta
 
 def matchup_odds(client1, client2):
     # manual join. fix this if you know how
@@ -59,8 +59,8 @@ def health(request):
     p = dict() # payload for the render_to_response
 
     c = beanstalkc.Connection()
-    c.use('game-requests-chess-2012')
-    tube_status = c.stats_tube('game-requests-chess-2012')
+    c.use('game-requests-megaminerai-9-space')
+    tube_status = c.stats_tube('game-requests-megaminerai-9-space')
     (p['ready_requests'], p['running_requests']) = \
         [tube_status[x] for x in ('current-jobs-ready',
                                   'current-jobs-reserved')]
@@ -83,6 +83,7 @@ def health(request):
     p['refs'] = refs
     return render_to_response('thunderdome/health.html', p)
 
+
 def throughput_chart(request):
     out = dict()
     try:
@@ -96,6 +97,8 @@ def throughput_chart(request):
         out['chart'] = ""
     return render_to_response('thunderdome/throughput_chart.html',out)
 
+
+@login_required
 def scoreboard_chart(request):
     out = dict()
     try:
@@ -106,6 +109,7 @@ def scoreboard_chart(request):
         print "Couldn't open scoreboard"
         out['chart'] = ""
     return render_to_response('thunderdome/scoreboard_chart.html',out)
+
 
 @login_required
 def inject(request):
@@ -130,18 +134,21 @@ def inject(request):
     return render_to_response('thunderdome/inject.html', payload)
 
 
+@login_required
 def view_game(request, game_id):
     ### View the status of a single game
     return render_to_response('thunderdome/view_game.html', 
                               {'game': get_object_or_404(Game, pk=game_id)})
 
 
+@login_required
 def view_match(request, match_id):
     ### View the status of a single match
     return render_to_response('thunderdome/view_match.html', 
                               {'match': get_object_or_404(Match, pk=match_id)})
-        
 
+
+@login_required
 def view_client(request, client_id):
     ### View the status of a single client
     return render_to_response('thunderdome/view_client.html', 
@@ -180,6 +187,7 @@ def scoreboard(request):
     return render_to_response('thunderdome/scoreboard.html', payload)
 
 
+@login_required
 def matchup(request, client1_id, client2_id):
     client1 = get_object_or_404(Client, pk=client1_id)
     client2 = get_object_or_404(Client, pk=client2_id)
@@ -194,8 +202,7 @@ def matchup(request, client1_id, client2_id):
                'client2' : client2,
                'c1wins'  : c1wins,
                'c2wins'  : c2wins,
-               'games'   : shared_games }
-    
+               'games'   : shared_games}    
     return render_to_response('thunderdome/matchup.html', payload)
 
 
@@ -230,6 +237,7 @@ def get_and_mark(request):
     return HttpResponse(next_game.gamelog_url)
 #    return HttpResponse(str(worst_client.name))
 
+
 def visualize(request, game_id):
     game = get_object_or_404(Game, pk=game_id)
     stalk = beanstalkc.Connection()
@@ -249,13 +257,11 @@ def sizeof_key(bucket, key):
     key = bucket.lookup(key)
     return key.size
 
-    
+
+from config import game_name, access_cred, secret_cred
 def get_representative_game_url(match):    
-    ### FIXME
-    access_cred = 'AKIAIZX76FSWZCJPHGXQ'
-    secret_cred = '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'
     conn = boto.connect_s3(access_cred, secret_cred)
-    bucket = conn.get_bucket('siggame-gamelogs')
+    bucket = conn.get_bucket('siggame-glog-%s' % game_name )
     
     urls = [x.gamelog_url for x in match.games.all() 
             if x.winner == match.winner]

@@ -2,14 +2,10 @@
 ### Missouri S&T ACM SIG-Game Arena (Thunderdome)
 #####
 
-game_name = 'chess-2012'
-queue_len = 5 
+from config import game_name, req_queue_len
 
 # Some magic to get a standalone python program hooked in to django
 import bootstrap
-import sys
-sys.path = ['/srv/uard', '/srv'] + sys.path
-
 
 # Non-Django 3rd Party Imports
 import beanstalkc
@@ -30,10 +26,11 @@ def main():
     stalk.use(req_tube)
     while True:
         try:
-            if stalk.stats_tube(req_tube)['current-jobs-ready'] < queue_len:
+            if stalk.stats_tube(req_tube)['current-jobs-ready'] < req_queue_len:
                 update_clients()
                 schedule_a_game()
         except:
+            print "Arena scheduler could not schedule a game"
             pass
         time.sleep(1)
     
@@ -51,7 +48,8 @@ def schedule_a_game():
     random.shuffle(players)
  
     game = Game.objects.create()
-    [GameData(game=game, client=x).save() for x in players]
+    for player in players:
+        GameData(game=game, client=player).save()
     
     payload_d = { 'number'         : str(game.pk),
                   'status'         : "Scheduled",
@@ -69,7 +67,7 @@ def schedule_a_game():
 
     
 def update_clients():
-    '''Get updated client info from Wisely's tastypie API'''
+    '''Import updated client info from Wisely's tastypie API'''
     api_url = "http://megaminerai.com/api/git/repo?c=%s" % game_name
     try:
         f = urllib.urlopen(api_url)
@@ -81,10 +79,11 @@ def update_clients():
         if block['tag'] is None:
             block['tag'] = ''
         if Client.objects.filter(name=block['login']).count() == 0:
-            makeClient( block )
-        client = Client.objects.get(name=block['login'])
+            client = makeClient( block )
+        else:
+            client = Client.objects.get(name=block['login'])
         if client.current_version != block['tag']:
-            client.embargoed = False
+            client.embargoed = False # only place an embargo can be broken
             client.current_version = block['tag']
             client.save()
             
@@ -96,9 +95,10 @@ def makeClient( block ):
     client.current_version = block['tag']
     client.repo = block['path']
     client.embargoed = True
-    client.eligible = True
+    client.eligible = True # tournament eligible
     client.seed = 0
     client.save()
+    return client
 
 
 main()

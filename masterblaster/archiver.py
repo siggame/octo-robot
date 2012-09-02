@@ -2,13 +2,9 @@
 ### Missouri S&T ACM SIG-Game Arena (Thunderdome)
 #####
 
-game_name = 'chess-2012'
-queue_len = 1
+from config import game_name
 
 # Some magic to get a standalone python program hooked in to django
-import sys
-sys.path = ['/srv/uard', '/srv'] + sys.path
-
 import bootstrap
 
 # Non-Django 3rd Party Imports
@@ -52,20 +48,23 @@ def main():
             handle_completion(request, game)
         game.save()
         job.delete()
-        (r,c) = Referee.objects.get_or_create(blaster_id=request['blaster_id'],referee_id=request['referee_id'])
+        (r,c) = Referee.objects.get_or_create(blaster_id=request['blaster_id'],referee_id=request['referee_id'],defaults={'started':datetime.utcnow(),'last_update':datetime.utcnow()})
+	r.last_update = datetime.utcnow()
         r.games.add(game)
         r.save()
         print "Game", request['number'], "status", request['status']
-        
+
+
 def processing():
     while True:
-        start = datetime.today()
+        start = datetime.now()
         compute_throughput()
         compute_scoreboard()
-        td = datetime.today()-start
+        td = datetime.now()-start
         delay = max(td*2,timedelta(seconds=30)).total_seconds()
         print "Next run in %s secs" % delay
         time.sleep(delay)
+
 
 def compute_throughput():
     refs = Referee.objects.all().order_by('pk')
@@ -74,10 +73,11 @@ def compute_throughput():
     out = dict()
     formatted = dict()
     earliest_start = min([ref.started for ref in refs])
-    step = (datetime.today()-earliest_start)/50
+    step = (datetime.utcnow()-earliest_start)/50
     step = max([step,timedelta(minutes=5)])
     interval = step*6
-    period = datetime.today()-earliest_start+interval
+    period = datetime.utcnow()-earliest_start+interval
+    print "Computing rate table p:%s s:%s i:%s" % (period,step,interval)
     for ref in refs:
         table = ref.rate_table(period, step, interval)
         v0 = None
@@ -101,6 +101,7 @@ def compute_throughput():
         pass
     print "Throughput chart computed!"
 
+    
 def compute_scoreboard():
     clients = Client.objects.exclude(current_version="")
     # Build the speedy lookup table
@@ -143,12 +144,16 @@ def compute_scoreboard():
     print "Scoreboard Computed!"
     pass
 
+
 def handle_completion(request, game):
     if 'winner' in request:
         game.winner = Client.objects.get(name=request['winner']['name'])
         game.winner.score += 1.0
     if 'loser' in request:
         game.loser  = Client.objects.get(name=request['loser']['name'])
+
+    if 'winner' in request and 'loser' in request:
+        assign_elo( game.winner, game.loser )
     
     clidict = dict()
     for client in request['clients']:
@@ -157,6 +162,7 @@ def handle_completion(request, game):
         if gd.client == game.winner:
             gd.won = True
         gd.compiled = clidict[gd.client.name]['compiled']
+        gd.version  = clidict[gd.client.name]['tag']
         if not gd.compiled or 'broken' in clidict[gd.client.name]:
             gd.client.embargoed = True
         try:
@@ -167,6 +173,24 @@ def handle_completion(request, game):
             gd.client.score += 0.5
         gd.client.save()
         gd.save()
+
+
+import math
+def assign_elo( winner, loser ):
+    delta = winner.rating - loser.rating
+    exp = (-1 * delta) / 400
+    odds = 1 / (1 + math.pow(10, exp))
+    if winner.rating < 2100:
+        k = 32
+    elif winner.rating > 2400:
+        k = 12
+    else:
+        k = 24
+    modifier = k * (1 - odds)
+    winner.rating += modifier
+    loser.rating = max([1, loser.rating - modifier])
+    winner.save()
+    loser.save()
 
 
 main()

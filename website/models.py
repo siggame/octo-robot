@@ -3,7 +3,7 @@
 ####
 
 # Standard Imports
-from datetime import datetime,timedelta
+from datetime import datetime, timedelta
 
 # Non-Django 3rd Party Imports
 import beanstalkc
@@ -81,7 +81,8 @@ class Game(models.Model):
     stats       = models.TextField(default='') # holds extra stuff via JSON
     class Meta():
         ordering = ['-completed', '-id']   
- 
+
+    # FIXME I don't think this is used anymore 
     def schedule(self):
         if self.status != 'New':
             return False
@@ -94,7 +95,7 @@ class Game(models.Model):
         c.use('game-requests')
         payload = json.dumps({'game_id'    : str(self.pk),
                               'entry_time' : str(time.time()) })
-        c.put(payload, priority=self.priority)
+        c.put(payload, priority=self.priority, ttr=600)
         c.close()
         self.status='Scheduled'
         self.save()
@@ -165,19 +166,18 @@ class Match(models.Model):
 class Referee(models.Model):
     blaster_id = models.CharField(max_length=200,default='')
     referee_id = models.CharField(max_length=20,default='')
-    started = models.DateTimeField(auto_now_add=True)
-    last_update = models.DateTimeField(auto_now=True)
+    started = models.DateTimeField(editable=True)
+    last_update = models.DateTimeField(editable=True)
     games = models.ManyToManyField(Game)    
     dead = models.BooleanField()
     stats = models.TextField(default='') # holds extra stuff via JSON
  
     def __unicode__(self):
-        rate = self.compute_rate()
-        return u"Ref %s (Blaster %s) %s Games Per Hour" % (referee_id, blaster_id, rate)
+        return u"Ref %s (Blaster %s) %s Games Per Hour" % (self.referee_id, self.blaster_id, self.compute_rate())
 
     def compute_rate(self,only_complete=True,slice_end=None,slice_start=None):
         if slice_end == None:
-            slice_end = datetime.today()
+            slice_end = datetime.utcnow()
         if slice_start == None:
             slice_start = self.started
         time_alive = (slice_end-slice_start).total_seconds()
@@ -205,30 +205,16 @@ class Referee(models.Model):
 
     def rate_table(self,time_period,step,interval,only_complete=True):
         rate = []
-        slice_start = datetime.today()-time_period
+        slice_start = datetime.utcnow()-time_period
         slice_end = slice_start+interval
         seen_nonzero = False
         trailing_zero = False
-        while slice_end <= (datetime.today()):
+        while slice_end <= (datetime.utcnow()):
             curr = self.compute_rate(only_complete,slice_end,slice_start)
-            if curr > 0 and seen_nonzero == False and len(rate) > 0:
-                rate.pop()
-                rate.append((slice_end-step,0.0))
-                rate.append((slice_end,curr))
-            elif curr == 0 and seen_nonzero == True:
-                if trailing_zero == True:
-                    rate.append((slice_end,None))
-                else:
-                    rate.append((slice_end,0.0))
-                    trailing_zero = True
-            elif curr > 0:
-                rate.append((slice_end,curr))
+            if curr > 0:
+                rate.append((slice_end,int(curr)))
             else:
                 rate.append((slice_end,None))
-            
-            if curr > 0:
-                seen_nonzero = True
-                trailing_zero = False
         
             slice_start = slice_start+step
             slice_end = slice_end+step
