@@ -2,14 +2,12 @@
 ### Missouri S&T ACM SIG-Game Arena (Thunderdome)
 #####
 
-# FIX base_path
-
-game_name = "megaminerai-9-space"
-
 import urllib
 import os
 import subprocess
 import json
+
+game_name = os.environ["GAME_NAME"]
 
 def main():
     api_url = "http://megaminerai.com/api/git/repo?c=%s" % game_name
