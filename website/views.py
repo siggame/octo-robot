@@ -1,6 +1,6 @@
 ####
 ### Missouri S&T ACM SIG-Game Arena (Thunderdome)
-#####
+####
 
 # Non-Django 3rd Party Imports
 import beanstalkc
@@ -15,11 +15,11 @@ from django.http import HttpResponseRedirect, HttpResponse
 from django.core.context_processors import csrf
 from django.contrib.auth.decorators import login_required
 from django.db.models import Max
-from django.core.cache import cache
 
 # My Imports
 from thunderdome.models import Game, Client, GameData, InjectedGameForm, Match, Referee
-from datetime import datetime, timedelta
+from datetime import datetime
+
 
 def matchup_odds(client1, client2):
     # manual join. fix this if you know how

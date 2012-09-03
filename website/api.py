@@ -2,9 +2,13 @@
 ### Missouri S&T ACM SIG-Game Arena (Thunderdome)
 #####
 
+# Tasty Pie Imports
 from tastypie.resources import ModelResource, ALL_WITH_RELATIONS
 from tastypie import fields
+
+# My Imports
 from thunderdome.models import Client, Game, GameData, Match
+
 
 class MatchResource(ModelResource):
     p0     = fields.ForeignKey('thunderdome.api.ClientNameResource', 'p0',     null=True, full=True)

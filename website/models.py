@@ -3,7 +3,7 @@
 ####
 
 # Standard Imports
-from datetime import datetime, timedelta
+from datetime import datetime
 
 # Non-Django 3rd Party Imports
 import beanstalkc
@@ -28,7 +28,7 @@ class Client(models.Model):
     rating          = models.IntegerField(default=2300)
 
     def inc_score(self, delta):
-        # wishing for an atomic increment
+        # FIXME wrap this in a transaction
         c = Client.objects.get(pk=self.pk)
         c.score += delta
         c.save()
@@ -125,7 +125,6 @@ class GameData(models.Model):
         ordering = ['id']
 
 
-
 class InjectedGameForm(forms.Form):
     ### Used to manually inject a game into the queue
     priority = forms.IntegerField(min_value=0, max_value=1000)
@@ -162,6 +161,7 @@ class Match(models.Model):
     
     def __unicode__(self):
         return u"%s - %s" % (self.p0.name, self.p1.name)
+
 
 class Referee(models.Model):
     blaster_id = models.CharField(max_length=200,default='')
@@ -207,8 +207,6 @@ class Referee(models.Model):
         rate = []
         slice_start = datetime.utcnow()-time_period
         slice_end = slice_start+interval
-        seen_nonzero = False
-        trailing_zero = False
         while slice_end <= (datetime.utcnow()):
             curr = self.compute_rate(only_complete,slice_end,slice_start)
             if curr > 0:
@@ -219,5 +217,3 @@ class Referee(models.Model):
             slice_start = slice_start+step
             slice_end = slice_end+step
         return rate
-
-
