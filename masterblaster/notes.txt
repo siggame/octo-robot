@@ -1,0 +1,16 @@
+Arena -> Tournament Transition
+
+1. shut down arena scheduler
+2. pick a gladiator, kill the rest
+- log in
+- kill the refs
+- set up the git puller doodad (client prefix)
+- pull git repos
+- halt the instance
+3. bake a tournament instance
+4. drain the request tube
+5. run the validating scheduler
+6. start tournament instances
+7. once the validation games complete, ensure <= 32 teams
+8. build tournament bracket
+9. start tournament scheduler

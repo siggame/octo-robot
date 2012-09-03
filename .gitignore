@@ -1,6 +1,3 @@
 *.pyc
-*.db
-*.txt
-settings.py
-manage.py
-urls.py
+*~
+aws_secrets.py
