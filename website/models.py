@@ -127,15 +127,17 @@ class GameData(models.Model):
 
 class InjectedGameForm(forms.Form):
     ### Used to manually inject a game into the queue
-    priority = forms.IntegerField(min_value=0, max_value=1000)
-    clients = forms.MultipleChoiceField(widget=CheckboxSelectMultiple)
+    player0 = forms.MultipleChoiceField(widget=Select)
+    player1 = forms.MultipleChoiceField(widget=Select)
     
     def __init__(self, *args, **kwargs):
         super(InjectedGameForm, self).__init__(*args, **kwargs)
-        self.fields['clients'].choices = [(x.pk, x.name) for x in 
+                                          
+        self.fields['player0'].choices = [(x.name, x.name) for x in 
                                           Client.objects.all()]
-
-    
+        self.fields['player1'].choices = [(x.name, x.name) for x in 
+                                          Client.objects.all()]
+   
 class Match(models.Model):
     ### A multi-game match
     p0     = models.ForeignKey(Client, null=True, blank=True, 

@@ -48,8 +48,8 @@ def schedule_a_game():
     random.shuffle(players)
  
     game = Game.objects.create()
-    for player in players:
-        GameData(game=game, client=player).save()
+    for p in players:
+        GameData(game=game, client=p).save()
     
     payload_d = { 'number'         : str(game.pk),
                   'status'         : "Scheduled",

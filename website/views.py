@@ -18,7 +18,9 @@ from django.db.models import Max
 
 # My Imports
 from thunderdome.models import Game, Client, GameData, InjectedGameForm, Match, Referee
-from datetime import datetime
+from datetime import datetime 
+import time
+import json
 
 
 def matchup_odds(client1, client2):
@@ -31,7 +33,6 @@ def matchup_odds(client1, client2):
     return c1wins, c2wins
 
 
-import json
 def bet_list(request):
     # a list of all scheduled games
     games = Game.objects.filter(status="Scheduled")    
@@ -53,7 +54,7 @@ def bet_list(request):
             
     return HttpResponse(json.dumps(payload))
 
-
+#FIXME clean up hard coding
 def health(request):
     # Let's start by having this page show some arena health statistics
     p = dict() # payload for the render_to_response
@@ -118,13 +119,32 @@ def inject(request):
         form = InjectedGameForm(request.POST)
         if form.is_valid():
 			
-			# FIXME use code in arena scheduler for guidance
-            game = Game.objects.create(priority=form.cleaned_data['priority'])
-            for client in Client.objects.filter(pk__in = \
-                                                form.cleaned_data['clients']):
-                GameData(game=game, client=client).save()
-            game.tournament = True
-            game.schedule()
+			# FIXME refactor - scheduler_arena.py schedule_a_game()
+            game = Game.objects.create()
+            player0 = Client.objects.get(name=form.cleaned_data['player0'])
+            player1 = Client.objects.get(name=form.cleaned_data['player1'])
+            players = [player0, player1]
+            
+            for p in players:
+                GameData(game=game, client=p).save()
+    
+            payload_d = { 'number'         : str(game.pk),
+                          'status'         : "Scheduled",
+                          'clients'        : list(),
+                          'time_scheduled' : str(time.time()),
+                          'origin'         : "High Priority Injection"}
+            for p in players:
+                payload_d['clients'].append({ 'name' : p.name,
+                                              'repo' : p.repo,
+                                              'tag'  : p.current_version })
+            game.stats = json.dumps(payload_d)
+            game.status = "Scheduled"
+            game.save()
+            
+            c = beanstalkc.Connection()
+            c.put(game.stats, priority=0)
+            c.close()
+           
             payload = {'game': game}
             payload.update(csrf(request))
             return HttpResponseRedirect('view/%s' % game.pk)
