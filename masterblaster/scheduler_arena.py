@@ -54,7 +54,8 @@ def schedule_a_game():
     payload_d = { 'number'         : str(game.pk),
                   'status'         : "Scheduled",
                   'clients'        : list(),
-                  'time_scheduled' : str(time.time())}
+                  'time_scheduled' : str(time.time()),
+                  'origin'         : "Arena Scheduler"}
     for p in players:
         payload_d['clients'].append({ 'name' : p.name,
                                       'repo' : p.repo,
