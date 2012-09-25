@@ -117,6 +117,8 @@ def inject(request):
     if request.method == 'POST':
         form = InjectedGameForm(request.POST)
         if form.is_valid():
+			
+			# FIXME use code in arena scheduler for guidance
             game = Game.objects.create(priority=form.cleaned_data['priority'])
             for client in Client.objects.filter(pk__in = \
                                                 form.cleaned_data['clients']):
