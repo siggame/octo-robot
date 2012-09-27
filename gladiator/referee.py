@@ -3,23 +3,31 @@
 #####
 
 from datetime import datetime
-import re, json               # special strings
-import beanstalkc, boto       # networky
-import subprocess, os         # shellish
-import random, time
+import re               # special strings
+import json
+import beanstalkc       # networky
+import boto
+import subprocess         # shellish
+import os
+import random
+import time
 import socket
+import md5
+import zipfile
+from bz2 import BZ2File
 
 stalk = None
 
+
 def main():
     global stalk
-    stalk = beanstalkc.Connection(host=os.environ['BEANSTALK_HOST'])    
-    stalk.watch('game-requests-%s' % os.environ['GAME_NAME']) # input
-    stalk.use('game-results-%s'    % os.environ['GAME_NAME']) # output
+    stalk = beanstalkc.Connection(host=os.environ['BEANSTALK_HOST'])
+    stalk.watch('game-requests-%s' % os.environ['GAME_NAME'])  # input
+    stalk.use('game-results-%s' % os.environ['GAME_NAME'])     # output
     while True:
         looping()
-        
-        
+
+
 def looping():
     '''Get a game, process it, repeat'''
     job = stalk.reserve()
@@ -29,19 +37,19 @@ def looping():
     game['blaster_id'] = socket.gethostname()
     game['referee_id'] = os.getpid()
     game['started'] = str(datetime.now())
-        
+
     # get latest client code in arena mode.
     # tournament mode uses client code that is already in place
     if 'tournament' not in game:
         for client in game['clients']:
             update_local_repo(client)
-        
+
     # make empty files for all the output files
     for prefix in [x['name'] for x in game['clients']]:
         for suffix in ['stdout', 'stderr', 'makeout', 'gitout']:
             with file('%s-%s.txt' % (prefix, suffix), 'w') as f:
                 f.write('empty')
-    
+
     # compile the clients
     game['status'] = "Building"
     stalk.put(json.dumps(game))
@@ -49,7 +57,7 @@ def looping():
     for client in game['clients']:
         client['compiled'] = (compile_client(client) is 0)
         job.touch()
-        print "result for make in %s was %s" % (client['name'], 
+        print "result for make in %s was %s" % (client['name'],
                                                 client['compiled'])
 
     # fail the game if someone didn't compile in arena mode.
@@ -63,18 +71,18 @@ def looping():
         stalk.put(json.dumps(game))
         job.delete()
         return
-    
+
     # start the clients
     server_host = os.environ['SERVER_HOST']
     players = list()
     for cl in game['clients']:
-        time.sleep(10) # ensures ['clients'][0] plays as p0
+        time.sleep(10)  # ensures ['clients'][0] plays as p0
         players.append(
-            subprocess.Popen(['bash', 'run', server_host, game['number']], 
+            subprocess.Popen(['bash', 'run', server_host, game['number']],
                              stdout=file('%s-stdout.txt' % cl['name'], 'w'),
                              stderr=file('%s-stderr.txt' % cl['name'], 'w'),
                              cwd=cl['name']))
-    
+
     # game is running. watch for gamelog
     print "running..."
     server_path = os.environ['SERVER_PATH']
@@ -88,18 +96,18 @@ def looping():
         time.sleep(5)
         p0_good = players[0].poll() is None
         p1_good = players[1].poll() is None
-        glog_done = os.access("%s/logs/%s.glog" % \
-                                  (server_path, game['number']), os.F_OK)
-    
+        glog_done = os.access("%s/logs/%s.glog" %
+                              (server_path, game['number']), os.F_OK)
+
     try:
         [x.terminate() for x in players]
     except OSError:
         pass
-    
+
     print "pushing data blocks..."
     push_datablocks(game)
-    
-    if not glog_done: # no glog, game did not terminate correctly
+
+    if not glog_done:  # no glog, game did not terminate correctly
         print "game %s early termination, broken client" % game['number']
         game['status'] = "Failed"
         game['completed'] = str(datetime.now())
@@ -110,22 +118,23 @@ def looping():
         stalk.put(json.dumps(game))
         job.delete()
         return
-        
+
     # figure out who won by reading the gamelog
     print "determining winner..."
     winner = parse_gamelog(game['number'])
     if winner == '2':
         game['tied'] = True
-        print game['clients'][0]['name'], "and", game['clients'][1]['name'], "tied!"
+        print game['clients'][0]['name'], "and", \
+            game['clients'][1]['name'], "tied!"
     else:
         if winner == '0':
             game['winner'] = game['clients'][0]
-            game['loser']  = game['clients'][1]
+            game['loser'] = game['clients'][1]
         elif winner == '1':
             game['winner'] = game['clients'][1]
-            game['loser']  = game['clients'][0]
+            game['loser'] = game['clients'][0]
         print game['winner']['name'], "beat", game['loser']['name']
-        
+
     # clean up
     print "pushing gamelog..."
     push_gamelog(game)
@@ -135,10 +144,10 @@ def looping():
     job.delete()
     print "%s done %s" % (game['number'], str(datetime.now()))
 
-    
+
 def compile_client(client):
     ''' Compile the client and return the code returned by make '''
-    print 'Making %s/%s' % (os.getcwd(),client['name'])
+    print 'Making %s/%s' % (os.getcwd(), client['name'])
     subprocess.call(['make', 'clean'], cwd=client['name'],
                     stdout=file("/dev/null", "w"),
                     stderr=subprocess.STDOUT)
@@ -147,7 +156,6 @@ def compile_client(client):
                            stderr=subprocess.STDOUT)
 
 
-from bz2 import BZ2File
 def parse_gamelog(game_number):
     ''' Determine winner by parsing that last s-expression in the gamelog
         the gamelog is now compressed. '''
@@ -161,7 +169,7 @@ def parse_gamelog(game_number):
     return None
 
 
-def push_file( local_filename, remote_filename ):
+def push_file(local_filename, remote_filename):
     ''' Push this thing to s3 '''
     bucket_name = "%s-%s" % (os.environ['S3_PREFIX'], os.environ['GAME_NAME'])
     access_cred = os.environ['ACCESS_CRED']
@@ -175,8 +183,6 @@ def push_file( local_filename, remote_filename ):
     return "http://%s.s3.amazonaws.com/%s" % (bucket_name, k.key)
 
 
-import md5
-import zipfile
 def push_datablocks(game):
     ''' Make zip files containing client data and push them to s3 '''
     for client in game['clients']:
@@ -189,12 +195,12 @@ def push_datablocks(game):
         remote = "%s-%s-%s-data.zip" % (game['number'], salt, client['name'])
         client['output_url'] = push_file(in_name, remote)
         os.remove(in_name)
-        
+
 
 def push_gamelog(game):
     '''Push gamelog to S3'''
     server_path = os.environ['SERVER_PATH']
-    gamelog_filename = "%s/logs/%s.glog" % (server_path, game['number'])    
+    gamelog_filename = "%s/logs/%s.glog" % (server_path, game['number'])
     # salt exists to stop people from randomly probing for files
     salt = md5.md5(str(random.random())).hexdigest()[:5]
     remote = "%s-%s.glog" % (game['number'], salt)
@@ -205,7 +211,7 @@ def push_gamelog(game):
 def update_local_repo(client):
     '''Get the appropriate code and version from the repository'''
     base_path = os.environ['CLIENT_PREFIX']
-    subprocess.call(['git', 'clone', 
+    subprocess.call(['git', 'clone',
                      '%s%s' % (base_path, client['repo']), client['name']],
                     stdout=file('%s-gitout.txt' % client['name'], 'w'),
                     stderr=subprocess.STDOUT)
@@ -219,7 +225,6 @@ def update_local_repo(client):
                     stdout=file('%s-gitout.txt' % client['name'], 'a'),
                     stderr=subprocess.STDOUT,
                     cwd=client['name'])
-
 
 
 if __name__ == "__main__":
