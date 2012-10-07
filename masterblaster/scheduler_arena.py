@@ -14,7 +14,7 @@ import beanstalkc
 # My Imports
 from config import game_name, req_queue_len
 from thunderdome.models import Client
-from sked import sked
+from thunderdome.sked import sked
 
 
 def main():

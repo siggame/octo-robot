@@ -14,8 +14,9 @@ import beanstalkc
 import json
 
 # My Imports
-from config import game_name, log
+from config import game_name
 from thunderdome.models import Client, Game, GameData, Referee
+from thunderdome.loggly_logging import log
 from gviz_api import DataTable
 
 
