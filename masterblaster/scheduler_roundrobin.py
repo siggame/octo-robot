@@ -9,8 +9,8 @@ from itertools import combinations
 import beanstalkc
 
 # My Imports
-from thunderdome.models import Client
 from config import game_name
+from thunderdome.models import Client
 from sked import sked
 
 

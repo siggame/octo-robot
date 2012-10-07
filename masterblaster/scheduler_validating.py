@@ -9,8 +9,8 @@ import random
 import beanstalkc
 
 # My Imports
-from thunderdome.models import Client
 from config import game_name
+from thunderdome.models import Client
 from sked import sked
 
 
@@ -19,13 +19,13 @@ def main():
     req_tube = "game-requests-%s" % game_name
     stalk.use(req_tube)
     clients = list(Client.objects.filter(eligible=True))
+    random.shuffle(clients)
     for client in clients:
         client.embargoed = False
         client.save()
     while len(clients) > 1:
-        (c1, c2) = random.sample(clients, 2)
-        clients.remove(c1)
-        clients.remove(c2)
+        (c1, c2) = clients[:2]
+        clients = clients[2:]
         sked(c1, c2, stalk, "Validating Scheduler")
         sked(c2, c1, stalk, "Validating Scheduler")
 
@@ -38,4 +38,5 @@ def main():
         sked(otherguy, lastguy, stalk, "Validating Scheduler")
 
 
-main()
+if __name__ == "__main__":
+    main()
