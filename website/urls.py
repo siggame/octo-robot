@@ -2,16 +2,9 @@
 ### Missouri S&T ACM SIG-Game Arena (Thunderdome)
 #####
 
-# Tasty Pie Imports
-from tastypie.api import Api
-
-# Django Imports
 from django.conf.urls.defaults import patterns, url, include
-
-# My Imports
-from thunderdome.api import ClientResource, ClientNameResource, \
-                            GameResource, GameDataResource, MatchResource
-
+from tastypie.api import Api
+from thunderdome.api import ClientResource, ClientNameResource, GameResource, GameDataResource, MatchResource
 
 v1_api = Api(api_name='v1')
 v1_api.register(ClientResource())
@@ -20,14 +13,15 @@ v1_api.register(GameResource())
 v1_api.register(GameDataResource())
 v1_api.register(MatchResource())
 
-
 urlpatterns = patterns('thunderdome.views',
     url(r'^bet_list$', 'bet_list'),
     url(r'^main$', 'scoreboard'),
     url(r'^$','scoreboard'),
     url(r'^inject$', 'inject'),
     url(r'^view/(?P<game_id>\d+)$', 'view_game'),
-    
+
+    #url(r'^view/main$', 'scoreboard'), #-brad, not needed at the moment, but has possiblity
+
     url(r'^get_next_game_url_to_visualize$', 'get_next_game_url_to_visualize'),
     url(r'^game_visualized/(?P<game_id>\d+)$', 'game_visualized'),
     url(r'^get_next_game_url_to_visualize_and_mark', 'get_and_mark'),

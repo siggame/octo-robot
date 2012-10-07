@@ -3,7 +3,7 @@
 ####
 
 # Standard Imports
-from datetime import datetime
+from datetime import datetime,timedelta
 
 # Non-Django 3rd Party Imports
 import beanstalkc
@@ -28,7 +28,7 @@ class Client(models.Model):
     rating          = models.IntegerField(default=2300)
 
     def inc_score(self, delta):
-        # FIXME wrap this in a transaction
+        # wishing for an atomic increment
         c = Client.objects.get(pk=self.pk)
         c.score += delta
         c.save()
@@ -81,8 +81,7 @@ class Game(models.Model):
     stats       = models.TextField(default='') # holds extra stuff via JSON
     class Meta():
         ordering = ['-completed', '-id']   
-
-    # FIXME I don't think this is used anymore 
+ 
     def schedule(self):
         if self.status != 'New':
             return False
@@ -125,19 +124,22 @@ class GameData(models.Model):
         ordering = ['id']
 
 
+
 class InjectedGameForm(forms.Form):
     ### Used to manually inject a game into the queue
-    player0 = forms.MultipleChoiceField(widget=Select)
-    player1 = forms.MultipleChoiceField(widget=Select)
-    
+    priority = forms.IntegerField(min_value=0, max_value=1000)
+    clientOne = forms.ChoiceField()
+    clientTwo = forms.ChoiceField()
+
     def __init__(self, *args, **kwargs):
         super(InjectedGameForm, self).__init__(*args, **kwargs)
-                                          
-        self.fields['player0'].choices = [(x.name, x.name) for x in 
+        self.fields['clientOne'].choices = [(x.pk, x.name) for x in 
                                           Client.objects.all()]
-        self.fields['player1'].choices = [(x.name, x.name) for x in 
-                                          Client.objects.all()]
-   
+        self.fields['clientTwo']. choices = [(x.pk, x.name) for x in
+                                               Client.objects.all()]
+
+    
+
 class Match(models.Model):
     ### A multi-game match
     p0     = models.ForeignKey(Client, null=True, blank=True, 
@@ -163,7 +165,6 @@ class Match(models.Model):
     
     def __unicode__(self):
         return u"%s - %s" % (self.p0.name, self.p1.name)
-
 
 class Referee(models.Model):
     blaster_id = models.CharField(max_length=200,default='')
@@ -209,6 +210,8 @@ class Referee(models.Model):
         rate = []
         slice_start = datetime.utcnow()-time_period
         slice_end = slice_start+interval
+        seen_nonzero = False
+        trailing_zero = False
         while slice_end <= (datetime.utcnow()):
             curr = self.compute_rate(only_complete,slice_end,slice_start)
             if curr > 0:
@@ -219,3 +222,5 @@ class Referee(models.Model):
             slice_start = slice_start+step
             slice_end = slice_end+step
         return rate
+
+

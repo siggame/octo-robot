@@ -1,12 +1,17 @@
 ####
 ### Missouri S&T ACM SIG-Game Arena (Thunderdome)
-####
+#####
+
+# Standard Imports
+import re
+import os
+import time
+import json
+from datetime import datetime,timedelta
 
 # Non-Django 3rd Party Imports
 import beanstalkc
 import boto
-import re
-import os
 
 # Django Imports
 import settings
@@ -15,12 +20,10 @@ from django.http import HttpResponseRedirect, HttpResponse
 from django.core.context_processors import csrf
 from django.contrib.auth.decorators import login_required
 from django.db.models import Max
+from django.core.cache import cache
 
 # My Imports
 from thunderdome.models import Game, Client, GameData, InjectedGameForm, Match, Referee
-from datetime import datetime 
-import time
-import json
 
 
 def matchup_odds(client1, client2):
@@ -54,17 +57,20 @@ def bet_list(request):
             
     return HttpResponse(json.dumps(payload))
 
-#FIXME clean up hard coding
+
 def health(request):
     # Let's start by having this page show some arena health statistics
     p = dict() # payload for the render_to_response
-
+    r = dict()
+    
     c = beanstalkc.Connection()
     c.use('game-requests-megaminerai-9-space')
     tube_status = c.stats_tube('game-requests-megaminerai-9-space')
-    (p['ready_requests'], p['running_requests']) = \
+    (p['ready_requests'], p['running_requests'], p['current_tube']) = \
         [tube_status[x] for x in ('current-jobs-ready',
-                                  'current-jobs-reserved')]
+                                  'current-jobs-reserved',
+                                  'name')]
+
     c.close()
 
     (p['scheduled_games'], p['running_games'], 
@@ -84,7 +90,6 @@ def health(request):
     p['refs'] = refs
     return render_to_response('thunderdome/health.html', p)
 
-
 def throughput_chart(request):
     out = dict()
     try:
@@ -98,7 +103,6 @@ def throughput_chart(request):
         out['chart'] = ""
     return render_to_response('thunderdome/throughput_chart.html',out)
 
-
 @login_required
 def scoreboard_chart(request):
     out = dict()
@@ -111,23 +115,27 @@ def scoreboard_chart(request):
         out['chart'] = ""
     return render_to_response('thunderdome/scoreboard_chart.html',out)
 
-
-@login_required
+#@login_required
 def inject(request):
     ### Handle manual injection of a game into the system
     if request.method == 'POST':
         form = InjectedGameForm(request.POST)
         if form.is_valid():
-			
-			# FIXME refactor - scheduler_arena.py schedule_a_game()
-            game = Game.objects.create()
-            player0 = Client.objects.get(name=form.cleaned_data['player0'])
-            player1 = Client.objects.get(name=form.cleaned_data['player1'])
-            players = [player0, player1]
+            game = Game.objects.create(priority=form.cleaned_data['priority'])
             
-            for p in players:
-                GameData(game=game, client=p).save()
-    
+            try:
+               clientOne = Client.objects.get(pk__iexact = \
+                                              form.cleaned_data['clientOne']) 
+               clientTwo = Client.objects.get(pk__iexact = \
+                                              form.cleaned_data['clientTwo'])
+            except Client.DoesNotExist:
+               return HttpResponseRedirect('/mies/thunderdome/main/')
+            else:
+               GameData(game=game, client=clientTwo).save()
+               GameData(game=game, client=clientOne).save()
+            
+            players = [clientOne, clientTwo]
+
             payload_d = { 'number'         : str(game.pk),
                           'status'         : "Scheduled",
                           'clients'        : list(),
@@ -140,13 +148,16 @@ def inject(request):
             game.stats = json.dumps(payload_d)
             game.status = "Scheduled"
             game.save()
-            
+
             c = beanstalkc.Connection()
+            c.use('game-requests-megaminerai-9-space')
             c.put(game.stats, priority=0)
-            c.close()
-           
-            payload = {'game': game}
-            payload.update(csrf(request))
+            c.close()            
+
+            #game.tournament = True
+            #game.schedule()
+            #payload = {'game': game}
+            payload_d.update(csrf(request))
             return HttpResponseRedirect('view/%s' % game.pk)
     else:
         form = InjectedGameForm()
@@ -155,21 +166,25 @@ def inject(request):
     payload.update(csrf(request))
     return render_to_response('thunderdome/inject.html', payload)
 
-
-@login_required
+#@login_required
 def view_game(request, game_id):
     ### View the status of a single game
-    return render_to_response('thunderdome/view_game.html', 
-                              {'game': get_object_or_404(Game, pk=game_id)})
+    stalk = beanstalkc.Connection()
+    stalk.watch('game-requests-megaminerai-9-space')
+    job = stalk.reserve(timeout=5)
+    data = json.loads(job.body)
+    
+       
 
+    return render_to_response('thunderdome/view_game.html', 
+                              {'game': get_object_or_404(Game, pk=game_id), "data":data})
 
 @login_required
 def view_match(request, match_id):
     ### View the status of a single match
     return render_to_response('thunderdome/view_match.html', 
                               {'match': get_object_or_404(Match, pk=match_id)})
-
-
+        
 @login_required
 def view_client(request, client_id):
     ### View the status of a single client
@@ -177,9 +192,8 @@ def view_client(request, client_id):
                               {'client': get_object_or_404(Client, 
                                                            pk=client_id)})
 
-
 def scoreboard(request):
-#    clients = Client.objects.all()
+    # clients = Client.objects.all()
     clients = Client.objects.exclude(current_version="")
     # Build the speedy lookup table
     grid = dict()    
@@ -208,7 +222,6 @@ def scoreboard(request):
     payload = {'clients': clients}
     return render_to_response('thunderdome/scoreboard.html', payload)
 
-
 @login_required
 def matchup(request, client1_id, client2_id):
     client1 = get_object_or_404(Client, pk=client1_id)
@@ -224,7 +237,8 @@ def matchup(request, client1_id, client2_id):
                'client2' : client2,
                'c1wins'  : c1wins,
                'c2wins'  : c2wins,
-               'games'   : shared_games}    
+               'games'   : shared_games }
+    
     return render_to_response('thunderdome/matchup.html', payload)
 
 
@@ -259,7 +273,6 @@ def get_and_mark(request):
     return HttpResponse(next_game.gamelog_url)
 #    return HttpResponse(str(worst_client.name))
 
-
 def visualize(request, game_id):
     game = get_object_or_404(Game, pk=game_id)
     stalk = beanstalkc.Connection()
@@ -279,11 +292,13 @@ def sizeof_key(bucket, key):
     key = bucket.lookup(key)
     return key.size
 
-
-from config import game_name, access_cred, secret_cred
+    
 def get_representative_game_url(match):    
+    ### FIXME
+    access_cred = 'AKIAIZX76FSWZCJPHGXQ'
+    secret_cred = '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'
     conn = boto.connect_s3(access_cred, secret_cred)
-    bucket = conn.get_bucket('siggame-glog-%s' % game_name )
+    bucket = conn.get_bucket('siggame-glog-megaminerai-9-space')
     
     urls = [x.gamelog_url for x in match.games.all() 
             if x.winner == match.winner]
