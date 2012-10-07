@@ -12,8 +12,8 @@ import time
 import beanstalkc
 
 # My Imports
-from thunderdome.models import Client
 from config import game_name, req_queue_len
+from thunderdome.models import Client
 from sked import sked
 
 
@@ -23,7 +23,7 @@ def main():
     stalk.use(req_tube)
     while True:
         try:
-            stats = stalk.states_tubs(req_tube)
+            stats = stalk.stats_tube(req_tube)
             if stats['current-jobs-ready'] < req_queue_len:
                 #update_clients()
                 schedule_a_game(stalk)

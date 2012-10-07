@@ -14,9 +14,9 @@ import beanstalkc
 import json
 
 # My Imports
+from config import game_name, log
 from thunderdome.models import Client, Game, GameData, Referee
 from gviz_api import DataTable
-from config import game_name
 
 
 import settings
@@ -53,6 +53,8 @@ def main():
         r.games.add(game)
         r.save()
         print "Game", request['number'], "status", request['status']
+        request.update({'reporter': 'archiver'})
+        log.info(json.dumps(request))
 
 
 def processing():
