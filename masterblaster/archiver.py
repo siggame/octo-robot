@@ -4,9 +4,6 @@
 
 from config import game_name
 
-# Some magic to get a standalone python program hooked in to django
-import bootstrap
-
 # Non-Django 3rd Party Imports
 import beanstalkc
 import json
@@ -25,8 +22,8 @@ stalk = None
 
 def main():
     result_tube = "game-results-%s" % game_name
-    p = Process(target=processing)
-    p.start()
+    #p = Process(target=processing)
+    #p.start()
 
     global stalk
     stalk = beanstalkc.Connection()
