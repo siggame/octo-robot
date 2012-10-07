@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 
-# FIX BEANSTALK_HOST, GAME_NAME, AMI
-
 from config import arena_ami, access_cred, secret_cred, \
                    beanstalk_host, game_name
 
@@ -53,8 +51,8 @@ count = 1
 print "spinning up %i gladiators..." % count
 conn = boto.connect_ec2(access_cred, secret_cred)
 gladiator_image = conn.get_image(arena_ami)
-reservation = gladiator_image.run(min_count = count, max_count = count,
-                                  user_data = user_data,
-                                  instance_type='c1.medium', 
-                                  key_name = 'MND_EC2_keypair',
-                                  security_groups = ['MND_SSH'])
+reservation = gladiator_image.run(min_count=count, max_count=count,
+                                  user_data=user_data,
+                                  instance_type='c1.medium',
+                                  key_name='MND_EC2_keypair',
+                                  security_groups=['MND_SSH'])
