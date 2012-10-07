@@ -12,31 +12,27 @@ import time
 import beanstalkc
 
 # My Imports
-from thunderdome.models import Client, Game, GameData
+from thunderdome.models import Client
 from config import game_name, req_queue_len
-
-stalk = None
+from sked import sked
 
 
 def main():
-    req_tube = "game-requests-%s" % game_name
-
-    global stalk
     stalk = beanstalkc.Connection()
+    req_tube = "game-requests-%s" % game_name
     stalk.use(req_tube)
     while True:
         try:
             stats = stalk.states_tubs(req_tube)
             if stats['current-jobs-ready'] < req_queue_len:
                 #update_clients()
-                schedule_a_game()
+                schedule_a_game(stalk)
         except:
             print "Arena scheduler could not schedule a game"
-            pass
         time.sleep(1)
 
 
-def schedule_a_game():
+def schedule_a_game(stalk):
     '''Schedule the most needy client and a random partner for a game'''
     clients = list(Client.objects.exclude(name='bye').filter(embargoed=False))
     if len(clients) < 2:  # takes two to tango
@@ -46,25 +42,7 @@ def schedule_a_game():
     partner = random.choice(clients)
     players = [worst_client, partner]
     random.shuffle(players)
-
-    game = Game.objects.create()
-    for p in players:
-        GameData(game=game, client=p).save()
-
-    payload_d = {'number'         : str(game.pk),
-                 'status'         : "Scheduled",
-                 'clients'        : list(),
-                 'time_scheduled' : str(time.time()),
-                 'origin'         : "Arena Scheduler"}
-    for p in players:
-        payload_d['clients'].append({'name' : p.name,
-                                     'repo' : p.repo,
-                                     'tag'  : p.current_version})
-    game.stats = json.dumps(payload_d)
-    game.status = "Scheduled"
-    game.save()
-    stalk.put(game.stats)
-    print 'scheduled', game, worst_client, partner
+    sked(players[0], players[1], stalk, "Arena Scheduler")
 
 
 def update_clients():
@@ -102,4 +80,5 @@ def makeClient(block):
     return client
 
 
-main()
+if __name__ == "__main__":
+    main()
