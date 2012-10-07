@@ -2,33 +2,33 @@
 ### Missouri S&T ACM SIG-Game Arena (Thunderdome)
 #####
 
-from datetime import datetime
-import re               # special strings
+# Standard Imports
+import re
 import json
-import beanstalkc       # networky
-import boto
-import subprocess         # shellish
+import subprocess
 import os
 import random
-import time
 import socket
 import md5
 import zipfile
+from time import sleep
+from datetime import datetime
 from bz2 import BZ2File
 
-stalk = None
+# Non-Django 3rd Party Imports
+import beanstalkc
+import boto
 
 
 def main():
-    global stalk
     stalk = beanstalkc.Connection(host=os.environ['BEANSTALK_HOST'])
     stalk.watch('game-requests-%s' % os.environ['GAME_NAME'])  # input
     stalk.use('game-results-%s' % os.environ['GAME_NAME'])     # output
     while True:
-        looping()
+        looping(stalk)
 
 
-def looping():
+def looping(stalk):
     '''Get a game, process it, repeat'''
     job = stalk.reserve()
     game = json.loads(job.body)
@@ -76,7 +76,7 @@ def looping():
     server_host = os.environ['SERVER_HOST']
     players = list()
     for cl in game['clients']:
-        time.sleep(10)  # ensures ['clients'][0] plays as p0
+        sleep(10)  # ensures ['clients'][0] plays as p0
         players.append(
             subprocess.Popen(['bash', 'run', server_host, game['number']],
                              stdout=file('%s-stdout.txt' % cl['name'], 'w'),
@@ -93,7 +93,7 @@ def looping():
     glog_done = False
     while p0_good and p1_good and not glog_done:
         job.touch()
-        time.sleep(5)
+        sleep(5)
         p0_good = players[0].poll() is None
         p1_good = players[1].poll() is None
         glog_done = os.access("%s/logs/%s.glog" %
