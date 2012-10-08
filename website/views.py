@@ -5,9 +5,8 @@
 # Standard Imports
 import re
 import os
-import time
 import json
-from datetime import datetime,timedelta
+from datetime import datetime
 
 # Non-Django 3rd Party Imports
 import beanstalkc
@@ -20,16 +19,17 @@ from django.http import HttpResponseRedirect, HttpResponse
 from django.core.context_processors import csrf
 from django.contrib.auth.decorators import login_required
 from django.db.models import Max
-from django.core.cache import cache
 
 # My Imports
-from thunderdome.models import Game, Client, GameData, InjectedGameForm, Match, Referee
+from thunderdome.models import Client, Game
+from thunderdome.models import InjectedGameForm, Match, Referee
+from thunderdome.sked import sked
 
 
 def matchup_odds(client1, client2):
     # manual join. fix this if you know how
     c1games = set(client1.games_played.all())
-    c2games = set(client2.games_played.all())    
+    c2games = set(client2.games_played.all())
     shared_games = list(c1games & c2games)
     c1wins = len([x for x in shared_games if x.winner == client1])
     c2wins = len([x for x in shared_games if x.winner == client2])
@@ -38,31 +38,28 @@ def matchup_odds(client1, client2):
 
 def bet_list(request):
     # a list of all scheduled games
-    games = Game.objects.filter(status="Scheduled")    
+    games = Game.objects.filter(status="Scheduled")
     payload = list()
     for g in games:
         clients = list(g.clients.all())
-        c0w, c1w = matchup_odds( clients[0], clients[1] )
-        
-        total = float(max( [c0w + c1w, 1] ))
+        c0w, c1w = matchup_odds(clients[0], clients[1])
+        total = float(max([c0w + c1w, 1]))
         odds0 = total / c0w if c0w != 0 else total
         odds1 = total / c1w if c1w != 0 else total
-        
+
         payload.append({'gameID'   : g.pk,
                         'clientID' : clients[0].name,
-                        'odds'     : odds0 })
+                        'odds'     : odds0})
         payload.append({'gameID'   : g.pk,
                         'clientID' : clients[1].name,
-                        'odds'     : odds1 })
-            
+                        'odds'     : odds1})
     return HttpResponse(json.dumps(payload))
 
 
 def health(request):
     # Let's start by having this page show some arena health statistics
-    p = dict() # payload for the render_to_response
-    r = dict()
-    
+    p = dict()  # payload for the render_to_response
+
     c = beanstalkc.Connection()
     c.use('game-requests-megaminerai-9-space')
     tube_status = c.stats_tube('game-requests-megaminerai-9-space')
@@ -73,27 +70,29 @@ def health(request):
 
     c.close()
 
-    (p['scheduled_games'], p['running_games'], 
+    (p['scheduled_games'], p['running_games'],
      p['complete_games'], p['failed_games'], p['building_games']) = \
-         [Game.objects.filter(status = x).count 
-          for x in ('Scheduled', 'Running', 'Complete', 'Failed', 'Building')]
+       [Game.objects.filter(status=x).count
+        for x in ('Scheduled', 'Running', 'Complete', 'Failed', 'Building')]
 
-    p['sanity'] = p['ready_requests']  == p['scheduled_games'] \
-              and p['running_games'] == p['running_requests']
-    
+    p['sanity'] = p['ready_requests'] == p['scheduled_games'] \
+        and p['running_games'] == p['running_requests']
+
     p['matches'] = list(Match.objects.order_by('-id'))
     p['matches'].sort(key=lambda x: x.status, reverse=True)
-    
-    p['last'] = Game.objects.all().aggregate(Max('completed'))['completed__max']
+
+    p['last'] = \
+        Game.objects.all().aggregate(Max('completed'))['completed__max']
     # Compute the overall node throughput
     refs = Referee.objects.all().order_by('-pk')
     p['refs'] = refs
     return render_to_response('thunderdome/health.html', p)
 
+
 def throughput_chart(request):
     out = dict()
     try:
-        path = os.path.join(settings.STATIC_ROOT,'throughput.js')
+        path = os.path.join(settings.STATIC_ROOT, 'throughput.js')
         print path
         f = open(path)
         out['chart'] = f.read()
@@ -101,19 +100,21 @@ def throughput_chart(request):
     except IOError:
         print "Couldn't open throughput"
         out['chart'] = ""
-    return render_to_response('thunderdome/throughput_chart.html',out)
+    return render_to_response('thunderdome/throughput_chart.html', out)
+
 
 @login_required
 def scoreboard_chart(request):
     out = dict()
     try:
-        f = open(os.path.join(settings.STATIC_ROOT,'scoreboard.js'))
+        f = open(os.path.join(settings.STATIC_ROOT, 'scoreboard.js'))
         out['chart'] = f.read()
         f.close()
     except IOError:
         print "Couldn't open scoreboard"
         out['chart'] = ""
-    return render_to_response('thunderdome/scoreboard_chart.html',out)
+    return render_to_response('thunderdome/scoreboard_chart.html', out)
+
 
 #@login_required
 def inject(request):
@@ -121,82 +122,54 @@ def inject(request):
     if request.method == 'POST':
         form = InjectedGameForm(request.POST)
         if form.is_valid():
-            game = Game.objects.create(priority=form.cleaned_data['priority'])
-            
-            try:
-               clientOne = Client.objects.get(pk__iexact = \
-                                              form.cleaned_data['clientOne']) 
-               clientTwo = Client.objects.get(pk__iexact = \
-                                              form.cleaned_data['clientTwo'])
-            except Client.DoesNotExist:
-               return HttpResponseRedirect('/mies/thunderdome/main/')
-            else:
-               GameData(game=game, client=clientTwo).save()
-               GameData(game=game, client=clientOne).save()
-            
-            players = [clientOne, clientTwo]
+            clientOne = get_object_or_404(
+                Client, pk__iexact=form.cleaned_data['clientOne'])
+            clientTwo = get_object_or_404(
+                Client, pk__iexact=form.cleaned_data['clientTwo'])
 
-            payload_d = { 'number'         : str(game.pk),
-                          'status'         : "Scheduled",
-                          'clients'        : list(),
-                          'time_scheduled' : str(time.time()),
-                          'origin'         : "High Priority Injection"}
-            for p in players:
-                payload_d['clients'].append({ 'name' : p.name,
-                                              'repo' : p.repo,
-                                              'tag'  : p.current_version })
-            game.stats = json.dumps(payload_d)
-            game.status = "Scheduled"
-            game.save()
-
-            c = beanstalkc.Connection()
-            c.use('game-requests-megaminerai-9-space')
-            c.put(game.stats, priority=0)
-            c.close()            
-
-            #game.tournament = True
-            #game.schedule()
-            #payload = {'game': game}
-            payload_d.update(csrf(request))
+            stalk = beanstalkc.Connection()
+            stalk.use('game-requests-megaminerai-9-space')
+            game = sked(clientOne, clientTwo, stalk,
+                        "Priority Game Request", 0)
+            stalk.close()
             return HttpResponseRedirect('view/%s' % game.pk)
     else:
         form = InjectedGameForm()
-    
+
     payload = {'form': form}
     payload.update(csrf(request))
     return render_to_response('thunderdome/inject.html', payload)
 
+
 #@login_required
 def view_game(request, game_id):
     ### View the status of a single game
-    stalk = beanstalkc.Connection()
-    stalk.watch('game-requests-megaminerai-9-space')
-    job = stalk.reserve(timeout=5)
-    data = json.loads(job.body)
-    
-       
+    game = get_object_or_404(Game, pk=game_id)
+    return render_to_response('thunderdome/view_game.html',
+                              {'game': game})
 
-    return render_to_response('thunderdome/view_game.html', 
-                              {'game': get_object_or_404(Game, pk=game_id), "data":data})
 
 @login_required
 def view_match(request, match_id):
     ### View the status of a single match
-    return render_to_response('thunderdome/view_match.html', 
-                              {'match': get_object_or_404(Match, pk=match_id)})
-        
+    match = get_object_or_404(Match, pk=match_id)
+    return render_to_response('thunderdome/view_match.html',
+                              {'match': match})
+
+
 @login_required
 def view_client(request, client_id):
     ### View the status of a single client
-    return render_to_response('thunderdome/view_client.html', 
-                              {'client': get_object_or_404(Client, 
-                                                           pk=client_id)})
+    client = get_object_or_404(Client, pk=client_id)
+    return render_to_response('thunderdome/view_client.html',
+                              {'client': client})
+
 
 def scoreboard(request):
     # clients = Client.objects.all()
     clients = Client.objects.exclude(current_version="")
     # Build the speedy lookup table
-    grid = dict()    
+    grid = dict()
     for c1 in clients:
         grid[c1] = dict()
         for c2 in clients:
@@ -205,47 +178,54 @@ def scoreboard(request):
     for c1 in clients:
         for c2 in clients:
             grid[c1][c2] = c1.games_won.filter(loser=c2).count()
-                
+
     # Sort the clients by winningness
     clients = list(clients)
-    clients.sort(reverse=True, key = lambda x: x.fitness())
+    clients.sort(reverse=True, key=lambda x: x.fitness())
 
     # Load the data in the format the template expects
     for c1 in clients:
         c1.row = list()
         for c2 in clients:
             if c1 in grid and c2 in grid[c1]:
-                c1.row.append((c1.pk,c2.pk,grid[c1][c2]))
+                c1.row.append((c1.pk, c2.pk, grid[c1][c2]))
             else:
-                c1.row.append((c1.pk,c2.pk,' '))
+                c1.row.append((c1.pk, c2.pk, ' '))
 
     payload = {'clients': clients}
     return render_to_response('thunderdome/scoreboard.html', payload)
+
 
 @login_required
 def matchup(request, client1_id, client2_id):
     client1 = get_object_or_404(Client, pk=client1_id)
     client2 = get_object_or_404(Client, pk=client2_id)
-    
+
     # manual join. fix this if you know how
-    shared_games = Game.objects.filter(clients=client2).filter(clients=client1).order_by('-pk')
+    shared_games = \
+        Game.objects \
+        .filter(clients=client2) \
+        .filter(clients=client1) \
+        .order_by('-pk')
 
     c1wins = len([x for x in shared_games if x.winner == client1])
     c2wins = len([x for x in shared_games if x.winner == client2])
-    
+
     payload = {'client1' : client1,
                'client2' : client2,
                'c1wins'  : c1wins,
                'c2wins'  : c2wins,
-               'games'   : shared_games }
-    
+               'games'   : shared_games}
+
     return render_to_response('thunderdome/matchup.html', payload)
 
 
 def get_next_game_url_to_visualize(request):
     clients = Client.objects.exclude(name='bye')
-    worst_client = min(clients, key = lambda x: x.last_visualized())
-    next_gid = worst_client.games_played.all().filter(status='Complete').aggregate(Max('pk'))['pk__max']
+    worst_client = min(clients, key=lambda x: x.last_visualized())
+    next_gid = \
+        worst_client.games_played.all() \
+        .filter(status='Complete').aggregate(Max('pk'))['pk__max']
     next_game = Game.objects.get(pk=next_gid)
     return HttpResponse(next_game.gamelog_url)
 
@@ -263,15 +243,16 @@ def get_and_mark(request):
     for c in clients:
         if c.games_played.all().exclude(gamelog_url='').count() != 0:
             ok_clients.append(c)
-    
-    worst_client = min(ok_clients, key = lambda x: x.last_visualized())
-    next_gid = worst_client.games_played.all().exclude(gamelog_url='').aggregate(Max('pk'))['pk__max']
-#    next_gid = list(worst_client.games_played.all().filter(status='Complete'))
+
+    worst_client = min(ok_clients, key=lambda x: x.last_visualized())
+    next_gid = \
+        worst_client.games_played.all() \
+        .exclude(gamelog_url='').aggregate(Max('pk'))['pk__max']
     next_game = Game.objects.get(pk=next_gid)
     next_game.visualized = datetime.now()
     next_game.save()
     return HttpResponse(next_game.gamelog_url)
-#    return HttpResponse(str(worst_client.name))
+
 
 def visualize(request, game_id):
     game = get_object_or_404(Game, pk=game_id)
@@ -292,21 +273,21 @@ def sizeof_key(bucket, key):
     key = bucket.lookup(key)
     return key.size
 
-    
-def get_representative_game_url(match):    
+
+def get_representative_game_url(match):
     ### FIXME
     access_cred = 'AKIAIZX76FSWZCJPHGXQ'
     secret_cred = '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'
     conn = boto.connect_s3(access_cred, secret_cred)
     bucket = conn.get_bucket('siggame-glog-megaminerai-9-space')
-    
-    urls = [x.gamelog_url for x in match.games.all() 
+
+    urls = [x.gamelog_url for x in match.games.all()
             if x.winner == match.winner]
-    
+
     keynames = [url_to_keyname(x) for x in urls]
-    biggest = max(keynames, key=lambda x: sizeof_key(bucket,x))
+    biggest = max(keynames, key=lambda x: sizeof_key(bucket, x))
     regex = "([\d]+)-([\w]+)\.glog"
-    game_id = re.search(regex,biggest).groups()[0]
+    game_id = re.search(regex, biggest).groups()[0]
     return game_id
 
 
