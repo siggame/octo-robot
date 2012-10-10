@@ -21,6 +21,7 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Max
 
 # My Imports
+from thunderdome.config import game_name, access_cred, secret_cred
 from thunderdome.models import Client, Game
 from thunderdome.models import InjectedGameForm, Match, Referee
 from thunderdome.sked import sked
@@ -61,8 +62,8 @@ def health(request):
     p = dict()  # payload for the render_to_response
 
     c = beanstalkc.Connection()
-    c.use('game-requests-megaminerai-9-space')
-    tube_status = c.stats_tube('game-requests-megaminerai-9-space')
+    c.use('game-requests-%s' % game_name)
+    tube_status = c.stats_tube('game-requests-%s' % game_name)
     (p['ready_requests'], p['running_requests'], p['current_tube']) = \
         [tube_status[x] for x in ('current-jobs-ready',
                                   'current-jobs-reserved',
@@ -128,7 +129,7 @@ def inject(request):
                 Client, pk__iexact=form.cleaned_data['clientTwo'])
 
             stalk = beanstalkc.Connection()
-            stalk.use('game-requests-megaminerai-9-space')
+            stalk.use('game-requests-%s' % game_name)
             game = sked(clientOne, clientTwo, stalk,
                         "Priority Game Request", 0)
             stalk.close()
@@ -275,11 +276,8 @@ def sizeof_key(bucket, key):
 
 
 def get_representative_game_url(match):
-    ### FIXME
-    access_cred = 'AKIAIZX76FSWZCJPHGXQ'
-    secret_cred = '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'
     conn = boto.connect_s3(access_cred, secret_cred)
-    bucket = conn.get_bucket('siggame-glog-megaminerai-9-space')
+    bucket = conn.get_bucket('siggame-glog-%s' % game_name)
 
     urls = [x.gamelog_url for x in match.games.all()
             if x.winner == match.winner]
