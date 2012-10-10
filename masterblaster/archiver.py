@@ -2,6 +2,7 @@
 ### Missouri S&T ACM SIG-Game Arena (Thunderdome)
 #####
 
+
 # Standard Imports
 import time
 import math
@@ -14,7 +15,8 @@ import beanstalkc
 import json
 
 # My Imports
-from config import game_name
+import bootstrap
+from thunderdome.config import game_name
 from thunderdome.models import Client, Game, GameData, Referee
 from thunderdome.loggly_logging import log
 from gviz_api import DataTable

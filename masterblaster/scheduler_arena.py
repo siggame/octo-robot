@@ -12,7 +12,8 @@ import time
 import beanstalkc
 
 # My Imports
-from config import game_name, req_queue_len
+import bootstrap
+from thunderdome.config import game_name, req_queue_len
 from thunderdome.models import Client
 from thunderdome.sked import sked
 

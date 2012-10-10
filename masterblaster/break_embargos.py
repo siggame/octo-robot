@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import config
+import boostrap
 
 # My Imports
 from thunderdome.models import Client

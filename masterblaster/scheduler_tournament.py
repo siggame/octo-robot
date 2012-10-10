@@ -10,15 +10,15 @@ A task process that starts the referees (who play the matches.)
 # Standard Imports
 import json
 import time
-
+import random
 
 # Non-Django 3rd Party Imports
 import beanstalkc
-import random
 
 # My Imports
+import bootstrap
+from thunderdome.config import game_name
 from thunderdome.models import Game, GameData, Match
-from config import game_name
 
 stalk = None
 

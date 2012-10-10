@@ -2,18 +2,9 @@
 ### Missouri S&T ACM SIG-Game Arena (Thunderdome)
 #####
 
-from config import django_paths
-
-# Some magic to get a standalone python program hooked in to django
-import sys
-sys.path = django_paths + sys.path
-from django.core.management import setup_environ
-import settings
-setup_environ(settings)
-
-# Non-Django 3rd Party Imports
 
 # My Imports
+import bootstrap
 from thunderdome.models import Client, Game, Match
 
 
@@ -22,10 +13,10 @@ for client in Client.objects.all():
   client.save()
 
 ### assign seeds
-clients = list(Client.objects \
-                 .filter(eligible=True) \
-                 .filter(embargoed=False))
-clients.sort(reverse = True, key = lambda x: x.score)
+clients = list(Client.objects
+               .filter(eligible=True)
+               .filter(embargoed=False))
+clients.sort(reverse=True, key=lambda x: x.score)
 i = 1
 for client in clients:
     client.seed = i
@@ -36,7 +27,7 @@ for client in clients:
 print "clearing old matches"
 for match in Match.objects.all():
     match.delete()
-    
+
 print "clearing old tournament games"
 for game in Game.objects.filter(tournament=True):
     game.delete()
