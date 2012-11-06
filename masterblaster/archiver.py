@@ -10,7 +10,7 @@ from multiprocessing import Process
 from datetime import datetime, timedelta
 
 # Non-Django 3rd Party Imports
-import beanstalkc
+import beanstalkc_test as beanstalkc
 import json
 
 # My Imports
@@ -18,7 +18,6 @@ from config import game_name
 from thunderdome.models import Client, Game, GameData, Referee
 from thunderdome.loggly_logging import log
 from gviz_api import DataTable
-
 
 import settings
 
@@ -30,7 +29,8 @@ def main():
     #p = Process(target=processing)
     #p.start()
 
-    global stalk
+  #CALEB: I commented out the global here to see if that fixes the memory leak if everything breaks comment it back in
+    #global stalk
     stalk = beanstalkc.Connection()
     stalk.watch(result_tube)
 
@@ -49,6 +49,8 @@ def main():
             handle_completion(request, game)
         game.save()
         job.delete()
+        del job.conn
+        del job
         (r,c) = Referee.objects.get_or_create(blaster_id=request['blaster_id'],referee_id=request['referee_id'],defaults={'started':datetime.utcnow(),'last_update':datetime.utcnow()})
 	r.last_update = datetime.utcnow()
         r.games.add(game)

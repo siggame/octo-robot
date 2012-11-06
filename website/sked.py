@@ -6,6 +6,9 @@
 import json
 import time
 
+#Caleb's import to try to fix the memory leak
+import gc
+
 # My Imports
 from thunderdome.models import Game, GameData
 from thunderdome.loggly_logging import log
@@ -32,4 +35,5 @@ def sked(guy0, guy1, stalk, origin, priority=1000):
     print 'scheduled', game, guy0, guy1
     payload.update({'reporter': origin})
     log.info(json.dumps(payload))
+    gc.collect() #hopefully this fixes the memory leak
     return game
