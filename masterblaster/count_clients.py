@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
-import config
 
 # My Imports
+import bootstrap
 from thunderdome.models import Client
 
 clients = list(Client.objects

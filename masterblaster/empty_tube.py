@@ -2,7 +2,8 @@
 ### Missouri S&T ACM SIG-Game Arena (Thunderdome)
 #####
 
-from config import game_name
+import bootstrap
+from thunderdome.config import game_name
 
 tube = 'game-requests-' + game_name
 
