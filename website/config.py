@@ -6,8 +6,8 @@
 
 from aws_secrets import access_cred, secret_cred
 
-game_name = 'megaminerai-9-space'
-beanstalk_host = 'arena.mnuck.com'
-arena_ami = 'ami-1e32ea77'
+game_name = 'megaminerai-10-galapagos'
+beanstalk_host = 'arena.megaminerai.com'
+arena_ami = 'ami-94bd07fd'
 tournament_ami = 'ami-????????'
 req_queue_len = 5
