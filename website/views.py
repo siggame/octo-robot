@@ -265,7 +265,8 @@ def visualize(request, game_id):
 
 
 def url_to_keyname(url):
-    regex = "http://siggame-gamelogs\.s3\.amazonaws\.com/([\.\w-]+)"
+    #regex = "http://siggame-gamelogs\.s3\.amazonaws\.com/([\.\w-]+)"
+    regex = "http://siggame-glog-%s\.s3\.amazonaws\.com/([\.\w-]+)" % game_name
     keyname = re.search(regex, url).groups()[0]
     return keyname
 
