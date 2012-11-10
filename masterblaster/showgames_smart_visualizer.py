@@ -2,36 +2,32 @@
 ### Missouri S&T ACM SIG-Game Arena (Thunderdome)
 #####
 
-# jesus this needs some love
-# FIXME
-# FIXME
-# FIXME
-# FIXME
-# FIXME
-# FIXME
-
+# Standard Imports
 from time import sleep
-import beanstalkc
 import urllib
 
+# Non-Django 3rd Party Imports
+import beanstalkc
+
 dumb_url = 'http://space.arena.megaminerai.com/mies/thunderdome/get_next_game_url_to_visualize_and_mark'
+
+
+def showit(stalk):
+    with urllib.urlopen(dumb_url) as f:
+        url = f.read()
+    stalk.put(url)
+    print url
+
 
 def main():
     stalk = beanstalkc.Connection()
     stalk.use('visualizer-requests')
-    
-    def showit(): 
-        f = urllib.urlopen(dumb_url)
-        url = f.read()
-        f.close()
-        stalk.put(url)
-        print url
-           
+
     if 'visualizer-requests' not in stalk.tubes():
-        showit()
+        showit(stalk)
     while True:
         if stalk.stats_tube('visualizer-requests')['current-jobs-ready'] < 1:
-            showit()
+            showit(stalk)
         sleep(1)
 
 main()

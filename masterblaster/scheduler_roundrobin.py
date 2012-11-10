@@ -2,20 +2,20 @@
 ### Missouri S&T ACM SIG-Game Arena (Thunderdome)
 #####
 
-from config import game_name
-
-# Some magic to get a standalone python program hooked in to django
-import bootstrap
+# Standard Imports
+from itertools import combinations
 
 # Non-Django 3rd Party Imports
-from itertools import combinations
 import beanstalkc
-import urllib, json
-import time
+
+
+import bootstrap
+from thunderdome.config import game_name
+from thunderdome.models import Client
+from thunderdome.sked import sked
+
 
 # My Imports
-from thunderdome.models import Client, Game, GameData
-from thunderdome.sked import sked
 
 def skedRoundRobin(group, numGames, stalk)
 		result = list()
@@ -31,14 +31,12 @@ def skedRoundRobin(group, numGames, stalk)
 
 
 def main():
-    req_tube = "game-requests-%s" % game_name
-    
     stalk = beanstalkc.Connection()
+    req_tube = "game-requests-%s" % game_name
     stalk.use(req_tube)
     clients = Client.objects.filter(eligible=True))
-		skedRoundRobin(clients, 2 stalk)
+		skedRoundRobin(clients, 2, stalk)
 
-    
 if __name__ == "__main__":
 	main()
 

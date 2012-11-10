@@ -1,10 +1,9 @@
-"""
-Configuration file for the arena to try and limit the repeated code.
+#!/usr/bin/env python
+### Missouri S&T ACM SIG-Game Arena (Thunderdome)
+### written by Stephen Jackson <scj7t4@mst.edu>
+#####
 
-@author Stephen Jackson <scj7t4@mst.edu>
-"""
-
-from config import django_path
+django_path = ['/django', '/django/siggame']
 
 import sys
 sys.path = django_path + sys.path

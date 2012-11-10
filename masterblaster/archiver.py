@@ -2,37 +2,40 @@
 ### Missouri S&T ACM SIG-Game Arena (Thunderdome)
 #####
 
-from config import game_name
 
-# Some magic to get a standalone python program hooked in to django
-import bootstrap
+# Standard Imports
+import time
+import math
+import os
+from multiprocessing import Process
+from datetime import datetime, timedelta
 
 # Non-Django 3rd Party Imports
-import beanstalkc
+import beanstalkc_test as beanstalkc
 import json
 
 # My Imports
+import bootstrap
+from thunderdome.config import game_name
 from thunderdome.models import Client, Game, GameData, Referee
-from datetime import datetime,timedelta
+from thunderdome.loggly_logging import log
 from gviz_api import DataTable
-from django.core.cache import cache
-from multiprocessing import Process
-import time
 
-import os
 import settings
 
 stalk = None
 
+
 def main():
     result_tube = "game-results-%s" % game_name
-    p = Process(target=processing)
-    p.start()
+    #p = Process(target=processing)
+    #p.start()
 
-    global stalk
+  #CALEB: I commented out the global here to see if that fixes the memory leak if everything breaks comment it back in
+    #global stalk
     stalk = beanstalkc.Connection()
     stalk.watch(result_tube)
-    
+
     while True:
         job = stalk.reserve()
         request = json.loads(job.body)
@@ -48,11 +51,15 @@ def main():
             handle_completion(request, game)
         game.save()
         job.delete()
+        del job.conn
+        del job
         (r,c) = Referee.objects.get_or_create(blaster_id=request['blaster_id'],referee_id=request['referee_id'],defaults={'started':datetime.utcnow(),'last_update':datetime.utcnow()})
 	r.last_update = datetime.utcnow()
         r.games.add(game)
         r.save()
         print "Game", request['number'], "status", request['status']
+        request.update({'reporter': 'archiver'})
+        log.info(json.dumps(request))
 
 
 def processing():
@@ -101,11 +108,11 @@ def compute_throughput():
         pass
     print "Throughput chart computed!"
 
-    
+
 def compute_scoreboard():
     clients = Client.objects.exclude(current_version="")
     # Build the speedy lookup table
-    grid = dict()    
+    grid = dict()
     for c1 in clients:
         grid[c1] = dict()
         for c2 in clients:
@@ -114,17 +121,17 @@ def compute_scoreboard():
     for c1 in clients:
         for c2 in clients:
             grid[c1][c2] = c1.games_won.filter(loser=c2).count()
-                
+
     # Sort the clients by winningness
     clients = list(clients)
-    clients.sort(reverse=True, key = lambda x: x.fitness())
+    clients.sort(reverse=True, key=lambda x: x.fitness())
 
     client_link = "<a href='view_client/%s'>%s</a>"
 
-    desc = [('vs','string')]
-    desc += [('embargoed','boolean')]
-    desc += [(client_link % (client.pk,client.name), 'string') for client in clients]
-    
+    desc = [('vs', 'string')]
+    desc += [('embargoed', 'boolean')]
+    desc += [(client_link % (client.pk, client.name), 'string') for client in clients]
+
     struct = []
 
     for client1 in clients:
@@ -133,9 +140,9 @@ def compute_scoreboard():
             link = "<a href='matchup/%svs%s'>%s</a>" % (client1.pk,client2.pk,grid[client1][client2])
             tmp.append(link)
         struct.append(tmp)
-    dt = DataTable(desc,struct)
+    dt = DataTable(desc, struct)
     try:
-        f = open(os.path.join(settings.STATIC_ROOT,'scoreboard.js'),'w')
+        f = open(os.path.join(settings.STATIC_ROOT, 'scoreboard.js'), 'w')
         f.write(dt.ToJSCode('data'))
         f.close()
     except IOError:
@@ -150,11 +157,11 @@ def handle_completion(request, game):
         game.winner = Client.objects.get(name=request['winner']['name'])
         game.winner.score += 1.0
     if 'loser' in request:
-        game.loser  = Client.objects.get(name=request['loser']['name'])
+        game.loser = Client.objects.get(name=request['loser']['name'])
 
     if 'winner' in request and 'loser' in request:
-        assign_elo( game.winner, game.loser )
-    
+        assign_elo(game.winner, game.loser)
+
     clidict = dict()
     for client in request['clients']:
         clidict[client['name']] = client
@@ -162,7 +169,7 @@ def handle_completion(request, game):
         if gd.client == game.winner:
             gd.won = True
         gd.compiled = clidict[gd.client.name]['compiled']
-        gd.version  = clidict[gd.client.name]['tag']
+        gd.version = clidict[gd.client.name]['tag']
         if not gd.compiled or 'broken' in clidict[gd.client.name]:
             gd.client.embargoed = True
         try:
@@ -175,8 +182,7 @@ def handle_completion(request, game):
         gd.save()
 
 
-import math
-def assign_elo( winner, loser ):
+def assign_elo(winner, loser):
     delta = winner.rating - loser.rating
     exp = (-1 * delta) / 400
     odds = 1 / (1 + math.pow(10, exp))

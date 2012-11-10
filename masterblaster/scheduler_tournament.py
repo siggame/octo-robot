@@ -7,21 +7,21 @@ A task process that starts the referees (who play the matches.)
 @author: Matthew Nuckolls <mannr4@mst.edu>
 """
 
-from config import game_name
-
-# Some magic to get a standalone python program hooked in to django
-import bootstrap
+# Standard Imports
+import json
+import time
+import random
 
 # Non-Django 3rd Party Imports
 import beanstalkc
-import random
 
 # My Imports
+import bootstrap
+from thunderdome.config import game_name
 from thunderdome.models import Game, GameData, Match
 
 stalk = None
-import json
-import time
+
 
 def main():
     req_tube = "game-requests-%s" % game_name
@@ -40,13 +40,13 @@ def main():
             maintain_bracket(championship)
         if stalk.stats_tube(req_tube)['current-jobs-ready'] < 1:
             generate_speculative_game(random.choice(championships))
-    
+
 
 def generate_speculative_game(match):
     """
     Traverses the tree to identify matches that should be played. Keeps the
     tournament moving forward.
-    
+
     @param match: The root match to try and fulfill the dependencies for.
     @pre: A match tree needs to be played.
     @post: Some dependency of match is scheduled to be played.
@@ -63,7 +63,7 @@ def generate_speculative_game(match):
             ones = list()
             if match.p0:
                 zeros = [match.p0]
-            else: # match.father is not None. this is a fact.
+            else:  # match.father is not None. this is a fact.
                 if match.father.status == 'Complete':
                     if match.father_type == 'win':
                         zeros = [match.father.winner]
@@ -77,7 +77,7 @@ def generate_speculative_game(match):
                         closed.add(match.father.id)
             if match.p1:
                 ones = [match.p1]
-            else: # match.mother is not None. this is a fact.
+            else:  # match.mother is not None. this is a fact.
                 if match.mother.status == 'Complete':
                     if match.mother_type == 'win':
                         ones = [match.mother.winner]
@@ -97,8 +97,8 @@ def generate_speculative_game(match):
                 match.zeros = zeros
                 match.ones = ones
                 needy_matches.append(match)
-                
-    if len(needy_matches)>0:
+
+    if len(needy_matches) > 0:
       for match in needy_matches:
         if match.father_type == 'win':
             fit = lambda x: x.fitness()
@@ -111,9 +111,9 @@ def generate_speculative_game(match):
         if match.mother_type == 'win':
             fit = lambda x: x.fitness()
         else:
-            fit = lambda x: 1 - x.fitness()            
+            fit = lambda x: 1 - x.fitness()
         try:
-            p1 = SUS(match.ones,  1, fit)[0]
+            p1 = SUS(match.ones, 1, fit)[0]
         except:
             p1 = random.choice(match.ones)
         if p0.name == 'bye' or p1.name == 'bye':
@@ -140,11 +140,11 @@ def generate_speculative_game(match):
         print "Speculatively scheduled", p0.name, \
             "vs", p1.name, "in match", match.id
 
-        
+
 def maintain_bracket(match):
     """
     Updates the state of the bracket so that the speculative scheduler can
-    determine which dependencies have already been fulfilled.    
+    determine which dependencies have already been fulfilled.
 
     @pre: The bracket state may have changed
     @post: Does a breadth first search down the dependency tree, looking
@@ -166,15 +166,15 @@ def maintain_bracket(match):
                     matchlist.append(match.mother)
                     closed.add(match.mother.id)
             maintain_match(match)
-            
-            
+
+
 def maintain_match(match):
     """
     Determines and attempts to resolve dependencies to get a single match
     scheduled in the tournament. Schedules all the subgames of a match.
 
     @param match: The match to attempt to play.
-    """ 
+    """
     ### Check on a single match, get it going if possible
     if match.status == 'Complete':
         return
@@ -185,18 +185,18 @@ def maintain_match(match):
             match.p0 = match.father.winner
         if match.father_type == 'lose' and match.father.loser is not None:
             match.p0 = match.father.loser
-            
+
     if match.p1 is None and match.mother is not None:
         if match.mother_type == 'win' and match.mother.winner is not None:
             match.p1 = match.mother.winner
         if match.mother_type == 'lose' and match.mother.loser is not None:
             match.p1 = match.mother.loser
-                
+
     #  might have gotten one but not the other
     if match.p0 is None or match.p1 is None:
         match.save()
         return
-    
+
     # handle the byes
     if match.p0.name == 'bye':
         match.winner = match.p1
@@ -212,38 +212,41 @@ def maintain_match(match):
         match.save()
         print "********", match.winner.name, "gets a bye"
         return
-    
+
     # handle the "maybe" matches.
     if match.p0.matches_lost.count() >= match.losses_to_eliminate:
         match.winner = match.p1
-        match.loser  = match.p0
+        match.loser = match.p0
         match.status = 'Complete'
         match.save()
-        print "********", match.winner.name, "doesn't need to play", match.loser.name, "in an optional match"
+        print "********", match.winner.name, "doesn't need to play", \
+            match.loser.name, "in an optional match"
         return
     if match.p1.matches_lost.count() >= match.losses_to_eliminate:
         match.winner = match.p0
         match.loser  = match.p1
         match.status = 'Complete'
         match.save()
-        print "********", match.winner.name, "doesn't need to play", match.loser.name, "in an optional match"
+        print "********", match.winner.name, "doesn't need to play", \
+            match.loser.name, "in an optional match"
         return
-    
+
     match.status = 'Running'
     p0wins = match.games.filter(winner=match.p0).count()
     p1wins = match.games.filter(winner=match.p1).count()
-    ### there will be speculative games in the list. gotta check both winner and loser.
+    ### there will be speculative games in the list. 
+    ### gotta check both winner and loser.
     ### actually no there won't.
     if p0wins >= match.wins_to_win:
         match.winner = match.p0
-        match.loser  = match.p1
+        match.loser = match.p1
         match.status = 'Complete'
         print "********", match.winner.name, "beats", match.loser.name
         match.save()
         return
     if p1wins >= match.wins_to_win:
         match.winner = match.p1
-        match.loser  = match.p0
+        match.loser = match.p0
         match.status = 'Complete'
         print "********", match.winner.name, "beats", match.loser.name
         match.save()
@@ -264,11 +267,11 @@ def maintain_match(match):
                 p1found = True
         if p0found and p1found:
             real_games.append(game)
-        else: # kick the unneeded games out into the pool
+        else:  # kick the unneeded games out into the pool
             game.claimed = False
             game.save()
             match.games.remove(game)
-            
+
     #count = match.wins_to_win + min([p0wins,p1wins]) - len(real_games)
     count = (match.wins_to_win * 2) - 1 - len(real_games)
     for i in xrange(count):
@@ -291,7 +294,7 @@ def maintain_match(match):
             game.status = "Scheduled"
             game.save()
             stalk.put(game.stats, ttr=300)
-            
+
             print "Scheduled", match.p0.name, "vs", match.p1.name
         else:
             print "Got", match.p0.name, "vs", match.p1.name, "from pool"
@@ -300,11 +303,11 @@ def maintain_match(match):
         match.games.add(game)
     match.save()
 
-    
+
 def get_game_from_pool(match):
     """
     Picks a game from the game pool.
-    
+
     @param: The match to find games from.
     """
     for game in list(Game.objects.filter(claimed=False).order_by('id')):
@@ -319,7 +322,7 @@ def get_game_from_pool(match):
 def SUS(population, n, weight):
     """
     roulette wheel selection, select n individuals
-   
+
     @pre    None
     @post   None
     @param  population the set from which individuals are to be chosen

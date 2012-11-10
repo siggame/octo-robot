@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
-
-from config import tournament_ami, access_cred, secret_cred, \
-                   beanstalk_host, game_name
+import bootstrap
+from thunderdome.config import tournament_ami, access_cred, secret_cred, \
+    beanstalk_host, game_name
 
 user_data = \
 """#!/bin/bash
