@@ -49,7 +49,7 @@ class Client(models.Model):
             return datetime(1970,1,1,0,0)
     
     def fitness(self):
-        return self.rating
+			  return self.games_won.filter(tournament=False).count()
         #games_complete = self.games_played.filter(status="Complete").count()
         #if games_complete == 0:
         #    return 0

@@ -15,22 +15,9 @@ setup_environ(settings)
 
 # My Imports
 from thunderdome.models import Client, Game, Match
+from seeder import seed
 
-
-for client in Client.objects.all():
-  client.seed = -1
-  client.save()
-
-### assign seeds
-clients = list(Client.objects \
-                 .filter(eligible=True) \
-                 .filter(embargoed=False))
-clients.sort(reverse = True, key = lambda x: x.score)
-i = 1
-for client in clients:
-    client.seed = i
-    client.save()
-    i += 1
+seed()
 
 ### clear old stuff
 print "clearing old matches"
