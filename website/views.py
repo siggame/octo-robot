@@ -281,7 +281,7 @@ def get_representative_game_url(match):
     bucket = conn.get_bucket('siggame-glog-%s' % game_name)
 
     urls = [x.gamelog_url for x in match.games.all()
-            if x.winner == match.winner]
+            if x.winner == match.winner and x.loser == match.loser]
 
     keynames = [url_to_keyname(x) for x in urls]
     biggest = max(keynames, key=lambda x: sizeof_key(bucket, x))

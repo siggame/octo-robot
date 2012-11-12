@@ -9,12 +9,13 @@ import urllib
 # Non-Django 3rd Party Imports
 import beanstalkc
 
-dumb_url = 'http://space.arena.megaminerai.com/mies/thunderdome/get_next_game_url_to_visualize_and_mark'
+dumb_url = 'http://arena.megaminerai.com/mies/thunderdome/get_next_game_url_to_visualize_and_mark'
 
 
 def showit(stalk):
-    with urllib.urlopen(dumb_url) as f:
-        url = f.read()
+    f = urllib.urlopen(dumb_url)
+    url = f.read()
+    f.close()
     stalk.put(url)
     print url
 

@@ -7,6 +7,7 @@ import re
 import json
 import subprocess
 import os
+import signal
 import random
 import socket
 import md5
@@ -84,7 +85,7 @@ def looping(stalk):
                              cwd=cl['name']))
 
     # game is running. watch for gamelog
-    print "running..."
+    print "running...", game['number']
     server_path = os.environ['SERVER_PATH']
     game['status'] = "Running"
     stalk.put(json.dumps(game))
@@ -99,12 +100,18 @@ def looping(stalk):
         glog_done = os.access("%s/logs/%s.glog" %
                               (server_path, game['number']), os.F_OK)
 
-    try:
-        [x.terminate() for x in players]
-    except OSError:
+    for x in players:
+      try:
+        print "*************************************** die", x.pid
+        #os.killpg(x.pid, signal.SIGTERM)
+        subprocess.call(['kill', '-9', str(x.pid)], cwd=client['name'],
+                    stdout=file("/dev/null", "w"),
+                    stderr=subprocess.STDOUT)
+      except OSError as e:
+        print "it didn't dieeee!!!", e
         pass
 
-    print "pushing data blocks..."
+    print "pushing data blocks...", game['number']
     push_datablocks(game)
 
     if not glog_done:  # no glog, game did not terminate correctly

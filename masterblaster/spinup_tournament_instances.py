@@ -17,6 +17,7 @@ export SERVER_HOST='localhost'
 export SERVER_PATH='/home/gladiator/arena/server'
 export BEANSTALK_HOST='%s'
 
+cd /home/gladiator/arena
 
 cd server
 python main.py -arena > ../server-output.txt &

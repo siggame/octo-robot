@@ -30,7 +30,7 @@ def main():
             stalk.use(req_tube)
             stats = stalk.stats_tube(req_tube)
             if stats['current-jobs-ready'] < req_queue_len:
-                #update_clients()
+                update_clients()
                 schedule_a_game(stalk)
             stalk.close()
     #to try to get rid or memory leak

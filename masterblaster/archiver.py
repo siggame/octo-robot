@@ -28,8 +28,8 @@ stalk = None
 
 def main():
     result_tube = "game-results-%s" % game_name
-    #p = Process(target=processing)
-    #p.start()
+    p = Process(target=processing)
+    p.start()
 
   #CALEB: I commented out the global here to see if that fixes the memory leak if everything breaks comment it back in
     #global stalk
@@ -39,7 +39,11 @@ def main():
     while True:
         job = stalk.reserve()
         request = json.loads(job.body)
-        game = Game.objects.get(id=int(request['number']))
+        try:
+            game = Game.objects.get(id=int(request['number']))
+        except:
+            job.delete()
+            continue
         game.stats = job.body
         game.status = request['status']
         if game.status in ["Complete", "Failed"]:
@@ -54,7 +58,7 @@ def main():
         del job.conn
         del job
         (r,c) = Referee.objects.get_or_create(blaster_id=request['blaster_id'],referee_id=request['referee_id'],defaults={'started':datetime.utcnow(),'last_update':datetime.utcnow()})
-	r.last_update = datetime.utcnow()
+    	r.last_update = datetime.utcnow()
         r.games.add(game)
         r.save()
         print "Game", request['number'], "status", request['status']
@@ -65,7 +69,7 @@ def main():
 def processing():
     while True:
         start = datetime.now()
-        compute_throughput()
+        #compute_throughput()
         compute_scoreboard()
         td = datetime.now()-start
         delay = max(td*2,timedelta(seconds=30)).total_seconds()
@@ -113,6 +117,7 @@ def compute_scoreboard():
     clients = Client.objects.exclude(current_version="")
     # Build the speedy lookup table
     grid = dict()
+    wl = dict()
     for c1 in clients:
         grid[c1] = dict()
         for c2 in clients:
@@ -121,6 +126,17 @@ def compute_scoreboard():
     for c1 in clients:
         for c2 in clients:
             grid[c1][c2] = c1.games_won.filter(loser=c2).count()
+    
+    for c1 in clients:
+        wins = 0
+        total = 0
+        for c2 in clients:
+            wins += grid[c1][c2]
+            total += grid[c1][c2] + grid[c2][c1]
+        if total > 0:
+            wl[c1] = (wins*1.0)/total
+        else:
+            wl[c1] = 0.0
 
     # Sort the clients by winningness
     clients = list(clients)
@@ -130,20 +146,46 @@ def compute_scoreboard():
 
     desc = [('vs', 'string')]
     desc += [('embargoed', 'boolean')]
+    desc += [('Wins', 'number')]
+    desc += [('PCT','number')]
+    desc += [('Elo','number')]
     desc += [(client_link % (client.pk, client.name), 'string') for client in clients]
 
     struct = []
 
     for client1 in clients:
         tmp = [client_link % (client1.pk, client1.name), client1.embargoed]
+        tmp2 = []
+        total = 0
         for client2 in clients:
             link = "<a href='matchup/%svs%s'>%s</a>" % (client1.pk,client2.pk,grid[client1][client2])
-            tmp.append(link)
+            tmp2.append(link)
+            total += grid[client1][client2]
+        tmp.append(total)
+        tmp.append(round(wl[client1],4))
+        tmp.append(client1.rating)
+        tmp += tmp2
         struct.append(tmp)
+    struct.sort(reverse=True, key=lambda x: x[4])
+
     dt = DataTable(desc, struct)
     try:
         f = open(os.path.join(settings.STATIC_ROOT, 'scoreboard.js'), 'w')
-        f.write(dt.ToJSCode('data'))
+    	static = """
+        function drawScoreboardTable() {
+
+        %s
+
+        var options = {
+            title: 'Competitor Overview',
+            allowHtml: true,   
+        };
+        var table = new google.visualization.Table(document.getElementById('scoreboard_table'));
+        table.draw(data, options);
+        }
+        drawScoreboardTable();
+        """
+        f.write(static % dt.ToJSCode('data'))
         f.close()
     except IOError:
         print "Couldn't write scoreboard"

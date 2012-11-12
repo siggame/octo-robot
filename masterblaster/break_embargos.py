@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import boostrap
+import bootstrap
 
 # My Imports
 from thunderdome.models import Client

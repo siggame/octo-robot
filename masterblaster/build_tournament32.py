@@ -8,7 +8,7 @@ import bootstrap
 from thunderdome.models import Client, Game, Match
 from seeder import seed
 
-seed()
+#seed()
 
 ### clear old stuff
 print "clearing old matches"
