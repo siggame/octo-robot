@@ -27,6 +27,30 @@ from thunderdome.models import InjectedGameForm, Match, Referee
 from thunderdome.sked import sked
 
 
+def end_rr(request):
+    def ranker(c):
+        return c.games_won.filter(pk__gt=98660).filter(pk__lt=108246).count()
+    clients = list(Client.objects.all())
+    clients.sort(key=lambda x: x.games_played.filter(pk__gt=98660).filter(pk__lt=108246).count())
+    clients.sort(reverse=True, key=ranker)
+    result = "<h1>Done!</h1><table border=2>"
+    result += "<tr><td>Rank</td><td>Wins</td><td>Games</td><td>Name</td></tr>"
+    for (i, c) in enumerate(clients, 1):
+        c.rank = i
+        c.weens = ranker(c)
+        c.total = c.games_played.filter(pk__gt=98660).filter(pk__lt=108246).count()
+        if c.eligible:
+            c.namename = c.name
+        else:
+            c.namename = "<i>%s</i>" % c.name
+        result += "<tr><td>%i</td><td>%i</td><td>%i</td><td>%s</td></tr>\n" % (c.rank,
+                                                         c.weens,
+                                                         c.total,
+                                                         c.namename)
+    result += "</table>"
+    return HttpResponse(result)
+
+
 def matchup_odds(client1, client2):
     # manual join. fix this if you know how
     c1games = set(client1.games_played.all())
@@ -104,7 +128,7 @@ def throughput_chart(request):
     return render_to_response('thunderdome/throughput_chart.html', out)
 
 
-@login_required
+#@login_required
 def scoreboard_chart(request):
     out = dict()
     try:
@@ -117,7 +141,7 @@ def scoreboard_chart(request):
     return render_to_response('thunderdome/scoreboard_chart.html', out)
 
 
-#@login_required
+@login_required
 def inject(request):
     ### Handle manual injection of a game into the system
     if request.method == 'POST':
@@ -150,7 +174,7 @@ def view_game(request, game_id):
                               {'game': game})
 
 
-@login_required
+#@login_required
 def view_match(request, match_id):
     ### View the status of a single match
     match = get_object_or_404(Match, pk=match_id)
@@ -158,7 +182,7 @@ def view_match(request, match_id):
                               {'match': match})
 
 
-@login_required
+#@login_required
 def view_client(request, client_id):
     ### View the status of a single client
     client = get_object_or_404(Client, pk=client_id)
@@ -197,7 +221,7 @@ def scoreboard(request):
     return render_to_response('thunderdome/scoreboard.html', payload)
 
 
-@login_required
+#@login_required
 def matchup(request, client1_id, client2_id):
     client1 = get_object_or_404(Client, pk=client1_id)
     client2 = get_object_or_404(Client, pk=client2_id)

@@ -14,9 +14,10 @@ v1_api.register(GameDataResource())
 v1_api.register(MatchResource())
 
 urlpatterns = patterns('thunderdome.views',
+    url(r'^end_rr$', 'end_rr'),
     url(r'^bet_list$', 'bet_list'),
     url(r'^main$', 'scoreboard'),
-    url(r'^$','scoreboard'),
+    url(r'^$', 'scoreboard'),
     url(r'^inject$', 'inject'),
     url(r'^view/(?P<game_id>\d+)$', 'view_game'),
 

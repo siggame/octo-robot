@@ -2,7 +2,7 @@
 
 # FIX BEANSTALK_HOST, GAME_NAME, AMI
 
-import boostrap
+import bootstrap
 from thunderdome.config import arena_ami, access_cred, secret_cred, \
     beanstalk_host, game_name
 
