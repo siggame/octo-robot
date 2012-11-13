@@ -56,7 +56,7 @@ def generate_speculative_game(match):
     needy_matches = list()
     ### concept here is that we're going to find matches who are waiting, and
     ### whos parents are either running or complete.
-    while len(traverse) > 0:
+    while traverse:
         match = traverse.pop(0)
         if match.status == 'Waiting':
             zeros = list()
@@ -65,10 +65,8 @@ def generate_speculative_game(match):
                 zeros = [match.p0]
             else:  # match.father is not None. this is a fact.
                 if match.father.status == 'Complete':
-                    if match.father_type == 'win':
-                        zeros = [match.father.winner]
-                    else:
-                        zeros = [match.father.loser]
+                    zeros = {'win'  : [match.father.winner],
+                             'lose' : [match.father.loser]}[match.father_type]
                 if match.father.status == 'Running':
                     zeros = [match.father.p0, match.father.p1]
                 if match.father.status == 'Waiting':
@@ -79,43 +77,24 @@ def generate_speculative_game(match):
                 ones = [match.p1]
             else:  # match.mother is not None. this is a fact.
                 if match.mother.status == 'Complete':
-                    if match.mother_type == 'win':
-                        ones = [match.mother.winner]
-                    else:
-                        ones = [match.mother.loser]
+                    ones = {'win'  : [match.mother.winner],
+                            'lose' : [match.mother.loser]}[match.mother_type]
                 if match.mother.status == 'Running':
                     ones = [match.mother.p0, match.mother.p1]
                 if match.mother.status == 'Waiting':
                     if match.mother.id not in closed:
                         traverse.append(match.mother)
                         closed.add(match.mother.id)
-            while 'bye' in zeros:
-                zeros.remove('bye')
-            while 'bye' in ones:
-                ones.remove('bye')
+            zeros = [x for x in zeros if x != 'bye']
+            ones = [x for x in ones if x != 'bye']
             if all([zeros, ones]):
                 match.zeros = zeros
                 match.ones = ones
                 needy_matches.append(match)
 
-    if len(needy_matches) > 0:
-      for match in needy_matches:
-        if match.father_type == 'win':
-            fit = lambda x: x.fitness()
-        else:
-            fit = lambda x: 1 - x.fitness()
-        try:
-            p0 = SUS(match.zeros, 1, fit)[0]
-        except:
-            p0 = random.choice(match.zeros)
-        if match.mother_type == 'win':
-            fit = lambda x: x.fitness()
-        else:
-            fit = lambda x: 1 - x.fitness()
-        try:
-            p1 = SUS(match.ones, 1, fit)[0]
-        except:
-            p1 = random.choice(match.ones)
+    for match in needy_matches:
+        p0 = random.choice(match.zeros)
+        p1 = random.choice(match.ones)
         if p0.name == 'bye' or p1.name == 'bye':
             continue
         game = Game.objects.create()
@@ -150,10 +129,9 @@ def maintain_bracket(match):
     for solvable dependencies. except it's not a dependency tree.
     it's a tournament bracket. which is jock-speak for dependency tree.
     """
-    matchlist = list()
+    matchlist = [match]
     closed = set()
-    matchlist.append(match)
-    while len(matchlist) > 0:
+    while matchlist:
         match = matchlist.pop(0)
         if match.status != 'Complete':
             if match.p0 is None:
@@ -174,22 +152,17 @@ def maintain_match(match):
 
     @param match: The match to attempt to play.
     """
-    ### Check on a single match, get it going if possible
     if match.status == 'Complete':
         return
 
     # check if parent maintanence can get this match started
-    if match.p0 is None and match.father is not None:
-        if match.father_type == 'win' and match.father.winner is not None:
-            match.p0 = match.father.winner
-        if match.father_type == 'lose' and match.father.loser is not None:
-            match.p0 = match.father.loser
+    if match.father is not None:
+        match.p0 = {'win'  : match.father.winner,
+                    'lose' : match.father.loser}[match.father_type]
 
-    if match.p1 is None and match.mother is not None:
-        if match.mother_type == 'win' and match.mother.winner is not None:
-            match.p1 = match.mother.winner
-        if match.mother_type == 'lose' and match.mother.loser is not None:
-            match.p1 = match.mother.loser
+    if match.mother is not None:
+        match.p1 = {'win'  : match.mother.winner,
+                    'lose' : match.mother.loser}[match.mother_type]
 
     #  might have gotten one but not the other
     if match.p0 is None or match.p1 is None:
@@ -213,7 +186,8 @@ def maintain_match(match):
         return
 
     # handle the "maybe" matches.
-    if match.p0.matches_lost.count() >= match.losses_to_eliminate:
+    p0l = match.p0.matches_lost.filter(tournament=match.tournament).count()
+    if p0l >= match.losses_to_eliminate:
         match.winner = match.p1
         match.loser = match.p0
         match.status = 'Complete'
@@ -221,7 +195,8 @@ def maintain_match(match):
         print "********", match.winner.name, "doesn't need to play", \
             match.loser.name, "in an optional match"
         return
-    if match.p1.matches_lost.count() >= match.losses_to_eliminate:
+    p1l = match.p1.matches_lost.filter(tournament=match.tournament).count()
+    if p1l >= match.losses_to_eliminate:
         match.winner = match.p0
         match.loser = match.p1
         match.status = 'Complete'
@@ -233,9 +208,6 @@ def maintain_match(match):
     match.status = 'Running'
     p0wins = match.games.filter(winner=match.p0).count()
     p1wins = match.games.filter(winner=match.p1).count()
-    ### there will be speculative games in the list.
-    ### gotta check both winner and loser.
-    ### actually no there won't.
     if p0wins >= match.wins_to_win:
         match.winner = match.p0
         match.loser = match.p1
@@ -251,28 +223,8 @@ def maintain_match(match):
         match.save()
         return
 
-    # if we made it to here, we're making games. but, how many?
-    # how about "enough to possibly finish, if the loser would
-    # kindly stop winning"
-    # cancel that. schedule 7 games, you cheap bastard.
-    real_games = list()
-    for game in list(match.games.all()):
-        p0found = False
-        p1found = False
-        for data in game.gamedata_set.all():
-            if match.p0 == data.client:
-                p0found = True
-            if match.p1 == data.client:
-                p1found = True
-        if p0found and p1found:
-            real_games.append(game)
-        else:  # kick the unneeded games out into the pool
-            game.claimed = False
-            game.save()
-            match.games.remove(game)
-
-    #count = match.wins_to_win + min([p0wins,p1wins]) - len(real_games)
-    count = (match.wins_to_win * 2) - 1 - len(real_games)
+    # if we made it to here, we're making games
+    count = (match.wins_to_win * 2) - 1 - match.games.count()
     for i in xrange(count):
         game = get_game_from_pool(match)
         if game is None:
@@ -293,7 +245,6 @@ def maintain_match(match):
             game.status = "Scheduled"
             game.save()
             stalk.put(game.stats, ttr=300)
-
             print "Scheduled", match.p0.name, "vs", match.p1.name
         else:
             print "Got", match.p0.name, "vs", match.p1.name, "from pool"
@@ -307,43 +258,15 @@ def get_game_from_pool(match):
     """
     Picks a game from the game pool.
 
-    @param: The match to find games from.
+    @param: The match to find games for.
     """
-    for game in list(Game.objects.filter(claimed=False).order_by('id')):
-        gd = list(game.gamedata_set.all())
+    for game in Game.objects.filter(claimed=False).order_by('id'):
+        gd = game.gamedata_set.all()
         if gd[0].client == match.p0 and gd[1].client == match.p1:
             return game
         if gd[0].client == match.p1 and gd[1].client == match.p0:
             return game
     return None
-
-
-def SUS(population, n, weight):
-    """
-    roulette wheel selection, select n individuals
-
-    @pre    None
-    @post   None
-    @param  population the set from which individuals are to be chosen
-    @param  n the number of individuals to choose
-    @param  weight the function that determines the weight of an individual
-             hint: lambda functions work well here
-    @return A list of randomly chosen individuals
-    """
-    result = list()
-    weight_range = sum([weight(x) for x in population])
-    spacing = weight_range / n
-    offset = random.random() * spacing
-    accumulator = 0
-    i = 0
-    for individual in population:
-        accumulator += weight(individual)
-        if accumulator >= i * spacing + offset:
-            result.append(individual)
-            i += 1
-        if i >= n:
-            break
-    return result
 
 
 main()
