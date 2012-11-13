@@ -123,22 +123,21 @@ def generate_speculative_game(match):
         GameData(game=game, client=p1).save()
         game.tournament = True
         game.claimed = False
-        payload_d = { 'number'         : str(game.pk),
-                      'status'         : "Scheduled",
-                      'clients'        : list(),
-                      'time_scheduled' : str(time.time()),
-                      'tournament'     : True}
+        payload_d = {'number'         : str(game.pk),
+                     'status'         : "Scheduled",
+                     'clients'        : list(),
+                     'time_scheduled' : str(time.time()),
+                     'tournament'     : True}
         for p in [p0, p1]:
-            payload_d['clients'].append({ 'name' : p.name,
-                                          'repo' : p.repo,
-                                          'tag'  : p.current_version })
+            payload_d['clients'].append({'name' : p.name,
+                                         'repo' : p.repo,
+                                         'tag'  : p.current_version})
         game.stats = json.dumps(payload_d)
         game.status = "Scheduled"
         game.save()
         stalk.put(game.stats, ttr=300)
-        match.games.add(game)
-        print "Speculatively scheduled", p0.name, \
-            "vs", p1.name, "in match", match.id
+        #match.games.add(game)   # this line shouldn't exist?
+        print "Speculatively scheduled", p0.name, "vs", p1.name
 
 
 def maintain_bracket(match):
@@ -224,7 +223,7 @@ def maintain_match(match):
         return
     if match.p1.matches_lost.count() >= match.losses_to_eliminate:
         match.winner = match.p0
-        match.loser  = match.p1
+        match.loser = match.p1
         match.status = 'Complete'
         match.save()
         print "********", match.winner.name, "doesn't need to play", \
@@ -234,7 +233,7 @@ def maintain_match(match):
     match.status = 'Running'
     p0wins = match.games.filter(winner=match.p0).count()
     p1wins = match.games.filter(winner=match.p1).count()
-    ### there will be speculative games in the list. 
+    ### there will be speculative games in the list.
     ### gotta check both winner and loser.
     ### actually no there won't.
     if p0wins >= match.wins_to_win:
@@ -281,15 +280,15 @@ def maintain_match(match):
             GameData(game=game, client=match.p0).save()
             GameData(game=game, client=match.p1).save()
             game.tournament = True
-            payload_d = { 'number'         : str(game.pk),
-                          'status'         : "Scheduled",
-                          'clients'        : list(),
-                          'time_scheduled' : str(time.time()),
-                          'tournament'     : True }
+            payload_d = {'number'         : str(game.pk),
+                         'status'         : "Scheduled",
+                         'clients'        : list(),
+                         'time_scheduled' : str(time.time()),
+                         'tournament'     : True}
             for p in [match.p0, match.p1]:
-                payload_d['clients'].append({ 'name' : p.name,
-                                              'repo' : p.repo,
-                                              'tag'  : p.current_version })
+                payload_d['clients'].append({'name' : p.name,
+                                             'repo' : p.repo,
+                                             'tag'  : p.current_version})
             game.stats = json.dumps(payload_d)
             game.status = "Scheduled"
             game.save()
