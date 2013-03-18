@@ -37,4 +37,6 @@ urlpatterns = patterns('thunderdome.views',
     url(r'^represent/(?P<match_id>\d+)$', 'representative_game'),
     url(r'^visualize_match/(?P<match_id>\d+)$', 'visualize_match'),
     url(r'^api/', include(v1_api.urls)),
+    #url for rating games, game id followed by rating from 0-9
+    url(r'^rate/(?P<game_id>\d+)/(?P<rating>\d+)$', 'rate_game')
 )

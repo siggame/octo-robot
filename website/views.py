@@ -60,6 +60,19 @@ def matchup_odds(client1, client2):
     c2wins = len([x for x in shared_games if x.winner == client2])
     return c1wins, c2wins
 
+#Caleb's code to rate games, may be buggy
+def rate_game(request, game_id, rating):
+  game = get_object_or_404(Game, pk=game_id)
+  #unsure if visulizer knows what to do with a 404 yet
+
+  s = json.loads(game.stats)
+  if not 'votes' in s:
+    s['votes'] = list()
+  s['votes'].append(int(rating))
+  game.stats = json.dumps(s)
+  game.save()
+  return HttpResponse("OK")
+
 
 def bet_list(request):
     # a list of all scheduled games
@@ -329,3 +342,7 @@ def representative_game(request, match_id):
         return HttpResponse("Incomplete match!")
     game_id = get_representative_game_url(match)
     return view_game(request, game_id)
+
+
+
+
