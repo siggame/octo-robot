@@ -23,12 +23,12 @@ class MatchResource(ModelResource):
 
 class GameDataResource(ModelResource):
     name = fields.ForeignKey('thunderdome.api.ClientNameResource', 'client', null=True, full=True)
-    game = fields.ForeignKey('thunderdome.api.GameResource',       'game',   null=True, full=True)
+    game = fields.ForeignKey('thunderdome.api.GameResource',       'game',   null=True, full=False)
     class Meta:
-        queryset = GameData.objects.all()
-        ordering = ['game']
+        queryset = GameData.objects.all().order_by('-game')
+        ordering = ['-game']
         resource_name = 'game_data'
-        fields = ['name', 'output_url', 'version']
+        fields = ['name', 'output_url', 'version','id']
         filtering = {'name' : ALL_WITH_RELATIONS,
                      'game' : ALL_WITH_RELATIONS}
 
@@ -36,10 +36,12 @@ class GameDataResource(ModelResource):
 class GameResource(ModelResource):
     winner = fields.ForeignKey('thunderdome.api.ClientNameResource', 'winner', null=True, full=True)
     loser  = fields.ForeignKey('thunderdome.api.ClientNameResource', 'loser',  null=True, full=True)
-    game_data = fields.ToManyField(GameDataResource, 'gamedata_set', full=False, null=True)
+    clients = fields.ToManyField('thunderdome.api.ClientNameResource', 'clients', full=True)
+    game_data = fields.ToManyField(GameDataResource, 'gamedata_set', full=True, null=True)
     class Meta:
         queryset = Game.objects.all()
-        fields = ['gamelog_url', 'status', 'winner', 'loser', 'completed']
+        ordering = ['id']
+        fields = ['gamelog_url', 'status', 'winner', 'loser', 'completed','id']
         allowed_methods = ['get']
         ordering = ['completed']
         filtering = {'winner' : ALL_WITH_RELATIONS,
