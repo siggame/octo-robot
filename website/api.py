@@ -28,7 +28,7 @@ class GameDataResource(ModelResource):
         queryset = GameData.objects.all().order_by('-game')
         ordering = ['-game']
         resource_name = 'game_data'
-        fields = ['name', 'output_url', 'version','id']
+        fields = ['name', 'output_url', 'version','id','won']
         filtering = {'name' : ALL_WITH_RELATIONS,
                      'game' : ALL_WITH_RELATIONS}
 
@@ -39,8 +39,8 @@ class GameResource(ModelResource):
     clients = fields.ToManyField('thunderdome.api.ClientNameResource', 'clients', full=True)
     game_data = fields.ToManyField(GameDataResource, 'gamedata_set', full=True, null=True)
     class Meta:
-        queryset = Game.objects.all()
-        ordering = ['id']
+        queryset = Game.objects.all().order_by('-pk')
+        #ordering = ['id']
         fields = ['gamelog_url', 'status', 'winner', 'loser', 'completed','id']
         allowed_methods = ['get']
         ordering = ['completed']
