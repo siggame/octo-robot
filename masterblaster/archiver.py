@@ -13,7 +13,7 @@ from datetime import datetime, timedelta
 from bz2 import BZ2Decompressor
 
 # Non-Django 3rd Party Imports
-import beanstalkc_test as beanstalkc
+import beanstalkc
 import json
 
 # My Imports
