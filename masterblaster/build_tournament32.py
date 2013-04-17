@@ -11,17 +11,17 @@ from seeder import seed
 #seed()
 
 ### clear old stuff
-print "clearing old matches"
-for match in Match.objects.all():
-    match.delete()
+#print "clearing old matches"
+#for match in Match.objects.all():
+#    match.delete()
 
-print "clearing old tournament games"
-for game in Game.objects.filter(tournament=True):
-    game.delete()
+#print "clearing old tournament games"
+#for game in Game.objects.filter(tournament=True):
+#    game.delete()
 
-print "clearing old unclaimed games"
-for game in Game.objects.filter(claimed=False):
-    game.delete()
+#print "clearing old unclaimed games"
+#for game in Game.objects.filter(claimed=False):
+#    game.delete()
 
 try:
   c = Client.objects.get(name='bye')

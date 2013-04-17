@@ -9,8 +9,9 @@ import json
 
 game_name = os.environ["GAME_NAME"]
 
+
 def main():
-    api_url = "http://megaminerai.com/api/git/repo?c=%s" % game_name
+    api_url = "http://megaminerai.com/api/repo/tags/?competition=%s" % game_name
     f = urllib.urlopen(api_url)
     data = json.loads(f.read())
     f.close()
@@ -24,18 +25,18 @@ def update_local_repo(client):
     '''Get the appropriate code and version from the repository'''
     base_path = os.environ['CLIENT_PREFIX']
     subprocess.call(['git', 'clone', 
-                     '%s%s' % (base_path, client['path']), client['login']],
-                    stdout=file('%s-gitout.txt' % client['login'], 'w'),
+                     '%s%s' % (base_path, client['path']), client['name']],
+                    stdout=file('%s-gitout.txt' % client['name'], 'w'),
                     stderr=subprocess.STDOUT)
-    subprocess.call(['git', 'checkout', 'master'], cwd=client['login'],
-                    stdout=file('%s-gitout.txt' % client['login'], 'a'),
+    subprocess.call(['git', 'checkout', 'master'], cwd=client['name'],
+                    stdout=file('%s-gitout.txt' % client['name'], 'a'),
                     stderr=subprocess.STDOUT)
-    subprocess.call(['git', 'pull'], cwd=client['login'],
-                    stdout=file('%s-gitout.txt' % client['login'], 'a'),
+    subprocess.call(['git', 'pull'], cwd=client['name'],
+                    stdout=file('%s-gitout.txt' % client['name'], 'a'),
                     stderr=subprocess.STDOUT)
     subprocess.call(['git', 'checkout', client['tag']],
-                    stdout=file('%s-gitout.txt' % client['login'], 'a'),
+                    stdout=file('%s-gitout.txt' % client['name'], 'a'),
                     stderr=subprocess.STDOUT,
-                    cwd=client['login'])
+                    cwd=client['name'])
 
 main()

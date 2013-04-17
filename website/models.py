@@ -92,6 +92,14 @@ class Game(models.Model):
             self.save()
         return self.force_schedule()
 
+    def get_spect_rating(self):
+        data = json.loads(self.stats)
+        try:
+            r = data['spect_rating']
+        except:
+            r = 0
+        return r
+
     def force_schedule(self):
         c = beanstalkc.Connection()
         c.use('game-requests')
@@ -162,7 +170,7 @@ class Match(models.Model):
     mother_type = models.TextField(default='win')
     status = models.TextField(default='Waiting')
     root = models.BooleanField(default=False)
-    tournament = models.IntegerField(default=2)
+    tournament = models.IntegerField(default=20)
 
     def __unicode__(self):
         return u"%s - %s" % (self.p0.name, self.p1.name)

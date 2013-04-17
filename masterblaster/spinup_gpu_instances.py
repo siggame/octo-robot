@@ -14,7 +14,7 @@ export ACCESS_CRED='%s'
 export SECRET_CRED='%s'
 export S3_PREFIX='siggame-glog'
 export GAME_NAME='%s'
-export CLIENT_PREFIX='ssh://r99acm.device.mst.edu:2222'
+export CLIENT_PREFIX='ssh://webserver@megaminerai.com'
 export SERVER_HOST='localhost'
 export SERVER_PATH='/home/gladiator/arena/server'
 export BEANSTALK_HOST='%s'
@@ -24,7 +24,7 @@ mkdir /home/gladiator/arena
 cd /home/gladiator/arena
 
 # gather up the fixed components
-wget http://space.arena.megaminerai.com/gladiator_package.tgz
+wget http://arena.megaminerai.com/gladiator_package.tgz
 tar -xf gladiator_package.tgz
 
 cd server

@@ -6,6 +6,7 @@ import bootstrap
 from thunderdome.config import game_name
 
 tube = 'game-requests-' + game_name
+#tube = 'visualizer-requests'
 
 import beanstalkc
 c = beanstalkc.Connection()

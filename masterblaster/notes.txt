@@ -1,6 +1,7 @@
 Arena -> Tournament Transition
 
 1. shut down arena scheduler
+(1.5). flip tourny flag in archiver
 2. pick a gladiator, kill the rest
 - log in
 - kill the refs
@@ -12,5 +13,7 @@ Arena -> Tournament Transition
 5. run the validating scheduler
 6. start tournament instances
 7. once the validation games complete, ensure <= 32 teams
-8. build tournament bracket
+(7.5) restart archiver
+8. build tournament bracket (update tournament number)
 9. start tournament scheduler
+10. wait for tourny to finish then shutdown gladiators

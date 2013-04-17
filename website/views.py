@@ -268,6 +268,17 @@ def get_next_game_url_to_visualize(request):
     return HttpResponse(next_game.gamelog_url)
 
 
+#def get_next_game_url_to_vis_new(request):
+#    clients = Client.objects.exclude(name='bye')
+#    worst_clients = min(clients, key=lambda x: x.last_visualized())#
+#
+#    #next_gid = 
+#
+#    next_game = Game.objects.get(pk=poss_games[0])
+#
+#    return HttpResponse(next_game.gamelog_url)
+
+
 def game_visualized(request, game_id):
     game = get_object_or_404(Game, pk=game_id)
     game.visualized = datetime.now()
@@ -327,11 +338,21 @@ def get_representative_game_url(match):
     return game_id
 
 
+def get_representative_game_url_by_rating(match):
+    games = [x for x in match.games.all()
+             if x.winner == match.winner and x.loser == match.loser]
+
+    best = max(games, key=lambda x: x.get_spect_rating())
+
+    return best.pk
+
+
 def visualize_match(request, match_id):
     match = Match.objects.get(pk=match_id)
     if match.status != 'Complete':
         return HttpResponse("Incomplete match!")
-    game_id = get_representative_game_url(match)
+    #game_id = get_representative_game_url(match)
+    game_id = get_representative_game_url_by_rating(match)
     return visualize(request, game_id)
 
 
@@ -341,8 +362,5 @@ def representative_game(request, match_id):
     if match.status != 'Complete':
         return HttpResponse("Incomplete match!")
     game_id = get_representative_game_url(match)
+    #game_id = get_representative_game_url_by_rating(match)
     return view_game(request, game_id)
-
-
-
-

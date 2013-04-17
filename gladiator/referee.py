@@ -218,6 +218,9 @@ def push_gamelog(game):
 def update_local_repo(client):
     '''Get the appropriate code and version from the repository'''
     base_path = os.environ['CLIENT_PREFIX']
+    subprocess.call(['rm', '-rf', client['name']],
+                    stdout=file('/dev/null'),
+                    stderr=subprocess.STDOUT)
     subprocess.call(['git', 'clone',
                      '%s%s' % (base_path, client['repo']), client['name']],
                     stdout=file('%s-gitout.txt' % client['name'], 'w'),

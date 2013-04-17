@@ -35,11 +35,17 @@ def main():
     stalk.watch(req_tube)
     stalk.use(req_tube)
     championships = list(Match.objects.filter(root=True))
-    while not all([x.winner for x in championships]):
-        for championship in championships:
-            maintain_bracket(championship)
-        if stalk.stats_tube(req_tube)['current-jobs-ready'] < 1:
-            generate_speculative_game(random.choice(championships))
+    needy = [x for x in championships if x.winner is None]
+    while needy:
+        maintain_bracket(needy[0])
+        championships = list(Match.objects.filter(root=True))
+        needy = [x for x in championships if x.winner is None]
+        stats = stalk.stats_tube(req_tube)
+        if stats['current-jobs-ready'] < 1:
+            generate_speculative_game(random.choice(needy))
+    for g in Game.objects.filter(claimed=False):
+        g.claimed = True
+        g.save()
 
 
 def generate_speculative_game(match):
@@ -269,4 +275,8 @@ def get_game_from_pool(match):
     return None
 
 
-main()
+if __name__ == "__main__":
+    for g in Game.objects.filter(claimed=False):
+        g.claimed = True
+        g.save()
+    main()

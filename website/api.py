@@ -45,7 +45,8 @@ class GameResource(ModelResource):
         allowed_methods = ['get']
         ordering = ['completed']
         filtering = {'winner' : ALL_WITH_RELATIONS,
-                     'loser'  : ALL_WITH_RELATIONS}
+                     'loser'  : ALL_WITH_RELATIONS,
+                     'id'     : ['exact']}
         
 
 class ClientNameResource(ModelResource):

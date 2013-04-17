@@ -3,12 +3,12 @@
 #####
 
 
-TOURNEY_NUMBER = 1234
+TOURNEY_NUMBER = 100000
 
 # My Imports
 import bootstrap
 from thunderdome.models import Client, Game, Match
-from seeder import seed
+#from seeder import seed
 
 #seed()
 

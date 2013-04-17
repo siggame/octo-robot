@@ -20,7 +20,6 @@ from thunderdome.models import Client
 from thunderdome.sked import sked
 
 
-
 def main():
     #stalk = beanstalkc.Connection()
     req_tube = "game-requests-%s" % game_name
@@ -44,6 +43,7 @@ def schedule_a_game(stalk):
     '''Schedule the most needy client and a random partner for a game'''
     clients = list(Client.objects.exclude(name='bye').filter(embargoed=False))
     if len(clients) < 2:  # takes two to tango
+        print "only", len(clients), "clients in the arena"
         return
     worst_client = min(clients, key=lambda x: x.last_game())
     clients.remove(worst_client)
@@ -57,7 +57,7 @@ def schedule_a_game(stalk):
 
 def update_clients():
     '''Import updated client info from Wisely's tastypie API'''
-    api_url = "http://megaminerai.com/api/git/repo?c=%s" % game_name
+    api_url = "http://megaminerai.com/api/repo/tags/?competition=%s" % game_name
     try:
         f = urllib.urlopen(api_url)
         data = json.loads(f.read())
@@ -67,10 +67,10 @@ def update_clients():
     for block in data:
         if block['tag'] is None:
             block['tag'] = ''
-        if Client.objects.filter(name=block['login']).count() == 0:
+        if Client.objects.filter(name=block['name']).count() == 0:
             client = makeClient(block)
         else:
-            client = Client.objects.get(name=block['login'])
+            client = Client.objects.get(name=block['name'])
         if client.current_version != block['tag']:
             client.embargoed = False  # only place an embargo can be broken
             client.current_version = block['tag']
@@ -80,7 +80,7 @@ def update_clients():
 def makeClient(block):
     '''Make a client object from the provided API data block'''
     client = Client.objects.create()
-    client.name = block['login']
+    client.name = block['name']
     client.current_version = block['tag']
     client.repo = block['path']
     client.embargoed = True

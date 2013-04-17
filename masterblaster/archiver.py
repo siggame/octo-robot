@@ -7,8 +7,10 @@
 import time
 import math
 import os
+import urllib2
 from multiprocessing import Process
 from datetime import datetime, timedelta
+from bz2 import BZ2Decompressor
 
 # Non-Django 3rd Party Imports
 import beanstalkc_test as beanstalkc
@@ -23,16 +25,30 @@ from gviz_api import DataTable
 
 import settings
 
+# Rating Imports
+from utilities import gamelog_regepars
+from utilities import kmeans
+
 stalk = None
+tourny_time = True
+
+games = Game.objects.filter(tournament=False).filter(status='Complete')
+
+if tourny_time:
+    print "Generating Clusters"
+    clusters = kmeans.obtain_clusters(games, 8)
+
+print "Thunder birds are a go go!"
 
 
 def main():
     result_tube = "game-results-%s" % game_name
-    p = Process(target=processing)
-    p.start()
+    #p = Process(target=processing)
+    #p.start()
 
-  #CALEB: I commented out the global here to see if that fixes the memory leak if everything breaks comment it back in
-    #global stalk
+    #CALEB: I commented out the global here to see if that fixes the memory
+    #  leak if everything breaks comment it back in
+    global stalk
     stalk = beanstalkc.Connection()
     stalk.watch(result_tube)
 
@@ -51,6 +67,7 @@ def main():
                 game.gamelog_url = request['gamelog_url']
             if 'completed' in request:
                 game.completed = request['completed']
+                process_game_stats(game)
             #Recompute the scoreboard and throughput
             handle_completion(request, game)
         game.save()
@@ -69,12 +86,41 @@ def main():
 def processing():
     while True:
         start = datetime.now()
-        #compute_throughput()
+        compute_throughput()
         compute_scoreboard()
         td = datetime.now()-start
         delay = max(td*2,timedelta(seconds=30)).total_seconds()
         print "Next run in %s secs" % delay
         time.sleep(delay)
+
+
+def process_game_stats(game):
+    global clusters
+    if game.status == "Complete":
+        data = json.loads(game.stats)
+        gamelogurl = data['gamelog_url']
+        try:
+            j = urllib2.urlopen(gamelogurl)
+        except:
+            print "error when fetching gamelog at ", gamelogurl
+        game_log = BZ2Decompressor().decompress(j.read())
+        j.close()
+        game_stats = gamelog_regepars.get_stats(game_log)
+        print 'GAME STATS ', game_stats
+        data['rating_stats'] = game_stats
+        game.stats = json.dumps(data)
+        game.save()
+        if 'tournament' in data:
+            tempPoint = kmeans.convert_to_point(game)
+            rating = kmeans.nearest_cluster_center(tempPoint, clusters)[2]
+            data['spect_rating'] = rating
+            game.stats = json.dumps(data)
+            game.save()
+
+
+def compute_clusters():
+    games = Game.objects.all()
+    return kmeans.obtain_clusters(games)
 
 
 def compute_throughput():
@@ -126,7 +172,7 @@ def compute_scoreboard():
     for c1 in clients:
         for c2 in clients:
             grid[c1][c2] = c1.games_won.filter(loser=c2).count()
-    
+            
     for c1 in clients:
         wins = 0
         total = 0
