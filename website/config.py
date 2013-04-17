@@ -11,3 +11,5 @@ beanstalk_host = 'arena.megaminerai.com'
 arena_ami = 'ami-8c492fe5'
 tournament_ami = 'ami-84adcbed'
 req_queue_len = 5
+
+api_url_template = "http://megaminerai.com/api/repo/tags/?competition=%s"

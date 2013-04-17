@@ -63,6 +63,13 @@ class Client(models.Model):
         return self.name
 
 
+class WinRatePrediction(models.Model):
+    ### The predicted win rate for p0 over p1
+    p0 = models.ForeignKey(Client)
+    p1 = models.ForeignKey(Client)
+    prediction = models.FloatField(default=0.5)
+
+
 class Game(models.Model):
     ### A single game
     clients = models.ManyToManyField(Client, through='GameData',
