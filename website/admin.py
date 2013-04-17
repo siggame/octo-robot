@@ -6,7 +6,7 @@
 from django.contrib import admin
 
 # My Imports
-from thunderdome.models import Client, Game, GameData, Referee
+from thunderdome.models import Client, Game, GameData, Referee, WinRatePrediction
 
 class GameDataAdmin(admin.ModelAdmin):
     list_display = ('pk','game','client','won')
@@ -17,3 +17,4 @@ admin.site.register(Client)
 admin.site.register(Game)
 admin.site.register(GameData,GameDataAdmin)
 admin.site.register(Referee)
+admin.site.register(WinRatePrediction)
