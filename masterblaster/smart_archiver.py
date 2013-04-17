@@ -31,7 +31,7 @@ from utilities import gamelog_regepars
 from utilities import kmeans
 
 stalk = None
-tourny_time = True
+tourny_time = False
 
 games = Game.objects.filter(tournament=False).filter(status='Complete')
 
@@ -44,8 +44,8 @@ print "Thunder birds are a go go!"
 
 def main():
     result_tube = "game-results-%s" % game_name
-    p = Process(target=processing)
-    p.start()
+    #p = Process(target=processing)
+    #p.start()
 
     #CALEB: I commented out the global here to see if that fixes the memory
     #  leak if everything breaks comment it back in
@@ -298,14 +298,14 @@ alpha = 0.2
 
 
 def adjust_win_rate(winner, loser):
-    win_p = list(WinRatePrediction.filter(p0=winner).filter(p1=loser))
+    win_p = list(WinRatePrediction.objects.filter(winner=winner).filter(loser=loser))
     if len(win_p) == 0:
-        win_p = WinRatePrediction(p0=winner, p1=loser, prediction=0.5)
+        win_p = WinRatePrediction(winner=winner, loser=loser, prediction=0.5)
     else:
         win_p = win_p[0]
-    lose_p = list(WinRatePrediction.filter(p1=winner).filter(p0=loser))
+    lose_p = list(WinRatePrediction.objects.filter(loser=winner).filter(winner=loser))
     if len(lose_p) == 0:
-        lose_p = WinRatePrediction(p1=winner, p0=loser, prediction=0.5)
+        lose_p = WinRatePrediction(loser=winner, winner=loser, prediction=0.5)
     else:
         lose_p = lose_p[0]
     win_p.prediction += alpha * (1 - win_p.prediction)

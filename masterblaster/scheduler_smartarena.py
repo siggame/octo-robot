@@ -53,10 +53,10 @@ def schedule_a_game(stalk):
 
 def pick_partner(needy, potentials):
     predict = defaultdict(lambda: 0.5,
-                          {(x.p0, x.p1): x.prediction
+                          {(x.winner, x.loser): x.prediction
                            for x in WinRatePrediction
                                      .objects
-                                     .filter(p0=needy)}
+                                     .filter(winner=needy)})
     fitness = lambda x: (1.5 - abs(0.5 - predict[(needy, x)])) ** 30
     return FP(potentials, fitness=fitness)
 

@@ -64,10 +64,14 @@ class Client(models.Model):
 
 
 class WinRatePrediction(models.Model):
-    ### The predicted win rate for p0 over p1
-    p0 = models.ForeignKey(Client)
-    p1 = models.ForeignKey(Client)
+    ### The predicted win rate for winner over loser
+    winner = models.ForeignKey(Client, related_name='win_prediction')
+    loser = models.ForeignKey(Client, related_name='lose_prediction')
     prediction = models.FloatField(default=0.5)
+
+    def __unicode__(self):
+        return "%s - %s, %f" % (self.winner.name, self.loser.name,
+                                self.prediction)
 
 
 class Game(models.Model):
