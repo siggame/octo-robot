@@ -69,6 +69,9 @@ class WinRatePrediction(models.Model):
     loser = models.ForeignKey(Client, related_name='lose_prediction')
     prediction = models.FloatField(default=0.5)
 
+    class Meta():
+        ordering = ['-prediction']
+
     def __unicode__(self):
         return "%s - %s, %f" % (self.winner.name, self.loser.name,
                                 self.prediction)

@@ -5,7 +5,7 @@
 {% endblock %}
 
 {% block content %}
-    <h1>{{ client.name }}</h1> 
+    <h1>{{ client.name }}</h1>
     rating: {{ client.rating }}<br>
     score: {{ client.score }}<br>
     games: {{ client.games_played.count }}<br>
@@ -17,6 +17,12 @@
     {{ client.current_version }}
     {% endif %}
     <hr>
+    Predictions<br>
+    {% for prediction in client.win_prediction.all %}
+      vs {{ prediction.loser }} - {{ prediction.prediction }}<br>
+    {% endfor %}
+    <hr>
+    Games<br>
     {% for game in client.games_played.all %}
       {% include 'thunderdome/single_game_block.html' %}
       <hr>
