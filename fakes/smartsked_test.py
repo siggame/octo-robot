@@ -10,6 +10,7 @@ skill proximity
 
 import json
 import random
+from collections import defaultdict
 
 tightness = 30
 alpha = 0.2
@@ -125,30 +126,6 @@ if __name__ == "__main__":
 
 
 """
-
-
-push to git during tournaments
-We can fix this. There is a technical reason why we need to turn off git during
-tournaments, but it's not insurmountable. We'll fix it.
-
-
-fix the chess arena, megaminer seems to be fine
-It's the same arena. A Bad Thing happened the day before megaminer, and we
-had to scramble like crazy to ensure megaminer happened at all. Our manpower
-pool is extremely small, so chess had to wait until after MegaMiner was over
-before it could be repaired.
-
-filtering
-visualizer linked to a feed that serves up your gamelogs
-
-better tournament structure, round robin suggested
-
-
-game injection
-Arena devs can inject games for you, in exchange for minor favors.
-
-bracket displayed on screen
-
-
-final 4 of Global Division
+That's it for today. Tomorrow I'll talk about tournament structure, and why
+we do a triple-elim (hint: you asked for it).
 """
