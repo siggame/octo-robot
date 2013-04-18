@@ -294,21 +294,9 @@ def assign_elo(winner, loser):
     loser.save()
 
 
-alpha = 0.2
-
-
-def adjust_win_rate(winner, loser):
-    win_p = list(WinRatePrediction.objects.filter(winner=winner).filter(loser=loser))
-    if len(win_p) == 0:
-        win_p = WinRatePrediction(winner=winner, loser=loser, prediction=0.5)
-    else:
-        win_p = win_p[0]
-    lose_p = list(WinRatePrediction.objects.filter(loser=winner).filter(winner=loser))
-    if len(lose_p) == 0:
-        lose_p = WinRatePrediction(loser=winner, winner=loser, prediction=0.5)
-    else:
-        lose_p = lose_p[0]
-    old = win_p.prediction
+def adjust_win_rate(w, l, alpha=0.2):
+    win_p = WinRatePrediction.objects.get_or_create(winner=w, loser=l)
+    lose_p = WinRatePrediction.objects.get_or_create(winner=l, loser=w)
     win_p.prediction += alpha * (1 - win_p.prediction)
     lose_p.prediction -= alpha * lose_p.prediction
     print "Prediction Updated:", winner.name, loser.name, old, win_p.prediction
