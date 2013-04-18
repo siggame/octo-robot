@@ -44,8 +44,8 @@ print "Thunder birds are a go go!"
 
 def main():
     result_tube = "game-results-%s" % game_name
-    #p = Process(target=processing)
-    #p.start()
+    p = Process(target=processing)
+    p.start()
 
     #CALEB: I commented out the global here to see if that fixes the memory
     #  leak if everything breaks comment it back in
@@ -308,8 +308,10 @@ def adjust_win_rate(winner, loser):
         lose_p = WinRatePrediction(loser=winner, winner=loser, prediction=0.5)
     else:
         lose_p = lose_p[0]
+    old = win_p.prediction
     win_p.prediction += alpha * (1 - win_p.prediction)
     lose_p.prediction -= alpha * lose_p.prediction
+    print "Prediction Updated:", winner.name, loser.name, old, win_p.prediction
     win_p.save()
     lose_p.save()
 

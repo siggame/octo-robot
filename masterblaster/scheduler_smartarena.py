@@ -57,7 +57,7 @@ def pick_partner(needy, potentials):
                            for x in WinRatePrediction
                                      .objects
                                      .filter(winner=needy)})
-    fitness = lambda x: (1.5 - abs(0.5 - predict[(needy, x)])) ** 30
+    fitness = lambda x: (1.5 - abs(0.5 - predict[(needy, x)])) ** 15
     return FP(potentials, fitness=fitness)
 
 
