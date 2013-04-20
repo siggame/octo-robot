@@ -1,7 +1,5 @@
-from math import pi, sin, cos
-from collections import namedtuple
-from random import random, choice, randint
-from copy import copy
+from random import random
+from copy import copy, deepcopy
 
 import json
 
@@ -57,13 +55,7 @@ def sqr_distance(a, b):
     dist = 0
     feature_list = zip(a.feature, b.feature)
     for i, j in feature_list:
-        """i and j are the feature i of a and b
-        just like
-        Point2D x = new Point2D(1,2)
-        1 = x[0] is equal to the x value
-        2 = x[1] is equal to the y value
-        """
-        dist = dist + (i - j) ** 2
+        dist += (i - j) ** 2
     return dist
 
 
@@ -85,9 +77,7 @@ def nearest_cluster_center(point, cluster_centers):
 
 
 def random_init(points, cluster_centers):
-
     max_point = Point(points[0].feature)
-
     for cc in cluster_centers:
         cc.set_features(max_point.feature)
 
@@ -105,6 +95,12 @@ def random_init(points, cluster_centers):
 
 
 def lloyd(points, nclusters):
+    """
+
+    :param points:
+    :param nclusters:
+    :return:
+    """
     cluster_centers = [Point() for _ in xrange(nclusters)]
 
     random_init(points, cluster_centers)
@@ -120,10 +116,6 @@ def lloyd(points, nclusters):
             cc.group = 0
 
         for p in points:
-            """
-            using cluster_centers.group to denote how many
-            points are in that cluster_center
-            """
             cluster_centers[p.group].group += 1
             for i in xrange(cluster_centers[p.group].num_features):
                 cluster_centers[p.group][i] += p[i]
@@ -134,8 +126,6 @@ def lloyd(points, nclusters):
                     cc[i] = 0
                 else:
                     cc[i] /= cc.group
-
-        #display(points, cluster_centers, len(cluster_centers));
 
         changed = 0
         for p in points:
@@ -155,12 +145,10 @@ def lloyd(points, nclusters):
 
 
 def eval_point(point, cluster_centers):
-
     return nearest_cluster_center(point, cluster_centers)
 
 
 def load_data(games):
-
     points = []
 
     for g in games:
@@ -192,7 +180,6 @@ def load_data(games):
 
 
 def set_cluster_ratings(points, cluster_centers):
-
     sum_t = 0
     count = 0
     for j in cluster_centers:
@@ -200,8 +187,8 @@ def set_cluster_ratings(points, cluster_centers):
         count = 0
         for i in points:
             if j.group == i.group:
-                sum_t = sum_t + i.rating
-                count = count + 1
+                sum_t += i.rating
+                count += 1
 
         if count == 0:
             j.set_rating(0)
@@ -228,3 +215,5 @@ def obtain_clusters(games, num_clusters=10):
     cluster_centers = lloyd(points, num_clusters)
 
     return cluster_centers
+
+
