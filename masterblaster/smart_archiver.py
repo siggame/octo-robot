@@ -299,7 +299,8 @@ def adjust_win_rate(w, l, alpha=0.2):
     lose_p = WinRatePrediction.objects.get_or_create(winner=l, loser=w)
     win_p.prediction += alpha * (1 - win_p.prediction)
     lose_p.prediction -= alpha * lose_p.prediction
-    print "Prediction Updated:", winner.name, loser.name, old, win_p.prediction
+    #old
+    print "Prediction Updated:", w.name, l.name, win_p.prediction
     win_p.save()
     lose_p.save()
 

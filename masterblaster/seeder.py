@@ -3,13 +3,14 @@
 #####
 
 import bootstrap
+import random
 
 # My Imports
 from thunderdome.models import Client
 
 
 def wins_in_range(c):
-    return c.games_won.count() 
+    return c.games_won.count()
 
 
 def seed():
@@ -18,9 +19,9 @@ def seed():
         client.save()
 
     clients = list(Client.objects
-                   .filter(eligible=True)
                    .filter(embargoed=False))
-    clients.sort(reverse=True, key=wins_in_range)
+    #clients.sort(reverse=True, key=wins_in_range)
+    random.shuffle(clients)
     for (i, client) in enumerate(clients, 1):
         print i, client.name
         client.seed = i
