@@ -54,7 +54,7 @@ def schedule_a_game(stalk):
     partner = random.choice(clients)
     players = [worst_client, partner]
     random.shuffle(players)
-    sked(players[0], players[1], stalk, "Arena Scheduler")
+    sked(players[0], players[1], stalk, "End Arena Scheduler")
   #gc.collect is to try to get rid of memory leak
     gc.collect()
 

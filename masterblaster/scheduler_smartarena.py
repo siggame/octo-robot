@@ -48,7 +48,7 @@ def schedule_a_game(stalk):
     partner = pick_partner(worst_client, clients)
     players = [worst_client, partner]
     random.shuffle(players)
-    sked(players[0], players[1], stalk, "Arena Scheduler")
+    sked(players[0], players[1], stalk, "Smart Arena Scheduler")
 
 
 def pick_partner(needy, potentials):
