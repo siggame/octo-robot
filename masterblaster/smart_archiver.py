@@ -8,6 +8,7 @@ import time
 import math
 import os
 import urllib2
+from copy import copy
 from multiprocessing import Process
 from datetime import datetime, timedelta
 from bz2 import BZ2Decompressor
@@ -44,8 +45,8 @@ print "Thunder birds are a go go!"
 
 def main():
     result_tube = "game-results-%s" % game_name
-    p = Process(target=processing)
-    p.start()
+    #p = Process(target=processing)
+    #p.start()
 
     #CALEB: I commented out the global here to see if that fixes the memory
     #  leak if everything breaks comment it back in
@@ -68,7 +69,7 @@ def main():
                 game.gamelog_url = request['gamelog_url']
             if 'completed' in request:
                 game.completed = request['completed']
-                process_game_stats(game)
+                #process_game_stats(game)
             #Recompute the scoreboard and throughput
             handle_completion(request, game)
         game.save()
@@ -294,13 +295,14 @@ def assign_elo(winner, loser):
     loser.save()
 
 
-def adjust_win_rate(w, l, alpha=0.2):
+def adjust_win_rate(w, l, alpha=0.15):
     win_p, w_created = WinRatePrediction.objects.get_or_create(winner=w, loser=l)
+    old = copy(win_p)
     lose_p, l_created = WinRatePrediction.objects.get_or_create(winner=l, loser=w)
     win_p.prediction += alpha * (1 - win_p.prediction)
     lose_p.prediction -= alpha * lose_p.prediction
     #old, win_p.prediction
-    print "Prediction Updated:", w.name, l.name, win_p.prediction
+    print "Prediction Updated:", w.name, l.name, old.prediction, win_p.prediction
     win_p.save()
     lose_p.save()
 
