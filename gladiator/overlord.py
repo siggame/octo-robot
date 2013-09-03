@@ -13,7 +13,7 @@ server = Popen(['python', 'main.py', '-arena'], stdout=PIPE, stderr=PIPE, cwd="s
 pattern = re.compile('Game [0-9]+ over')
 
 while True:
-    if server.poll():
+    if server.poll() is not None:
         output = server.stdout.readline()
 
         if output != '':
