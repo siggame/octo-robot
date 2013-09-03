@@ -57,6 +57,7 @@ def schedule_a_game(stalk):
 
 def update_clients():
     '''Import updated client info from Wisely's tastypie API'''
+    print 'updating clients'
     api_url = "http://megaminerai.com/api/repo/tags/?competition=%s" % game_name
     try:
         f = urllib.urlopen(api_url)

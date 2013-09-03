@@ -30,7 +30,7 @@ from utilities import gamelog_regepars
 from utilities import kmeans
 
 stalk = None
-tourny_time = True
+tourny_time = False
 
 games = Game.objects.filter(tournament=False).filter(status='Complete')
 
