@@ -20,7 +20,8 @@ def main():
     result_tube = "game-results-%s" % game_name
 
     while True:
-        stalk = beanstalkc_test.Connection()
+        #stalk = beanstalkc_test.Connection()
+        stalk = beanstalkc.Connection()
         stalk.watch(result_tube)
         job = stalk.reserve()
         request = json.loads(job.body)
