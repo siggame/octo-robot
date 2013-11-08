@@ -12,6 +12,7 @@ from copy import copy
 from multiprocessing import Process
 from datetime import datetime, timedelta
 from bz2 import BZ2Decompressor
+from collections import defaultdict
 
 # Non-Django 3rd Party Imports
 import beanstalkc
@@ -28,17 +29,19 @@ from gviz_api import DataTable
 import settings
 
 # Rating Imports
-from utilities import gamelog_regepars
-from utilities import kmeans
+#from utilities import gamelog_regepars
+#from utilities import kmeans
 
 stalk = None
 tourny_time = False
 
 games = Game.objects.filter(tournament=False).filter(status='Complete')
 
-if tourny_time:
-    print "Generating Clusters"
-    clusters = kmeans.obtain_clusters(games, 8)
+
+# will not be using k-means clustering this competition
+#if tourny_time:
+#    print "Generating Clusters"
+#    clusters = kmeans.obtain_clusters(games, 8)
 
 print "Thunder birds are a go go!"
 
@@ -122,11 +125,6 @@ def process_game_stats(game):
             data['spect_rating'] = rating
             game.stats = json.dumps(data)
             game.save()
-
-
-def compute_clusters():
-    games = Game.objects.all()
-    return kmeans.obtain_clusters(games)
 
 
 def compute_throughput():
@@ -258,6 +256,16 @@ def handle_completion(request, game):
         assign_elo(game.winner, game.loser)
         adjust_win_rate(game.winner, game.loser)
 
+        
+    # increment winner and losers game played
+    for client in [game.winner, game.loser]:
+        try:
+            stats = json.loads(client.stats)
+        except ValueError:
+            stats = defaultdict(int)
+        stats['games-played'] = stats['games-played'] + 1
+        client.stats = json.dumps(stats)
+        
     clidict = dict()
     for client in request['clients']:
         clidict[client['name']] = client
