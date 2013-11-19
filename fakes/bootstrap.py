@@ -3,7 +3,7 @@
 ### written by Stephen Jackson <scj7t4@mst.edu>
 #####
 
-django_path = ['/django', '/django/siggame']
+django_path = ['/home/ubuntu/siggame', '/home/ubuntu/siggame/siggame']
 
 import sys
 sys.path = django_path + sys.path

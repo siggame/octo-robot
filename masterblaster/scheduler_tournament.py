@@ -237,7 +237,7 @@ def maintain_match(match):
             #TODO update this with sked from thunderdome.sked
             # needs to be carefully done since game.tournament = true is important
             game = Game.objects.create()
-            if count % 2 == 0:
+            if i % 2 == 0:
                 player_order = [match.p0, match.p1]
             else:
                 player_order = [match.p1, match.p0]
