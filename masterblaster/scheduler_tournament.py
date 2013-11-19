@@ -234,16 +234,23 @@ def maintain_match(match):
     for i in xrange(count):
         game = get_game_from_pool(match)
         if game is None:
+            #TODO update this with sked from thunderdome.sked
+            # needs to be carefully done since game.tournament = true is important
             game = Game.objects.create()
-            GameData(game=game, client=match.p0).save()
-            GameData(game=game, client=match.p1).save()
+            if count % 2 == 0:
+                player_order = [match.p0, match.p1]
+            else:
+                player_order = [match.p1, match.p0]
+            GameData(game=game, client=player_order[0]).save()
+            GameData(game=game, client=player_order[1]).save()
             game.tournament = True
             payload_d = {'number'         : str(game.pk),
                          'status'         : "Scheduled",
                          'clients'        : list(),
                          'time_scheduled' : str(time.time()),
                          'tournament'     : True}
-            for p in [match.p0, match.p1]:
+
+            for p in player_order:
                 payload_d['clients'].append({'name' : p.name,
                                              'repo' : p.repo,
                                              'tag'  : p.current_version})
@@ -251,9 +258,9 @@ def maintain_match(match):
             game.status = "Scheduled"
             game.save()
             stalk.put(game.stats, ttr=300)
-            print "Scheduled", match.p0.name, "vs", match.p1.name
+            print "Scheduled", player_order[0].name, "vs", player_order[1].name
         else:
-            print "Got", match.p0.name, "vs", match.p1.name, "from pool"
+            print "Got", player_order[0].name, "vs", player_order[1].name, "from pool"
             game.claimed = True
             game.save()
         match.games.add(game)
