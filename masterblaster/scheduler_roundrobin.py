@@ -23,7 +23,7 @@ def skedRoundRobin(group, numGames, stalk):
           g = sked(guy, otherguy, stalk, 'skedRoundRobin')
         else:
           g = sked(otherguy, guy, stalk, 'skedRoundRobin')
-        result.append(g)
+        #result.append(g)
     return result
 
 

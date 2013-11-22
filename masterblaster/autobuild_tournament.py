@@ -11,8 +11,7 @@ import bootstrap
 from thunderdome.models import Client, Match
 from seeder import seed
 
-tournament = 201307
-
+tournament = 201311
 
 ### clear old stuff
 #for m in Match.objects.all():
@@ -142,8 +141,10 @@ def build_triple_elim():
                (5, 1, 1), (5, 1, 1))
     make_match((5, 3, 1), 'win', 'lose',
                (5, 2, 1), (5, 2, 1))
-    match_map[(5, 3, 1)].root = True
-    match_map[(5, 3, 1)].save()
+    make_match((5, 4, 1), 'win', 'lose',
+               (5, 3, 1), (5, 3, 1))
+    match_map[(5, 4, 1)].root = True
+    match_map[(5, 4, 1)].save()
 
 
 if __name__ == "__main__":

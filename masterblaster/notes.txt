@@ -16,6 +16,7 @@ Arena -> Tournament Transition
 6. start tournament instances
 7. once the validation games complete, ensure <= 32 teams
 (7.5) restart archiver
-8. build tournament bracket (update tournament number)
-9. start tournament scheduler
-10. wait for tourny to finish then shutdown gladiators
+8. update tournament number in autobuild_tournament.py
+9. build tournament bracket 
+10. start tournament scheduler
+11. wait for tourny to finish then shutdown gladiators

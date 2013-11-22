@@ -258,13 +258,13 @@ def handle_completion(request, game):
 
         
     # increment winner and losers game played
-    for client in [game.winner, game.loser]:
-        try:
-            stats = json.loads(client.stats)
-        except ValueError:
-            stats = defaultdict(int)
-        stats['games-played'] = stats['games-played'] + 1
-        client.stats = json.dumps(stats)
+    #for client in [game.winner, game.loser]:
+    #    try:
+    #        stats = json.loads(client.stats)
+    #    except ValueError:
+    #        stats = defaultdict(int)
+    #    stats['games-played'] = stats['games-played'] + 1
+    #    client.stats = json.dumps(stats)
         
     clidict = dict()
     for client in request['clients']:

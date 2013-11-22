@@ -5,6 +5,8 @@
 
 django_path = ['/django', '/django/siggame']
 
+django_path = ['/home/ubuntu/siggame', '/home/ubuntu/siggame/siggame']
+
 import sys
 sys.path = django_path + sys.path
 from django.core.management import setup_environ
