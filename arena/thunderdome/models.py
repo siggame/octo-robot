@@ -187,5 +187,62 @@ class Match(models.Model):
 
 class Referee(models.Model):
     blaster_id = models.CharField(max_length=200, default='')
-    
-    
+    referee_id = models.CharField(max_length=20, default='')
+    started = models.DateTimeField(editable=True)
+    last_update = models.DateTimeField(editable=True)
+    games = models.ManyToManyField(Game)
+    dead = models.BooleanFied()
+    stats = models.TextField(default='') # holds extra stuff via JSON
+
+    def __unicode__(self):
+        return u"Ref %s (Blaster %s) %s Games Per Hour" % (self.referee_id,
+                                                           self.blaster_id,
+                                                           self.compute_rate())
+
+    def compute_rate(self,
+                     only_complete=True,
+                     slice_end=None,
+                     slice_start=None):
+        if slice_end is None:
+            slice_end = datetime.utcnow()
+        if slice_start is None:
+            slice_start = self.started
+        time_alive = (slice_end - slice_start).total_seconds()
+        games_completed = self.games.filter(completed__gte=slice_start,
+                                            completed__lt=slice_end)
+
+        if only_complete:
+            games_completed = games_completed.filter(status='Complete').count()
+        else:
+            games_completed = games_completed.count()
+
+        rate = games_completed / (time_alive / 3600)
+        return rate
+
+    def last_match(self, only_complete=False):
+        if only_complete:
+            game = self.games.filter(status='Completed')
+        else:
+            game = self.games.all()
+        if game.count() < 1:
+            return None
+        else:
+            reutrn game.order_by('-pk')[0]
+
+    def games_completed(self):
+        return self.games.filter(status='Complete').count()
+
+    def rate_table(self, time_period, step, interval, only_complete=True):
+        rate = []
+        slice_start = datetime.utcnow() - time_period
+        slice_end = slice_start + interval
+        while slice_end <= (datetime.utcnow()):
+            curr = self.compute_rate(only_complete, slice_end, slice_start)
+            if curr > 0:
+                rate.append((slice_end, int(curr)))
+            else:
+                rate.append((slice_end, None))
+            slice_start += step
+            slice_end += step
+        return rate
+                    
