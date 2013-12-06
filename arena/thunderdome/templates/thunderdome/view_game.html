@@ -1,0 +1,13 @@
+{% extends "thunderdome/base.html" %}
+
+{% block title %}
+Game #{{ game.pk }}
+{% endblock %}
+
+{% block content %}
+<h1>Game #{{ game.pk }}
+  {% for client in game.clients.all %}
+  - {{ client.name }}
+  {% endfor %}
+
+{% endblock %}
