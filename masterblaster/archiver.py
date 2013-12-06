@@ -12,14 +12,20 @@ import json
 from thunderdome.config import game_name
 from thunderdome.models import Client, Game, GameData, Referee
 
-import settings
+from gviz_api import DataTable
+
+import settings.defaults as settings
 
 stalk = None
 tourny_time = False
 
 def main():
-    result_tube = "game-results-%s" % game_name
     global stalk
+    result_tube = "game-results-%s" % game_name
+    
+    #p = Process(target=processing)
+    #p.start()
+    
     stalk = beanstalkc.Connection()
     stalk.watch(result_tube)
     
@@ -48,6 +54,24 @@ def main():
         
         print "Game", request['number'], "status", request['status']
     
+def processing():
+    while True:
+        start = datetime.now()
+        compute_throughput()
+        compute_scoreboard()
+        td = datetime.now()-start
+        delay = max(td*2, timedelta(seconds=30)).total_seconds()
+        print "Next run in %s secs" % delay
+        time.sleep(delay)
+        
+def compute_throughput():
+    refs = Referee.objects.all().order_by('pk')
+    if refs.count() == 0:
+        return
+    out = dict()
+    formatted = dict()
+    earliest_start = min([ref.started for ref in refs])
+        
 def handle_completion(request, game):
     if 'winner' in request:
         game.winner = Client.objects.get(name=request['winner']['name'])
