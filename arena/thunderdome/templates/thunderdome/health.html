@@ -1,0 +1,31 @@
+{% extends "thunderdome/base.html" %}
+{% load url from future %}
+
+{% block title %}
+ACM SIG-Game MegaMiner Arena (Thunderdome)
+{% endblock %}
+
+{% block content %}
+<h1>Arena</h1>
+
+<h2>Queue's Eye View</h2>
+Game requests in the queue: {{ ready_requests }}<br>
+Game requests reserved: {{ running_requests }}<br>
+
+<h2>Database's View</h2>
+Scheduled Games: {{ scheduled_games }}</br>
+Building Games: {{ building_games }}</br>
+Running Games: {{ running_games }}</br>
+Complete Games: {{ complete_games }}</br>
+Failed Games: {{ failed_games }}<br>
+Last Game Completed: {{ last }}<br>
+
+<h2>Match Statuses</h2>
+
+<h2>Node Throughput</h2>
+<table border='1'>
+  <th>Node</th>
+</tr>
+
+</table>
+{% endblock %}
