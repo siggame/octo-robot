@@ -191,7 +191,7 @@ class Referee(models.Model):
     started = models.DateTimeField(editable=True)
     last_update = models.DateTimeField(editable=True)
     games = models.ManyToManyField(Game)
-    dead = models.BooleanFied()
+    dead = models.BooleanField()
     stats = models.TextField(default='') # holds extra stuff via JSON
 
     def __unicode__(self):
@@ -227,7 +227,7 @@ class Referee(models.Model):
         if game.count() < 1:
             return None
         else:
-            reutrn game.order_by('-pk')[0]
+            return game.order_by('-pk')[0]
 
     def games_completed(self):
         return self.games.filter(status='Complete').count()
