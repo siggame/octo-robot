@@ -181,6 +181,8 @@ def push_file(local_filename, remote_filename):
     bucket_name = "%s-%s" % (os.environ['S3_PREFIX'], os.environ['GAME_NAME'])
     access_cred = os.environ['ACCESS_CRED']
     secret_cred = os.environ['SECRET_CRED']
+    if access_cred == 'None' or secret_cred == 'None':
+        return "None"
     c = boto.connect_s3(access_cred, secret_cred)
     b = c.get_bucket(bucket_name)
     k = boto.s3.key.Key(b)
