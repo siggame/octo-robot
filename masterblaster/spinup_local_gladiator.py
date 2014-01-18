@@ -14,10 +14,10 @@ import os
 import shutil
 import subprocess
 
-living_corders = '/home/pi/Desktop/gladiators/' # this is identical to the gladiator's arena folder
-server_path = '/home/pi/Desktop/gladiators/server'
-megaminer_repo = '/home/pi/Desktop/MegaMinerAI-12'
-gladiator_pck = '/home/pi/Desktop/octo-robot/gladiator/'
+living_corders = '/home/brandon/Desktop/gladiators/' # this is identical to the gladiator's arena folder
+server_path = '/home/brandon/Desktop/gladiators/server'
+megaminer_repo = '/home/brandon/Desktop/MegaMinerAI-12'
+gladiator_pck = '/home/brandon/Desktop/octo-robot/gladiator/'
 
 print "make sure .ssh/config contains proper configuration for ssh key in order to pull gladiators"
 print "checking if gladiators folder exists"
@@ -34,8 +34,8 @@ if not os.path.exists(megaminer_repo):
 
 shutil.copytree(gladiator_pck, living_corders)
 shutil.copytree(os.path.join(megaminer_repo, "server"), server_path)
-#shutil.copyfile('/home/pi/Desktop/octo-robot/Makefile', living_corders + 'Makefile')
-#shutil.copyfile('/home/pi/Desktop/octo-robot/referee_buildout', living_corders + 'buildout.cfg')
+#shutil.copyfile('/home/brandon/Desktop/octo-robot/Makefile', living_corders + 'Makefile')
+#shutil.copyfile('/home/brandon/Desktop/octo-robot/referee_buildout', living_corders + 'buildout.cfg')
 
 writer = open(living_corders + 'kick.sh', 'w')
 
@@ -57,6 +57,13 @@ mkdir 1
 ln referee.py 1/referee.py
 ln prep_for_bake.py 1/prep_for_bake.py
 cd 1
+python referee.py &
+cd ..
+
+mkdir 2
+ln referee.py 2/referee.py
+ln prep_for_bake.py 2/prep_for_bake.py
+cd 2
 python referee.py &
 cd ..
 """ % (str(access_cred), str(secret_cred), str(s3_prefix), game_name, client_prefix, 'localhost', server_path, 'localhost')
