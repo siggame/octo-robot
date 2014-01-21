@@ -1,4 +1,3 @@
-
 import random
 import urllib
 import json
@@ -50,7 +49,7 @@ def schedule_volley(stalk, sRound):
     print("current round %d" % sRound)
     if sRound == 0:
         update_clients()
-        # uncompleted_games.extend([i.pk for i in SV.validateSched(stalk)])
+        uncompleted_games.extend([i.pk for i in SV.validateSched(stalk)])
         while uncompleted_games:
             for c in list(uncompleted_games):
                 if game_status(c) in ["Complete", "Failed"]:
@@ -85,7 +84,7 @@ def schedule_volley(stalk, sRound):
             if len(goupin) % 2 != 0:
                 temp_m = max(groupes.keys())
                 groupes[temp_m].append(goupin.pop(random.randint(0, len(goupin)-1)))
-            while len(goupin) > 2:
+            while len(goupin) >= 2:
                 c1 = Client.objects.get(name=goupin.pop(random.randint(0, len(goupin)-1)))
                 c2 = Client.objects.get(name=goupin.pop(random.randint(0, len(goupin)-1)))
                 uncompleted_games.append(sked(c1, c2, stalk, "Swiss sked").pk)
@@ -100,6 +99,12 @@ def score_games():
         if game_status(g) == "Complete":
             uncompleted_games.remove(g)
             swiss_scores[Game.objects.get(pk=g).winner.name] += 1
+        elif game_status(g) == "Failed":
+            print "Game: ", g, "Failed aborting automated swiss, switch to manual swiss."
+            print "Printing out standing"
+            f = open("scores.txt", 'w')
+            
+            f.close()
     
 def formGroups():
     groups = defaultdict(list)

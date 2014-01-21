@@ -3,11 +3,15 @@ import random
 
 import beanstalkc
 
+import break_embargos
+
 from thunderdome.config import game_name
 from thunderdome.models import Client
 from thunderdome.sked import sked
 
 def validateSched(stalk):
+    print "Breaking embargoes"
+    break_embargos.break_embargos()
     print("Scheduling validation games")
     games = []
     stalk = beanstalkc.Connection()

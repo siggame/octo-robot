@@ -25,13 +25,13 @@ def main():
     stalk = beanstalkc.Connection()
     stalk.use(req_tube)
     while True:
-        try:
-            stats = stalk.stats_tube(req_tube)
-            if stats['current-jobs-ready'] < req_queue_len:
-                update_clients()
-                schedule_a_game(stalk)
-        except:
-            print "Arena scheduler could not schedule a game"
+        #try:
+        stats = stalk.stats_tube(req_tube)
+        if stats['current-jobs-ready'] < req_queue_len:
+            update_clients()
+            schedule_a_game(stalk)
+        #except:
+        #    print "Arena scheduler could not schedule a game"
         time.sleep(1)
     stalk.close()
 
