@@ -49,7 +49,7 @@ def schedule_volley(stalk, sRound):
     print("current round %d" % sRound)
     if sRound == 0:
         update_clients()
-        uncompleted_games.extend([i.pk for i in SV.validateSched(stalk)])
+        #uncompleted_games.extend([i.pk for i in SV.validateSched(stalk)])
         while uncompleted_games:
             for c in list(uncompleted_games):
                 if game_status(c) in ["Complete", "Failed"]:
@@ -85,8 +85,9 @@ def schedule_volley(stalk, sRound):
                 temp_m = max(groupes.keys())
                 groupes[temp_m].append(goupin.pop(random.randint(0, len(goupin)-1)))
             while len(goupin) >= 2:
-                c1 = Client.objects.get(name=goupin.pop(random.randint(0, len(goupin)-1)))
-                c2 = Client.objects.get(name=goupin.pop(random.randint(0, len(goupin)-1)))
+                goupin.sort(key=lambda x: scores[x])
+                c1 = Client.objects.get(name=goupin.pop(0))
+                c2 = Client.objects.get(name=goupin.pop(0))
                 uncompleted_games.append(sked(c1, c2, stalk, "Swiss sked").pk)
                 time.sleep(1)
     current_round += 1
