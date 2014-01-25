@@ -9,6 +9,7 @@ import urllib
 import json
 import time
 import pprint
+import math
 
 import beanstalkc
 import gc
@@ -32,31 +33,27 @@ class Player():
         self.score = score
         self.rank = 0
         self.rating = rating
-        self.color_preference = 0
-        self.past_competitors = []
+        self.past_competitors = [] # is a list of other Players that have been versed by self in the past
         self.past_colors = []
         self.color_pref = 0
         self.recieved_bye = False
         self.pairing_number = 0
-
-    def __unicode__(self):
-        return self.name
-
+        
     def __str__(self):
         return str(self.name) + str(self.score)
+    
+    def __eq__(self, other):
+        if self.name == other.name and self.pairing_number == other.pairing_number:
+            return True
+        return False
 
     def __cmp__(self, other):
-        if self.recieved_bye:
+        if self.pairing_number > other.pairing_number:
             return -1
-        elif other.recieved_bye:
+        elif self.pairing_number < other.pairing_number:
             return 1
         else:
-            if self.rating < other.rating:
-                return -1
-            elif self.rating > other.rating:
-                return 1
-            else:
-                return 0
+            return 0
 
 def main():
     try:
@@ -105,13 +102,17 @@ def schedule_volley(stalk, sRound):
         for i, j in enumerate(competing_clients):
             print j, " is assigned", i
             j.pairing_number = i
-            
+    
+    schedule_brackets(create_score_brackets(), sRound, stalk)
+    current_round += 1
+
+def create_score_brackets():
+    # returns a dictionary where the key is the score of the players
+    # thus creating a seperate brackets
     score_brackets = defaultdict(list)
     for i in competing_clients:
         score_brackets[i.score].append(i)
-
-    schedule_brackets(score_brackets, sRound, stalk)
-    current_round += 1
+    return score_brackets
 
 def schedule_brackets(score_brackets, sRound, stalk):
     median_score = sRound/2.0
@@ -147,80 +148,6 @@ def schedule_brackets(score_brackets, sRound, stalk):
 
     current_bracket = 0
     print "Median score bracket value", median_score
-
-    def prepare_group(group, sked_dir):
-        """
-        takes in a group and does checking and move players
-        to appropriate other score groups based on 9.3
-        """
-        #check if the player has already played everyone in the group
-        def player_rating_cmp(x, y):
-            return y.rating - x.rating
-        group.sort(cmp=player_rating_cmp)
-        players_to_move = []
-        if not score_brackets.keys():
-            return
-
-        # if sked_dir == "down"
-        if sked_dir == 0:
-            max_brak = max(score_brackets.keys())
-        else:
-            max_brak = min(score_brackets.keys())
-
-        def player_equal(x, y):
-            if x.name == y.name:
-                return True
-            else:
-                return False
-        #check for a player played everyone in group before
-        for i in list(group):
-            for c in i.past_competitors:
-                if not player_equal(i, c):
-                    break
-            else:
-                print "lists are equal"
-                group.remove(i)
-                score_brackets[max_brak].append(i)
-
-        # check for if group contains even number of players
-        if len(group) % 2 != 0:
-            if sked_dir == 0:
-                t = group.pop(0)
-                print "moving player down", t.name
-                score_brackets[max_brak].append(t)
-            else:
-                t = group.pop(len(group)-1)
-                print "moving player up", t.name
-                score_brackets[max_brak].append(t)
-
-        if sked_dir == 0:
-            print "checking for conflicts scheduling down"
-            group.sort(key = lambda x: x.pairing_number)
-            pos = 0
-            while not group_is_compatible(group):
-                # make correct pairing for highest player
-                temp_group = list(group)
-                i = temp_group.pop(pos)
-                curent_part = temp_group.pop((len(temp_group)/2) + pos)
-                if not compatible_players(i, curent_part):
-                    temp_group.sort(key = lambda x: x.pairing_number)
-                    j = temp_group.pop(0)
-                    while temp_group:
-                        temp_group.sort(key = lambda x: x.pairing_number)
-                        j = temp_group.pop(0)
-                        if compatible_players(i, j):
-                            break
-                    else:
-                        # a player could not be found
-                        pass
-                    # a player is found and needs switching
-                    cur_index = group.index(curent_part)
-                    j_index = group.index(j)
-                    group[cur_index], group[j_index] = group[j_index], group[cur_index]
-                else:
-                    pass
-
-    
     while score_brackets:
         bracket = max(score_brackets.keys())
         temp = 0
@@ -228,10 +155,10 @@ def schedule_brackets(score_brackets, sRound, stalk):
             bracket = min(score_brackets.keys())
             temp = 1
         m_group = score_brackets[bracket]
-        del score_brackets[bracket]
-
-        if bracket != median_score:
-            prepare_group(m_group, temp)
+        del score_brackets[bracket]        
+        prepare_group(m_group, temp, score_brackets)
+        # the current proposed pairings are as listed in 9.4
+        setup_group(m_group, score_brackets, temp)
         schedule_group(m_group, temp, stalk)
 
 def group_is_compatible(group):
@@ -241,19 +168,144 @@ def group_is_compatible(group):
         print i
     while pos < len(group)/2:
         if not compatible_players(group[pos], group[(len(group)/2) + pos]):
+            print "group is not compatible because of", group[pos].name, "and", group[(len(group)/2)+pos].name
             return False
     return True
 
-
 def compatible_players(p1, p2):
     if p1 in p2.past_competitors:
+        print "players", p1.name, "and", p2.name, "can't play because they fought before"
         return False
-    if p1.color_preference < -2 and p2.color_preference > 2:
-        return False
+    return True
+
+def prepare_group(group, sked_dir, score_brackets):
+    """
+    takes in a group and does checking and move players
+    to appropriate other score groups based on 9.3
+
+    This is effectivly just moving players around score groups thus
+    making sure everyone is in their correct group
+    """
+
+    if not score_brackets.keys():
+        return
+    
+    # if sked_dir == "down"
+    if sked_dir == 0:
+        max_brak = max(score_brackets.keys())
+    else:
+        max_brak = min(score_brackets.keys())
+        
+    #check for a player played everyone in group before
+    for i in list(group):
+        for c in i.past_competitors:
+            if not i == c:
+                break
+        else:
+            print "lists are equal"
+            group.remove(i)
+            score_brackets[max_brak].append(i)
+
+    # check for color compatability
+    for i in list(group):
+        for c in list(group):
+            if 2 < i.color_pref + c.color_pref < -2:
+                pass
+    
+    group.sort()
+    # check for if group contains even number of players
+    if len(group) % 2 != 0:
+        if sked_dir == 0:   
+            # remove lowest 
+            t = group.pop(0)
+            print "moving player down", t.name
+            score_brackets[max_brak].append(t)
+        else:
+            # remove highest
+            t = group.pop(len(group)-1)
+            print "moving player up", t.name
+            score_brackets[max_brak].append(t)
+    # the proposed pairings are now constructed and ready to be scrutinized
+    return
+
+def setup_group(group, score_brackets, sched_dir):
+    """
+    sets up the group for scheduling
+    by making sure that the pairings are compatible, if not
+    then makes the pairings compatible
+    """
+    # schedule direction 0 means downward
+    print "setting up pairings"
+    print "current pairings are"
+    pos = 0
+    while pos < len(group)/2:
+        print group[pos].name, "vs", group[(len(group)/2) + pos].name
+        pos += 1
+    pos = 0
+    
+    if sched_dir == 0:
+        pass
+    while pos < len(group)/2:
+        if not compatible_players(group[pos], group[(len(group)/2) + pos]):
+            # a pairing is not compatible, find a new pairing for the higher player
+            print group[pos].name, "can't play", group[(len(group)/2) + pos].name
+            temp_group = list(group)
+            temp_group.remove(group[(len(group)/2) + pos])
+            while temp_group:         
+                j = min(temp_group)
+                temp_group.remove(j)
+                print "trying player", j.name, j.pairing_number
+                if compatible_players(group[pos], j):
+                    group[group.index(j)], group[(len(group)/2) + pos] = group[(len(group)/2) + pos], j
+                    break
+                time.sleep(5)
+            else:
+                print "no compatible players found in this group"
+                exit()
+            time.sleep(5)
+        pos += 1
+    
+    # color checking and setting
+    pos = 0
+    while pos < len(group)/2:
+        t = [group[pos], group[(len(group)/2) + pos]]
+        print t[0].name, ":", t[0].color_pref, "vs", t[1].name, ":", t[1].color_pref
+        if t[0].color_pref == 0 and t[1].color_pref == 0:
+            random.shuffle(t) 
+        elif t[0].color_pref == 0:
+            if t[1].color_pref > 0:
+                t[0], t[1] = t[1], t[0]
+        elif t[1].color_pref == 0:
+            if t[0].color_pref < 0:
+                t[0], t[1] = t[1], t[0]
+        elif math.fabs(t[0].color_pref) == math.fabs(t[1].color_pref):
+            if t[0].color_pref < 0:
+                t[0], t[1] = t[1], t[0]
+        else:
+            white = min(t, key =lambda x:x.color_pref) 
+            black = max(t, key=lambda x:x.color_pref) 
+            # who ever has the higher magnitude color pref gets to pick the color they need
+            if math.fabs(white.color_pref) > math.fabs(black.color_pref):
+                if white.color_pref < 0:
+                    t = (black, white)
+                elif white.color_pref > 0:
+                    t = (white, black)
+            elif math.fabs(white.color_pref) < math.fabs(black.color_pref):
+                if black.color_pref < 0:
+                    t = (white, black)
+                elif black.color_pref > 0:
+                    t = (black, white)
+        
+        group[pos], group[(len(group)/2) + pos] = t[0], t[1]
+        print t[0].name, ":", t[0].color_pref, "vs", t[1].name, ":", t[1].color_pref
+        pos += 1
+        time.sleep(4)
 
 def schedule_group(group, bracket_type, stalk):
-    group.sort(key=lambda x: x.pairing_number)
+    # takes in a group which is a list of clients which are to be paired for games
+    # group is going to be "prepared" which then results in the final pairings said in 9.4
     print "Group contains", len(group), "players"
+    # schedule down
     pos = 0
     while pos < len(group)/2:
         i = group[pos]
@@ -274,10 +326,9 @@ def score_games():
         if game_status(g) == "Complete":
             uncompleted_games.remove(g)
             for c in competing_clients:
-                                
                 if c.name == Game.objects.get(pk=g).winner.name:
                     c.score += 1
-                    print c.name, "is winner of", g, "and now has a score of", c.score
+                    print c.name, "is winner of", g, c.score
                     break
         elif game_status(g) == "Failed":
             print "Game:", g, "Failed aborting automated swiss, switch to manual swiss."
