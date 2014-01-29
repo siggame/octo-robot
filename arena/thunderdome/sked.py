@@ -31,5 +31,4 @@ def sked(guy0, guy1, stalk, origin, priority=1000):
     print 'scheduled', game, guy0, guy1
     payload.update({'reporter':origin})
     # log.info(json.dumps(payload))
-    
     return game

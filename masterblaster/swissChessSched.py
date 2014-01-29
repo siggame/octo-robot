@@ -246,23 +246,23 @@ def setup_group(group, score_brackets, sched_dir):
     if sched_dir == 0:
         pass
     while pos < len(group)/2:
+        print "checking", group[pos].name, group[(len(group)/2) + pos].name
         if not compatible_players(group[pos], group[(len(group)/2) + pos]):
             # a pairing is not compatible, find a new pairing for the higher player
-            print group[pos].name, "can't play", group[(len(group)/2) + pos].name
             temp_group = list(group)
             temp_group.remove(group[(len(group)/2) + pos])
-            while temp_group:         
+            while temp_group:
                 j = min(temp_group)
                 temp_group.remove(j)
                 print "trying player", j.name, j.pairing_number
                 if compatible_players(group[pos], j):
                     group[group.index(j)], group[(len(group)/2) + pos] = group[(len(group)/2) + pos], j
                     break
-                time.sleep(5)
+                time.sleep(10)
             else:
                 print "no compatible players found in this group"
                 exit()
-            time.sleep(5)
+            time.sleep(10)
         pos += 1
     
     # color checking and setting
