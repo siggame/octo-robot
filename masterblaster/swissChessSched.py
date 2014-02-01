@@ -98,9 +98,16 @@ def schedule_volley(stalk, sRound):
         # lower means higher rank
         # later in the scheduling
         # for now just give random numbers
+
+        # for testing only
+        # sort clients alphabetically
+        competing_clients.sort(lambda x, y: cmp(x.name.lower(), y.name.lower()))
+        print "sorted clients"
+        for i in competing_clients:
+            print i.name
         print("assigning pairing number")
         for i, j in enumerate(competing_clients):
-            print j, " is assigned", i
+            print j.name, " is assigned", i
             j.pairing_number = i
     
     schedule_brackets(create_score_brackets(), sRound, stalk)
@@ -158,7 +165,33 @@ def schedule_brackets(score_brackets, sRound, stalk):
         del score_brackets[bracket]        
         prepare_group(m_group, temp, score_brackets)
         # the current proposed pairings are as listed in 9.4
-        setup_group(m_group, score_brackets, temp)
+        if sRound != 0:
+            #round one is special and thus color setup differently
+            setup_group(m_group, score_brackets, temp)
+        else:
+            print "setup for round one"
+            for i in m_group:
+                print i.name, i.pairing_number
+            # white = 0, black = 1
+            # this is done as stated in 14.2 and what has been observed from swiss perfect
+            first_player_color = 0 # for now default is white, this should be in argv
+            pos = 0
+            t = [None, None]
+            while pos < len(m_group)/2:
+                t[0], t[1] = m_group[pos], m_group[len(m_group)/2 + pos]
+                if pos % 2 == 0:
+                    if first_player_color == 0:
+                        t[0], t[1] = m_group[pos], m_group[len(m_group)/2 + pos]
+                    else:
+                        t[0], t[1] = m_group[len(m_group)/2 + pos], m_group[pos]
+                else:
+                    if first_player_color == 0:
+                        t[0], t[1] = m_group[len(m_group)/2 + pos], m_group[pos]
+                    else:
+                        
+                        t[0], t[1] = m_group[pos], m_group[len(m_group)/2 + pos]
+                m_group[pos], m_group[len(m_group)/2 + pos] = t[0], t[1]
+                pos += 1
         schedule_group(m_group, temp, stalk)
 
 def group_is_compatible(group):
@@ -207,10 +240,10 @@ def prepare_group(group, sked_dir, score_brackets):
             score_brackets[max_brak].append(i)
 
     # check for color compatability
-    for i in list(group):
-        for c in list(group):
-            if 2 < i.color_pref + c.color_pref < -2:
-                pass
+    #for i in list(group):
+    #    for c in list(group):
+    #        if 2 < i.color_pref + c.color_pref < -2:
+    #            pass
     
     group.sort()
     # check for if group contains even number of players
@@ -270,9 +303,9 @@ def setup_group(group, score_brackets, sched_dir):
     while pos < len(group)/2:
         t = [group[pos], group[(len(group)/2) + pos]]
         print t[0].name, ":", t[0].color_pref, "vs", t[1].name, ":", t[1].color_pref
-        if t[0].color_pref == 0 and t[1].color_pref == 0:
-            random.shuffle(t) 
-        elif t[0].color_pref == 0:
+        #if t[0].color_pref == 0 and t[1].color_pref == 0:
+        #    random.shuffle(t) 
+        if t[0].color_pref == 0:
             if t[1].color_pref > 0:
                 t[0], t[1] = t[1], t[0]
         elif t[1].color_pref == 0:
