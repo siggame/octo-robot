@@ -11,6 +11,7 @@
 # Ignore secret settings file
 secret_settings.py
 aws_secrets.py
+arena/thunderdome/config.py
 
 # Ignore buildout stuff
 bin/
