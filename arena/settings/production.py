@@ -1,24 +1,18 @@
 
-from arena.settings import *
+import arena.settings.defaults as default_settings
+from arena.settings.secret_settings import POSTGRES_NAME, POSTGRES_USER, POSTGRES_PASSWORD
+from arena.settings.defaults import *
 
 SITE_ID = 2
-
+DEBUG=False
 USE_X_FORWARDED_HOST = True
 
 DATABASES = {
     'default' : { 
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME' : POSTGRES_DB,
+        'NAME' : POSTGRES_NAME,
         'USER' : POSTGRES_USER,
         'PASSWORD' : POSTGRES_PASSWORD,
         'HOST': 'localhost',
      }
 }
-
-CACHES = {
-    'default' : {
-        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
-        'LOCATION' : [MEMCACHED_LOCATION],
-     }
-}
-
