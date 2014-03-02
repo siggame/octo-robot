@@ -1,0 +1,11 @@
+faker 
+hulk
+ruski
+fedaykin
+blunt
+red
+
+ruski - red
+faker - fedaykin
+
+

@@ -9,5 +9,6 @@ from tastypie.api import Api
 urlpatterns = patterns(
     'thunderdome.views',
     url(r'^$', 'scoreboard'),
+    url(r'^health$', 'health'),
     url(r'^view/(?P<game_id>\d+)$', 'view_game'),
 )

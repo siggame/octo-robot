@@ -13,7 +13,7 @@ import beanstalkc
 import boto
 
 # Django Imports
-import settings
+import settings.defaults
 from django.shortcuts import render_to_response, get_object_or_404
 from django.http import HttpResponseRedirect, HttpResponse
 from django.core.context_processors import csrf
@@ -23,11 +23,45 @@ from django.db.models import Max
 # My Imports
 from thunderdome.config import game_name, access_cred, secret_cred
 from thunderdome.models import Client, Game
+from thunderdome.models import Match, Referee
 #from thunderdome.sked import sked
 
 def index(request):
     msg = "<html><body><p>Hello index page!</p></body></html>"
     return HttpResponse(msg)
+
+
+def health(request):
+    # Let's start by having this page show some arena health statistics
+    p = dict() # payload for the render_to_response
+    
+    c = beanstalkc.Connection()
+    c.use('game-requests-%s' % game_name)
+    tube_status = c.stats_tube('game-requests-%s' % game_name)
+    (p['ready_requests'], p['running_requests'], p['current_tube']) = \
+        [tube_status[x] for x in ('current-jobs-ready',
+                                  'current-jobs-reserved',
+                                  'name')]
+    c.close()
+    
+    (p['scheduled_games'], p['running_games'],
+     p['complete_games'], p['failed_games'], p['building_games']) = \
+        [Game.objects.filter(status=x).count
+         for x in ('Scheduled', 'Running', 'Complete', 'Failed', 'Building')]
+    
+    p['sanity'] = p['ready_requests'] == p['scheduled_games'] \
+        and p['running_games'] == p['running_requests']
+    
+    p['matches'] = list(Match.objects.order_by('-id'))
+    p['matches'].sort(key=lambda x: x.status, reverse=True)
+    
+    p['last'] = \
+        Game.objects.all().aggregate(Max('completed'))['completed__max']
+    
+    refs = Referee.objects.all().order_by('-pk')
+    p['refs'] = refs
+    return render_to_response('thunderdome/health.html', p)
+
 
 def view_game(request, game_id):
     game = get_object_or_404(Game, pk=game_id)

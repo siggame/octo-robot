@@ -105,6 +105,7 @@ INSTALLED_APPS = (
     'django.contrib.admindocs',
     'thunderdome',
     'gunicorn',
+    'south',
     'django_nose',
 )
 

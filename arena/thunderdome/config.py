@@ -13,4 +13,4 @@ client_prefix = 'ssh://webserver@megaminerai.com'
 arena_ami = ''
 tournament_ami = ''
 req_queue_len = 5
-api_url_template = "http://megaminerai.com/api/repo/tags/?competition=%s"
+api_url_template = "http://megaminerai.com/api/repo/tags/%s"

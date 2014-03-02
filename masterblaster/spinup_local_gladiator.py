@@ -13,6 +13,7 @@ import os
 import shutil
 import subprocess
 
+
 living_corders = '/Users/brandon/Desktop/gladiators/' # this is identical to the gladiator's arena folder
 server_path = '/Users/brandon/Desktop/gladiators/server'
 megaminer_repo = '/Users/brandon/Desktop/MegaMinerAI-12'
@@ -33,6 +34,7 @@ if not os.path.exists(megaminer_repo):
 
 shutil.copytree(gladiator_pck, living_corders)
 shutil.copytree(os.path.join(megaminer_repo, "server"), server_path)
+
 #shutil.copyfile('/Users/brandon/Desktop/octo-robot/Makefile', living_corders + 'Makefile')
 #shutil.copyfile('/Users/brandon/Desktop/octo-robot/referee_buildout', living_corders + 'buildout.cfg')
 
@@ -56,6 +58,13 @@ mkdir 1
 ln referee.py 1/referee.py
 ln prep_for_bake.py 1/prep_for_bake.py
 cd 1
+python referee.py &
+cd ..
+
+mkdir 2
+ln referee.py 2/referee.py
+ln prep_for_bake.py 2/prep_for_bake.py
+cd 2
 python referee.py &
 cd ..
 """ % (str(access_cred), str(secret_cred), str(s3_prefix), game_name, client_prefix, 'localhost', server_path, 'localhost')
