@@ -39,16 +39,6 @@ MANAGERS = ADMINS
 AUTH_PROFILE_MODULE = 'profiles.UserProfile'
 
 
-import djcelery
-djcelery.setup_loader()
-
-try:
-    BROKER_URL
-except NameError:
-    BROKER_URL = 'django://'
-
-CELERYBEAT_SCHEDULER = "djcelery.schedulers.DatabaseScheduler"
-
 DATABASES = None
 
 FIXTURE_DIRS = {

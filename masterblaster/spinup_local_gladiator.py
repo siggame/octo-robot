@@ -6,7 +6,6 @@
 ### After the complete gladiator folder has been created just run the kick.sh script
 ### this can be done by cd living_corders, chmod +x kick.sh, then kick.sh
 
-
 from arena.settings.aws_secrets import access_cred, secret_cred, s3_prefix
 from thunderdome.config import game_name, client_prefix, beanstalk_host
 
@@ -14,10 +13,10 @@ import os
 import shutil
 import subprocess
 
-living_corders = '/home/pi/Desktop/gladiators/' # this is identical to the gladiator's arena folder
-server_path = '/home/pi/Desktop/gladiators/server'
-megaminer_repo = '/home/pi/Desktop/MegaMinerAI-12'
-gladiator_pck = '/home/pi/Desktop/octo-robot/gladiator/'
+living_corders = '/Users/brandon/Desktop/gladiators/' # this is identical to the gladiator's arena folder
+server_path = '/Users/brandon/Desktop/gladiators/server'
+megaminer_repo = '/Users/brandon/Desktop/MegaMinerAI-12'
+gladiator_pck = '/Users/brandon/Desktop/octo-robot/gladiator/'
 
 print "make sure .ssh/config contains proper configuration for ssh key in order to pull gladiators"
 print "checking if gladiators folder exists"
@@ -34,8 +33,8 @@ if not os.path.exists(megaminer_repo):
 
 shutil.copytree(gladiator_pck, living_corders)
 shutil.copytree(os.path.join(megaminer_repo, "server"), server_path)
-#shutil.copyfile('/home/pi/Desktop/octo-robot/Makefile', living_corders + 'Makefile')
-#shutil.copyfile('/home/pi/Desktop/octo-robot/referee_buildout', living_corders + 'buildout.cfg')
+#shutil.copyfile('/Users/brandon/Desktop/octo-robot/Makefile', living_corders + 'Makefile')
+#shutil.copyfile('/Users/brandon/Desktop/octo-robot/referee_buildout', living_corders + 'buildout.cfg')
 
 writer = open(living_corders + 'kick.sh', 'w')
 
