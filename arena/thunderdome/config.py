@@ -6,8 +6,9 @@
 
 
 from arena.settings.aws_secrets import access_cred, secret_cred, s3_prefix
+from arena.settings.secret_settings import WEBSITE_USER_NAME, WEBSITE_ARENA_PASSWORD
         
-game_name = 'megaminerai-12-mars'
+game_name = 'chess-2014'
 beanstalk_host = 'arena.megaminerai.com'
 client_prefix = 'ssh://webserver@megaminerai.com'
 arena_ami = ''

@@ -15,6 +15,8 @@ from thunderdome.config import game_name, req_queue_len
 from thunderdome.models import Client
 from thunderdome.sked import sked
 
+from utilities import webinteraction as wi
+
 def main():
     try:
         stalk = beanstalkc.Connection()
@@ -28,7 +30,7 @@ def main():
         #try:
         stats = stalk.stats_tube(req_tube)
         if stats['current-jobs-ready'] < req_queue_len:
-            update_clients()
+            wi.update_clients()
             schedule_a_game(stalk)
         #except:
         #    print "Arena scheduler could not schedule a game"
@@ -41,6 +43,7 @@ def schedule_a_game(stalk):
     if len(clients) < 2: # takes two to tango
         print "only", len(clients), "clients in the arena"
         return
+
     worst_client = min(clients, key=lambda x: x.last_game())
     clients.remove(worst_client)
     partner = random.choice(clients)
