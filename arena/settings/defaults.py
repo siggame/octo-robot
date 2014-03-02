@@ -19,7 +19,6 @@ except ImportError:
     from secret_settings import *
 
 
-
 if not os.path.exists(os.path.join(SETTINGS_DIR, "aws_secrets.py")):
     print "Couldn't find secret_settings file. Creating a new one."
     print "This can only be the case in development mode please ensure you want to be in development mode"
