@@ -1,0 +1,12 @@
+{% extends "thunderdome/base.html" %}
+{% block title %}
+Manually Inject a Game
+{% endblock %}
+
+{% block content %}
+<form method='POST' action='{% url thunderdome.view.inject %}'>
+  {% csrf_token %}
+  {{ form.as_p }}
+  <input type='submit' value='Submit' />
+</form>
+{% endblock %}
