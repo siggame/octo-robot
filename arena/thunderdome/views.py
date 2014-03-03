@@ -23,8 +23,8 @@ from django.db.models import Max
 # My Imports
 from thunderdome.config import game_name, access_cred, secret_cred
 from thunderdome.models import Client, Game
-from thunderdome.models import Match, Referee
-#from thunderdome.sked import sked
+from thunderdome.models import Match, Referee, InjectedGameForm
+from thunderdome.sked import sked
 
 def index(request):
     msg = "<html><body><p>Hello index page!</p></body></html>"
@@ -91,3 +91,27 @@ def scoreboard(request):
                 c1.row.append((c1.pk, c2.pk, ' '))
     payload = {'clients':clients}
     return render_to_response('thunderdome/scoreboard.html', payload)
+
+
+@login_required
+def inject(request):
+    ### Handle manual inject of a game into the system
+    if request.method == 'POST':
+        form = InjectedGameForm(request.POST)
+        if form.is_valid():
+            clientOne = get_object_or_404(
+                Client, pk_iexact=form.cleaned_data['clientOne'])
+            clientTwo = get_object_or_404(
+                Client, pk_iexact=form.cleaned_data['clientTwo'])
+            
+            stalk = beanstalkc.Connection()
+            stalk.use('game-requests-%s' % game_name)
+            game = sked(clientOne, clientTwo, stalk,
+                        "Priorty Game Request", 0)
+            stalk.close()
+            return HttpResponseRedirect('view/%s' % game.pk)
+    else:
+        form = InjectedGameForm()
+    payload = {'form': form}
+    payload.update(csrf(request))
+    return render_to_reponse('thunderdome/inject.html', payload)
