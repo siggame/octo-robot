@@ -7,13 +7,9 @@ from thunderdome.config import WEBSITE_USER_NAME, WEBSITE_ARENA_PASSWORD
 from thunderdome.models import Client
 
 def update_clients():
-    print 'updating clients'
+    '''update the database with the current clients, based on game_name'''
     api_url = api_url_template % game_name
-    print api_url
-    
     r = requests.get(api_url, auth=(WEBSITE_USER_NAME, WEBSITE_ARENA_PASSWORD))
-    print r.text
-
     data = json.loads(r.text)
 
     for block in data:
@@ -35,7 +31,8 @@ def makeClient(block):
     client = Client.objects.create()
     client.name = block['team']['slug']
     client.current_version = block['tag']['name']
-    client.repo = block['repository']['path']
+    client.repo = block['repository']['path']    
+    client.stats = json.dumps({"language" : block['language']})
     client.embargoed = False
     client.eligible = True
     client.seed = 0

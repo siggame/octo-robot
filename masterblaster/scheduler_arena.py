@@ -51,42 +51,5 @@ def schedule_a_game(stalk):
     random.shuffle(players)
     sked(players[0], players[1], stalk, "Arena Scheduler")
 
-    
-def update_clients():
-    print 'updating clients'
-    api_url = "http://megaminerai.com/api/repo/tags/?competition=%s" % game_name
-    try:
-        f = urllib.urlopen(api_url)
-        data = json.loads(f.read())
-        f.close()
-    except:
-        print "couldn't read updated clients is website up? is the right api_url: %s" % api_url
-
-    for block in data:
-        if block['tag'] is None:
-            block['tag'] = ''
-        if Client.objects.filter(name=block['name']).count() == 0:
-            client = makeClient(block)
-        else:
-            client = Client.objects.get(name=block['name'])
-        if client.current_version != block['tag']:
-            client.embargoed = False # only place an embargo can be broken
-            client.current_version = block['tag']
-            client.save()
-
-
-def makeClient(block):
-    '''Make a client object from the provided API data block'''
-    client = Client.objects.create()
-    client.name = block['name']
-    client.current_version = block['tag']
-    client.repo = block['path']
-    client.embargoed = False # True # odd so the first client obtained from the api is embargoed?
-    client.eligible = True # tournament eligible
-    client.seed = 0
-    client.save()
-    return client
-
-
 if __name__ == "__main__":
     main()
