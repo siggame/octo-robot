@@ -13,11 +13,13 @@ import math
 
 import beanstalkc
 import gc
+import sys
+import argparse
 
 from thunderdome.config import game_name, req_queue_len
 from thunderdome.models import Client, Game
-
 from thunderdome.sked import sked
+from utilities import webinteraction as WI
 
 import scheduler_validating as SV
 
@@ -26,6 +28,10 @@ from collections import defaultdict
 uncompleted_games = []
 competing_clients = []
 current_round = 0
+
+iterative_swiss = True
+include_humans = False
+max_rounds = None
 
 class Player():
     def __init__(self, name, score=0, rating=0):
@@ -56,6 +62,15 @@ class Player():
             return 0
 
 def main():
+    global current_round
+    parser = argparse.ArgumentParser(description='Swiss Chess scheduler')
+    parser.add_argument('--h', action='store_true', help='Weither to include humans, mainly for the swiss tournament')
+    parser.add_argument('--i', action='store_false', help='Schedule rounds iteratively, reseting after a winner has been found')
+    # parser.add_argument('rounds', type=int, help="Number of rounds to run, if iterative this is ignored")
+    args = parser.parse_args()
+    print args
+    include_humans = args.h
+    iterative_swiss = args.i
     try:
         stalk = beanstalkc.Connection()
     except:
@@ -68,11 +83,21 @@ def main():
         stats = stalk.stats_tube(req_tube)
         if not uncompleted_games:
             schedule_volley(stalk, current_round)
+            if hasAWinner(create_score_brackets()):
+                if iterative_swiss:
+                    current_round = 0
         else:
             score_games()
         time.sleep(5)
     stalk.close()           
     
+def hasAWinner(brackScores):
+    wins = max(brackScores.keys())
+    if(wins >= math.log(len(competing_clients), 2)):
+        return True
+    else:
+        return False
+
 def game_status(g_id):
     return Game.objects.get(pk=g_id).status
 
@@ -81,7 +106,7 @@ def schedule_volley(stalk, sRound):
     global uncompleted_games
     global current_round
     if sRound == 0:
-        update_clients()
+        WI.update_clients()
         #uncompleted_games.extend([i.pk for i in SV.validateSched(stalk)])
         while uncompleted_games:
             for c in list(uncompleted_games):
@@ -89,9 +114,16 @@ def schedule_volley(stalk, sRound):
                     uncompleted_games.remove(c)
             print("games to go: %d" % len(uncompleted_games))
             time.sleep(2)
-
         
-        competing_clients = [Player(j.name) for j in list(Client.objects.exclude(name='bye').filter(embargoed=False))]
+        clients = list(Client.objects.exclude(name='bye').filter(embargoed=False))
+        for i in list(clients):
+            tempStats = json.loads(i.stats)
+            if tempStats['language'] == "Human":
+                clients.remove(i)
+
+        competing_clients = [Player(j.name) for j in clients]
+        
+
         # assign pairing numbers to each player
         # sort the competitors by rank and rating obtained during the competition
         # give numbers from 0 - len(competing_clients) these will be perminent and used
@@ -147,7 +179,8 @@ def schedule_brackets(score_brackets, sRound, stalk):
                 return -1
             else:
                 return x.rating - y.rating
-        l_p = l_group.sort(cmp=player_comparison).pop(0)
+        l_group.sort(cmp=player_comparison)
+        l_p = l_group.pop(0)
         print "bye given to:", l_p.name
         # give bye this round to l_p
         l_p.recieved_bye = True
@@ -378,42 +411,6 @@ def print_scoreBrackets(brackets):
         for c in j:
             print c
      
-def update_clients():
-    print 'updating clients'
-    api_url = "http://megaminerai.com/api/repo/tags/?competition=%s" % game_name
-    try:
-        f = urllib.urlopen(api_url)
-        data = json.loads(f.read())
-        f.close()
-    except:
-        print "couldn't read updated clients is website up? is the right api_url: %s" % api_url
-
-    for block in data:
-        if block['tag'] is None:
-            block['tag'] = ''
-        if Client.objects.filter(name=block['name']).count() == 0:
-            client = makeClient(block)
-        else:
-            client = Client.objects.get(name=block['name'])
-        if client.current_version != block['tag']:
-            client.embargoed = False # only place an embargo can be broken
-            client.current_version = block['tag']
-            client.save()
-
-
-def makeClient(block):
-    '''Make a client object from the provided API data block'''
-    client = Client.objects.create()
-    client.name = block['name']
-    client.current_version = block['tag']
-    client.repo = block['path']
-    client.embargoed = False # True # odd so the first client obtained from the api is embargoed?
-    client.eligible = True # tournament eligible
-    client.seed = 0
-    client.save()
-    return client
-
-
 if __name__ == "__main__":
     main()
 
