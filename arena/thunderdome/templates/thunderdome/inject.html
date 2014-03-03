@@ -4,7 +4,7 @@ Manually Inject a Game
 {% endblock %}
 
 {% block content %}
-<form method='POST' action='{% url thunderdome.view.inject %}'>
+<form method='POST' action='{% url thunderdome.views.inject %}'>
   {% csrf_token %}
   {{ form.as_p }}
   <input type='submit' value='Submit' />
