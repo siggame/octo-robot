@@ -14,8 +14,8 @@ except ImportError:
     with open(secret_settings_loc, 'w') as secret_settings:
         secret_key = ''.join([chr(ord(x) % 90 + 33) for x in os.urandom(40)])
         secret_settings.write("SECRET_KEY = '''%s'''\n" % secret_key)
-        secret_settings.write("WEBSITE_USER_NAME = '%s'" % 'None')
-        secret_settings.write("WEBSITE_ARENA_PASSWORD = '%s'" % 'None')
+        secret_settings.write("WEBSITE_USER_NAME = '%s'\n" % 'None')
+        secret_settings.write("WEBSITE_ARENA_PASSWORD = '%s'\n" % 'None')
     from secret_settings import *
 
 

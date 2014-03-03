@@ -114,4 +114,4 @@ def inject(request):
         form = InjectedGameForm()
     payload = {'form': form}
     payload.update(csrf(request))
-    return render_to_reponse('thunderdome/inject.html', payload)
+    return render_to_response('thunderdome/inject.html', payload)
