@@ -1,17 +1,9 @@
 
 
 First time running notes
-Currently I am unsure how to make beanstalkd, be installed correctly and what not, need to add it to bin. 
-There are two ways of doing this, 
+beanstalkd is need for running the arena head node, this gets cloned into var/parts/beanstalkd, but needs to be compiled. 
 
-1) So instead before running make for the first time, or after the second time, added beanstalkd to [buildout] parts
-it will probably fail, even if it does, it succeded, but not completely. After this remove beanstalkd from parts 
-in buildout.cfg. beanstalkd will remain in var/parts
-cd var/parts/beanstalkd
-make
-then start beanstalkd inside /var/parts/beanstalkd
-
-2) Another way of adding beanstalkd, 
+so after make finishes,
 cd /var/parts
 mkdir beanstalkd
 cd beanstalkd
