@@ -20,6 +20,7 @@ urlpatterns = patterns(
     url(r'^view/(?P<game_id>\d+)$', 'view_game'),
     url(r'^inject$', 'inject'),
 
-
+    url(r'^clients$', 'display_clients'),
+    
     url(r'^api/', include(v1_api.urls)),
 )

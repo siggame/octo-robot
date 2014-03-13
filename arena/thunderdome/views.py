@@ -67,6 +67,11 @@ def view_game(request, game_id):
     game = get_object_or_404(Game, pk=game_id)
     return render_to_response('thunderdome/view_game.html', {'game': game})
 
+
+def display_clients(request):
+    clients = Client.objects.all()
+    return render_to_response('thunderdome/clients.html', {'clients':clients})
+
 def scoreboard(request):
     clients = Client.objects.exclude(current_version="")
     grid = dict()
