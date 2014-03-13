@@ -69,8 +69,9 @@ def view_game(request, game_id):
 
 
 def display_clients(request):
-    clients = Client.objects.all()
+    clients = list(Client.objects.all())
     clients.sort(key = lambda x: x.rating)
+
     return render_to_response('thunderdome/clients.html', {'clients':clients})
 
 def scoreboard(request):
