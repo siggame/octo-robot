@@ -1,0 +1,14 @@
+{% extends "thunderdome/base.html" %}
+{% load url from future %}
+
+{% block title %}
+ACM SIG-Game MegaMiner Arena (Thunderdome) Clients
+{% endblock %}
+
+{% block content %}
+<h1>Clients</h1>
+
+{% for client in clients %}
+  {{ client.name }} - {{ client.current_version}} - {{ client.rating }}
+{% endfor %}
+
