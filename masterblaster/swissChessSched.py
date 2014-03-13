@@ -116,10 +116,12 @@ def schedule_volley(stalk, sRound):
             time.sleep(2)
         
         clients = list(Client.objects.exclude(name='bye').filter(embargoed=False))
-        for i in list(clients):
-            tempStats = json.loads(i.stats)
-            if tempStats['language'] == "Human":
-                clients.remove(i)
+        
+        if not include_humans:
+            for i in list(clients):
+                tempStats = json.loads(i.stats)
+                if tempStats['language'] == "Human":
+                    clients.remove(i)
 
         competing_clients = [Player(j.name) for j in clients]
         
@@ -392,20 +394,28 @@ def score_games():
         if game_status(g) == "Complete":
             uncompleted_games.remove(g)
             for c in competing_clients:
-                if c.name == Game.objects.get(pk=g).winner.name:
-                    c.score += 1
-                    print c.name, "is winner of", g, c.score
-                    break
+                try:
+                    gameC = Game.objects.get(pk=g).winner
+                if Game.objects.get(pk=g).winner is not None:
+                    if c.name == Game.objects.get(pk=g).winner.name:
+                        c.score += 1
+                        print c.name, "is winner of", g, c.score
+                        break
         elif game_status(g) == "Failed":
             print "Game:", g, "Failed aborting automated swiss, switch to manual swiss."
             print "Printing out standing"
-            for i in competing_clients:
-                print i.name, i.score
-            f = open("scores.txt", 'w')
-            
-            f.close()
+            update_standings()
             exit()
        
+
+def update_standings():
+    for i in competing_clients:
+        print i.name, i.score
+    f = open("scores.txt", 'w')
+    
+    f.close()
+    
+
 def print_scoreBrackets(brackets):
     for i, j in brackets.items():
         for c in j:
