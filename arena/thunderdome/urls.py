@@ -4,7 +4,7 @@
 
 from django.conf.urls.defaults import patterns, url, include
 from tastypie.api import Api
-#from thunderdome.api import 
+from thunderdome.api import ClientResource, ClientNameResource, GameResource, GameDataResource, MatchResource
 
 v1_api = Api(api_name='v1')
 v1_api.register(ClientResource())
