@@ -10,8 +10,12 @@ def update_clients():
     '''update the database with the current clients, based on game_name'''
     api_url = api_url_template % game_name
     r = requests.get(api_url, auth=(WEBSITE_USER_NAME, WEBSITE_ARENA_PASSWORD))
-    data = json.loads(r.text)
-
+    try:
+        data = json.loads(r.text)
+    except ValueError:
+        data = []
+        print r.text
+        
     for block in data:
         if block['team'] is None or block['repository'] is None or block['tag'] is None:
             continue
