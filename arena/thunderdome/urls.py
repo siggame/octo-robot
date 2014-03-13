@@ -6,10 +6,20 @@ from django.conf.urls.defaults import patterns, url, include
 from tastypie.api import Api
 #from thunderdome.api import 
 
+v1_api = Api(api_name='v1')
+v1_api.register(ClientResource())
+v1_api.register(ClientNameResource())
+v1_api.register(GameResource())
+v1_api.register(GameDataResource())
+v1_api.register(MatchResource())
+
 urlpatterns = patterns(
     'thunderdome.views',
     url(r'^$', 'scoreboard'),
     url(r'^health$', 'health'),
     url(r'^view/(?P<game_id>\d+)$', 'view_game'),
     url(r'^inject$', 'inject'),
+
+
+    url(r'^api/', include(v1_api.urls)),
 )
