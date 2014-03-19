@@ -389,6 +389,8 @@ def schedule_group(group, bracket_type, stalk):
         pos += 1
 
 def score_games():
+    '''go through the games and set the corresponding scores of each game'''
+    
     global competing_clients
     for g in list(uncompleted_games):
         if game_status(g) == "Complete":
@@ -401,6 +403,9 @@ def score_games():
                         c.score += 1
                         print c.name, "is winner of", g, c.score
                         break
+                else:
+                    # if winner or loser is none then a tie occured
+                    pass
         elif game_status(g) == "Failed":
             print "Game:", g, "Failed aborting automated swiss, switch to manual swiss."
             print "Printing out standing"

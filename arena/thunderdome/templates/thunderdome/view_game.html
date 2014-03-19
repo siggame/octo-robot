@@ -5,9 +5,17 @@ Game #{{ game.pk }}
 {% endblock %}
 
 {% block content %}
-<h1>Game #{{ game.pk }}
-  {% for client in game.clients.all %}
-  - {{ client.name }}
-  {% endfor %}
+  <h1>Game #{{ game.pk }}
+    {% for client in game.clients.all %}
+    - {{ client.name }}
+    {% endfor %}
+  </h1>
+
+  Status: {{ game.status }} <br>
+  Priority: {{ game.priority }} <br>
+
+  {% if game.gamelog_url|length > 0 %}
+    <a href="{{game.gamelog_url }}" > gamelog </a>
+  {% endif %}
 
 {% endblock %}

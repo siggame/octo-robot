@@ -17,23 +17,37 @@ from thunderdome.sked import sked
 
 from utilities import webinteraction as wi
 
+import threading
+import time
+
+def t_clients():
+    while True:
+        print "Updating Clients"
+        wi.update_clients()
+        time.sleep(20)
+
 def main():
     try:
         stalk = beanstalkc.Connection()
     except:
         raise Exception("Beanstalk Error: Possible that beanstalkd is not running, try running it from var/parts/beanstalkd")
-
+    
+    client_updater = threading.Thread(target=t_clients)
+    client_updater.daemon = True
+    client_updater.start()
+    
     req_tube = "game-requests-%s" % game_name
     stalk = beanstalkc.Connection()
     stalk.use(req_tube)
     while True:
         #try:
+        #wi.update_clients()
         stats = stalk.stats_tube(req_tube)
         if stats['current-jobs-ready'] < req_queue_len:
-            wi.update_clients()
             schedule_a_game(stalk)
         #except:
         #    print "Arena scheduler could not schedule a game"
+        #    running = False
         time.sleep(1)
     stalk.close()
 

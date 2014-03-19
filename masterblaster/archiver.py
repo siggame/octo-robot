@@ -78,8 +78,7 @@ def handle_completion(request, game):
         game.winner.score += 1.0
     if 'loser' in request:
         game.loser = Client.objects.get(name=request['loser']['name'])
-        
-        
+                
     if 'winner' in request and 'loser' in request:
         pass
     

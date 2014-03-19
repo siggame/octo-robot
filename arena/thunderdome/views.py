@@ -70,8 +70,7 @@ def view_game(request, game_id):
 
 def display_clients(request):
     clients = list(Client.objects.all())
-    clients.sort(key = lambda x: x.rating)
-
+    clients.sort(key = lambda x: x.rating, reverse=True)
     return render_to_response('thunderdome/clients.html', {'clients':clients})
 
 def scoreboard(request):
@@ -107,9 +106,9 @@ def inject(request):
         form = InjectedGameForm(request.POST)
         if form.is_valid():
             clientOne = get_object_or_404(
-                Client, pk_iexact=form.cleaned_data['clientOne'])
+                Client, pk__iexact=form.cleaned_data['clientOne'])
             clientTwo = get_object_or_404(
-                Client, pk_iexact=form.cleaned_data['clientTwo'])
+                Client, pk__iexact=form.cleaned_data['clientTwo'])
             
             stalk = beanstalkc.Connection()
             stalk.use('game-requests-%s' % game_name)
