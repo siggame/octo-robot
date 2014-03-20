@@ -62,6 +62,23 @@ def health(request):
     p['refs'] = refs
     return render_to_response('thunderdome/health.html', p)
 
+def human_swiss(request):
+    p = dict()
+    
+    clients = list(Clients.objects.all())
+
+    #h_clients = []
+    #for i in clients:
+    #    stats = json.loads(i.stats)
+    #    if stats['language'] == "Human":
+    #        h_clients.append(i)
+
+    h_clients = [(i, json.loads(i.stats)) for i in clients if json.loads(i.stats)['language'] == "Human"]
+    
+    p['clients'] = h_clients
+    
+    return render_to_response('thunderdome/human_swiss', p)
+
 
 def view_game(request, game_id):
     game = get_object_or_404(Game, pk=game_id)

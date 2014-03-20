@@ -21,6 +21,6 @@ urlpatterns = patterns(
     url(r'^inject$', 'inject'),
 
     url(r'^clients$', 'display_clients'),
-    
+    url(r'^swissTurn$', 'human_swiss'),
     url(r'^api/', include(v1_api.urls)),
 )
