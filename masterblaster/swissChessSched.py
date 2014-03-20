@@ -32,7 +32,7 @@ current_round = 0
 iterative_swiss = True
 include_humans = False
 max_rounds = None
-
+scores_file = open('wins.txt', 'w')
 class Player():
     def __init__(self, name, score=0, rating=0):
         self.name = name
@@ -82,10 +82,10 @@ def main():
     while True:
         stats = stalk.stats_tube(req_tube)
         if not uncompleted_games:
-            schedule_volley(stalk, current_round)
             if hasAWinner(create_score_brackets()):
                 if iterative_swiss:
                     current_round = 0
+            schedule_volley(stalk, current_round)
         else:
             score_games()
         time.sleep(5)
@@ -93,7 +93,13 @@ def main():
     
 def hasAWinner(brackScores):
     wins = max(brackScores.keys())
-    if(wins >= math.log(len(competing_clients), 2)):
+    
+    if(wins >= math.ceil(math.log(len(competing_clients), 2))):
+        print "@@@@@@@@"
+        print "@@@@@@@@"
+        print "Winner is: ", brackScores[wins]
+        print "@@@@@@@@"
+        print "@@@@@@@@"
         return True
     else:
         return False
@@ -123,11 +129,10 @@ def schedule_volley(stalk, sRound):
                 if tempStats['language'] == "Human":
                     clients.remove(i)
 
-        competing_clients = [Player(j.name) for j in clients]
+        competing_clients = [Player(j.name, 0, j.rating) for j in clients]
         
-
         # assign pairing numbers to each player
-        # sort the competitors by rank and rating obtained during the competition
+        # sort the competitors by rank and elo obtained during the competition
         # give numbers from 0 - len(competing_clients) these will be perminent and used
         # lower means higher rank
         # later in the scheduling
@@ -135,16 +140,18 @@ def schedule_volley(stalk, sRound):
 
         # for testing only
         # sort clients alphabetically
-        competing_clients.sort(lambda x, y: cmp(x.name.lower(), y.name.lower()))
+        #competing_clients.sort(lambda x, y: cmp(x.name.lower(), y.name.lower()))
+        
+        # sort clients by elo ranking
+        competing_clients.sort(key=lambda x: x.rating, reverse=True)        
         print "sorted clients"
-        for i in competing_clients:
-            print i.name
         print("assigning pairing number")
         for i, j in enumerate(competing_clients):
             print j.name, " is assigned", i
             j.pairing_number = i
     
     schedule_brackets(create_score_brackets(), sRound, stalk)
+    scores_file.write("%d\n" % current_round)
     current_round += 1
 
 def create_score_brackets():
@@ -197,7 +204,7 @@ def schedule_brackets(score_brackets, sRound, stalk):
             bracket = min(score_brackets.keys())
             temp = 1
         m_group = score_brackets[bracket]
-        del score_brackets[bracket]        
+        del score_brackets[bracket]
         prepare_group(m_group, temp, score_brackets)
         # the current proposed pairings are as listed in 9.4
         if sRound != 0:
@@ -283,7 +290,7 @@ def prepare_group(group, sked_dir, score_brackets):
     group.sort()
     # check for if group contains even number of players
     if len(group) % 2 != 0:
-        if sked_dir == 0:   
+        if sked_dir == 0:
             # remove lowest 
             t = group.pop(0)
             print "moving player down", t.name
@@ -314,7 +321,7 @@ def setup_group(group, score_brackets, sched_dir):
     if sched_dir == 0:
         pass
     while pos < len(group)/2:
-        print "checking", group[pos].name, group[(len(group)/2) + pos].name
+        # print "checking", group[pos].name, group[(len(group)/2) + pos].name
         if not compatible_players(group[pos], group[(len(group)/2) + pos]):
             # a pairing is not compatible, find a new pairing for the higher player
             temp_group = list(group)
@@ -337,7 +344,7 @@ def setup_group(group, score_brackets, sched_dir):
     pos = 0
     while pos < len(group)/2:
         t = [group[pos], group[(len(group)/2) + pos]]
-        print t[0].name, ":", t[0].color_pref, "vs", t[1].name, ":", t[1].color_pref
+        # print t[0].name, ":", t[0].color_pref, "vs", t[1].name, ":", t[1].color_pref
         #if t[0].color_pref == 0 and t[1].color_pref == 0:
         #    random.shuffle(t) 
         if t[0].color_pref == 0:
@@ -365,9 +372,8 @@ def setup_group(group, score_brackets, sched_dir):
                     t = (black, white)
         
         group[pos], group[(len(group)/2) + pos] = t[0], t[1]
-        print t[0].name, ":", t[0].color_pref, "vs", t[1].name, ":", t[1].color_pref
+        # print t[0].name, ":", t[0].color_pref, "vs", t[1].name, ":", t[1].color_pref
         pos += 1
-        time.sleep(4)
 
 def schedule_group(group, bracket_type, stalk):
     # takes in a group which is a list of clients which are to be paired for games
@@ -388,30 +394,46 @@ def schedule_group(group, bracket_type, stalk):
         j.past_competitors.append(i)
         pos += 1
 
+
 def score_games():
     '''go through the games and set the corresponding scores of each game'''
     
+
     global competing_clients
     for g in list(uncompleted_games):
         if game_status(g) == "Complete":
             uncompleted_games.remove(g)
-            for c in competing_clients:
-                try:
-                    gameC = Game.objects.get(pk=g).winner
-                if Game.objects.get(pk=g).winner is not None:
-                    if c.name == Game.objects.get(pk=g).winner.name:
+            try:
+                gameC = Game.objects.get(pk=g).winner
+            except:
+                pass
+            if gameC is None:
+                print "Winner is none must be a tie"
+                game_clients = Game.objects.get(pk=g)
+                #c_iterator = game_clients.clients.iterator()
+                #c1 = c_iterator.next()
+                #c2 = c_iterator.next()
+                
+                for i in game_clients.clients.iterator():
+                    for c in competing_clients:
+                        if c.name == i.name:
+                            c.score += 0.5
+                            print c.name, "Tied:", c.score
+                            scores_file.write("%s\n" % c.name)
+                            scores_file.flush()
+            else:
+                for c in competing_clients:
+                    if c.name == gameC.name:
                         c.score += 1
                         print c.name, "is winner of", g, c.score
+                        scores_file.write("%s\n" % c.name)
+                        scores_file.flush()
                         break
-                else:
-                    # if winner or loser is none then a tie occured
-                    pass
         elif game_status(g) == "Failed":
             print "Game:", g, "Failed aborting automated swiss, switch to manual swiss."
             print "Printing out standing"
             update_standings()
             exit()
-       
 
 def update_standings():
     for i in competing_clients:

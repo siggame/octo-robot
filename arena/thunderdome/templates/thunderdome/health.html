@@ -27,7 +27,25 @@ Sanity: {{ sanity }} </br>
 <h2>Node Throughput</h2>
 <table border='1'>
   <th>Node</th>
+  <th>Started</th>
+  <th>Games Completed</th>
+  <th>Games per Hour</th>
+  <th>Current Game</th>
+  <th>Match Status</th>
+  <th>Last Update</th>
 </tr>
+{% for ref in refs %}
 
+<tr>
+  <td>{{ref.blaster_id}}/{{ref.referee_id}}</td>
+  <td>{{ref.started}}</td>
+  <td>{{ref.games_completed}}</td>
+  <td>{{ref.compute_rate}}</td>
+  <td>{{ref.last_match}}</td>
+  <td>{{ref.last_match.status}}</td>
+  <td>{{ref.last_update}}</td>
+</tr>
+{% endfor %}
 </table>
+
 {% endblock %}
