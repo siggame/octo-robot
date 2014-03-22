@@ -1,0 +1,26 @@
+{% extends "thunderdome/base.html" %}
+{% load url from future %}
+
+{% block title %}
+Wakka Wakka play more games!
+{% endblock %}
+
+{% block content %}
+
+<table border='1'>
+  <th>Client</th>
+  <th>Game Ready?</th>
+  <th>Game Number</th>
+  <th>Location</th>
+</tr>
+
+{% for client in clients %}
+
+<tr>
+  <td>{{client[0].name}}</td>
+</tr>
+
+{% endfor %}
+</table>
+
+{% endblock %}
