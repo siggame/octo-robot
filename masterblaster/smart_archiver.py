@@ -275,6 +275,9 @@ def handle_completion(request, game):
         gd.version = clidict[gd.client.name]['tag']
         if not gd.compiled or 'broken' in clidict[gd.client.name]:
             gd.client.embargoed = True
+            stats = json.loads(gd.client.stats)
+            stats['Egame'] = game.pk
+            gd.client.stats = json.dumps(stats)
         try:
             gd.output_url = clidict[gd.client.name]['output_url']
         except KeyError:
