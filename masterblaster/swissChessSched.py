@@ -80,9 +80,9 @@ def main():
     stalk = beanstalkc.Connection()
     stalk.use(req_tube)
     while True:
-        stats = stalk.stats_tube(req_tube)
+        # stats = stalk.stats_tube(req_tube)
         if not uncompleted_games:
-            if hasAWinner(create_score_brackets()):
+            if current_round > 0 and hasAWinner(create_score_brackets()):
                 if iterative_swiss:
                     current_round = 0
             schedule_volley(stalk, current_round)
@@ -92,12 +92,16 @@ def main():
     stalk.close()           
     
 def hasAWinner(brackScores):
+    if not brackScores.keys():
+        return False
     wins = max(brackScores.keys())
     
     if(wins >= math.ceil(math.log(len(competing_clients), 2))):
         print "@@@@@@@@"
         print "@@@@@@@@"
-        print "Winner is: ", brackScores[wins]
+        print "Winner is"
+        for i in brackScores[wins]:
+            print i.name
         print "@@@@@@@@"
         print "@@@@@@@@"
         return True
@@ -113,7 +117,10 @@ def schedule_volley(stalk, sRound):
     global current_round
     if sRound == 0:
         WI.update_clients()
-        #uncompleted_games.extend([i.pk for i in SV.validateSched(stalk)])
+        # uncomment next line to validate each ai, break embargoes probably needs to be ran first. 
+        # print "starting validation scheduling"
+        # print "swiss mustn't have any failed games"
+        # uncompleted_games.extend([i.pk for i in SV.validateSched(stalk)])
         while uncompleted_games:
             for c in list(uncompleted_games):
                 if game_status(c) in ["Complete", "Failed"]:
@@ -122,7 +129,7 @@ def schedule_volley(stalk, sRound):
             time.sleep(2)
         
         clients = list(Client.objects.exclude(name='bye').filter(embargoed=False))
-        
+
         if not include_humans:
             for i in list(clients):
                 tempStats = json.loads(i.stats)
@@ -144,11 +151,12 @@ def schedule_volley(stalk, sRound):
         
         # sort clients by elo ranking
         competing_clients.sort(key=lambda x: x.rating, reverse=True)        
-        print "sorted clients"
-        print("assigning pairing number")
-        for i, j in enumerate(competing_clients):
-            print j.name, " is assigned", i
-            j.pairing_number = i
+        # competing_clients = competing_clients[len(competing_clients)-9:]
+        #print "sorted clients"
+        #print("assigning pairing number")
+        #for i, j in enumerate(competing_clients):
+        #    print j.name, " is assigned", i
+        #    j.pairing_number = i
     
     schedule_brackets(create_score_brackets(), sRound, stalk)
     scores_file.write("%d\n" % current_round)
@@ -164,10 +172,10 @@ def create_score_brackets():
 
 def schedule_brackets(score_brackets, sRound, stalk):
     median_score = sRound/2.0
-    print("Current scores")
-    for i in score_brackets.keys():
-        for j in score_brackets[i]:
-            print j.name, j.score
+    #print("Current scores")
+    #for i in score_brackets.keys():
+    #    for j in score_brackets[i]:
+    #        print j.name, j.score
 
     print "current number of players:", len(competing_clients)
     if len(competing_clients) % 2 != 0:
@@ -179,8 +187,8 @@ def schedule_brackets(score_brackets, sRound, stalk):
         print "lowest score bracket:", l_bracket
         l_group = score_brackets[l_bracket]
         print "lowest score group"
-        for i in l_group:
-            print i.name, i.rating
+        # for i in l_group:
+        #    print i.name, i.rating
         def player_comparison(x, y):
             if x.recieved_bye:
                 return 1
@@ -212,8 +220,8 @@ def schedule_brackets(score_brackets, sRound, stalk):
             setup_group(m_group, score_brackets, temp)
         else:
             print "setup for round one"
-            for i in m_group:
-                print i.name, i.pairing_number
+            # for i in m_group:
+            #    print i.name, i.pairing_number            
             # white = 0, black = 1
             # this is done as stated in 14.2 and what has been observed from swiss perfect
             first_player_color = 0 # for now default is white, this should be in argv
@@ -312,10 +320,10 @@ def setup_group(group, score_brackets, sched_dir):
     # schedule direction 0 means downward
     print "setting up pairings"
     print "current pairings are"
-    pos = 0
-    while pos < len(group)/2:
-        print group[pos].name, "vs", group[(len(group)/2) + pos].name
-        pos += 1
+    #pos = 0
+    #while pos < len(group)/2:
+    #    print group[pos].name, "vs", group[(len(group)/2) + pos].name
+    #    pos += 1
     pos = 0
     
     if sched_dir == 0:
@@ -377,8 +385,11 @@ def setup_group(group, score_brackets, sched_dir):
 
 def schedule_group(group, bracket_type, stalk):
     # takes in a group which is a list of clients which are to be paired for games
-    # group is going to be "prepared" which then results in the final pairings said in 9.4
-    print "Group contains", len(group), "players"
+    # group needs to be "prepared" before getting scheduled based off 9.4
+    try:
+        print "Group contains", len(group), "players", group[0].score
+    except IndexError:
+        print "group is empty"
     # schedule down
     pos = 0
     while pos < len(group)/2:
@@ -398,8 +409,8 @@ def schedule_group(group, bracket_type, stalk):
 def score_games():
     '''go through the games and set the corresponding scores of each game'''
     
-
     global competing_clients
+    global current_round
     for g in list(uncompleted_games):
         if game_status(g) == "Complete":
             uncompleted_games.remove(g)
@@ -429,11 +440,15 @@ def score_games():
                         scores_file.write("%s\n" % c.name)
                         scores_file.flush()
                         break
-        elif game_status(g) == "Failed":
+        elif game_status(g) == "Failed":            
             print "Game:", g, "Failed aborting automated swiss, switch to manual swiss."
             print "Printing out standing"
-            update_standings()
-            exit()
+            # update_standings()
+            # exit() # exit the game after outputing the stats so a manual swiss can be created.
+            # during competition just restart swiss
+            uncompleted_games.remove(g)
+            current_round = 0
+            
 
 def update_standings():
     for i in competing_clients:
