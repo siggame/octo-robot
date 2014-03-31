@@ -443,20 +443,18 @@ def score_games():
         elif game_status(g) == "Failed":            
             print "Game:", g, "Failed aborting automated swiss, switch to manual swiss."
             print "Printing out standing"
-            # update_standings()
+            update_standings()
             # exit() # exit the game after outputing the stats so a manual swiss can be created.
             # during competition just restart swiss
             uncompleted_games.remove(g)
             current_round = 0
             
-
 def update_standings():
+    f = open("scores.txt", 'w')
     for i in competing_clients:
         print i.name, i.score
-    f = open("scores.txt", 'w')
-    
-    f.close()
-    
+        f.write("%s %d" % (i.name, i.score))
+    f.close()    
 
 def print_scoreBrackets(brackets):
     for i, j in brackets.items():
