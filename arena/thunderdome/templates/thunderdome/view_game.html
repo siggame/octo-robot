@@ -13,9 +13,20 @@ Game #{{ game.pk }}
 
   Status: {{ game.status }} <br>
   Priority: {{ game.priority }} <br>
-
   {% if game.gamelog_url|length > 0 %}
     <a href="{{game.gamelog_url }}" > gamelog </a>
   {% endif %}
-
+  {{ game.stats }}
+  {% for key, value in game.stats.iteritems %}
+    {{ key }}: {{ value }} <br>
+  {% endfor %}
+  <hr>
+  {% for data in game.gamedata_set.all %}
+  {{ data.client.name }} - {{ data.client.current_version }}<br>
+  Compiled: {{ data.compiled }}<br>
+  Won: {{ data.won }}
+  Version: {{ data.version }}<br>
+  {{ data.stats }}
+  <hr>
+  {% endfor %}
 {% endblock %}
