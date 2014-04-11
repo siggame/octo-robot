@@ -8,11 +8,11 @@
 from arena.settings.aws_secrets import access_cred, secret_cred, s3_prefix
 from arena.settings.secret_settings import WEBSITE_USER_NAME, WEBSITE_ARENA_PASSWORD
 
-game_name = 'chess-2014'
-beanstalk_host = 'r99acm.device.mst.edu'
+game_name = 'megaminerai-13-droids'
+beanstalk_host = 'arena.mnuck.com'
 client_prefix = 'ssh://webserver@megaminerai.com'
-arena_ami = ''
+arena_ami = 'ami-d9adbeb0'
 tournament_ami = ''
 req_queue_len = 5
 api_url_template = "http://megaminerai.com/api/repo/tags/%s/"
-arena_head = 'r99acm.device.mst.edu'
+arena_head = 'arena.mnuck.com'

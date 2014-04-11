@@ -59,5 +59,17 @@ cd ..
 EOF
 """ % (access_cred, secret_cred, s3_prefix, game_name, beanstalk_host)
 
+import boto
+
+count = 1
+print "spinning up %i gladiators..." % count
+conn = boto.connect_ec2(access_cred, secret_cred)
+gladiator_image = conn.get_image(arena_ami)
+reservation = gladiator_image.run(min_count=count, max_count=count,
+                                  user_data=user_data,
+                                  instance_type='t1.micro',
+                                  key_name='MND_EC2_keypair',
+                                  security_groups['MND_SSH'])
+
 print user_data
 
