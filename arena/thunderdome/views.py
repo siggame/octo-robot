@@ -65,7 +65,7 @@ def health(request):
 def human_swiss(request):
     p = dict()
     
-    clients = list(Clients.objects.all())
+    clients = list(Client.objects.all())
 
     #h_clients = []
     #for i in clients:
@@ -76,8 +76,8 @@ def human_swiss(request):
     h_clients = [(i, json.loads(i.stats)) for i in clients if json.loads(i.stats)['language'] == "Human"]
     
     p['clients'] = h_clients
-    
-    return render_to_response('thunderdome/human_swiss', p)
+    p['client_names'] = [i[0].name for i in h_clients]
+    return render_to_response('thunderdome/human_swiss.html', p)
 
 
 def view_game(request, game_id):

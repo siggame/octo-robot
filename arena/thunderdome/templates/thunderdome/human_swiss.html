@@ -17,7 +17,10 @@ Wakka Wakka play more games!
 {% for client in clients %}
 
 <tr>
-  <td>{{client[0].name}}</td>
+  <td>{{ client.0.name }}</td>
+  <td>{{ client.1.game_ready }}</td>
+  <td>{{ client.1.game_number }}</td>
+  <td>{{ client.1.game_location }}</td>
 </tr>
 
 {% endfor %}
