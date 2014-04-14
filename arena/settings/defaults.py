@@ -16,6 +16,9 @@ except ImportError:
         secret_settings.write("SECRET_KEY = '''%s'''\n" % secret_key)
         secret_settings.write("WEBSITE_USER_NAME = '%s'\n" % 'None')
         secret_settings.write("WEBSITE_ARENA_PASSWORD = '%s'\n" % 'None')
+        secret_settings.write("POSTGRES_NAME = '%s'\n" % 'None')
+        secret_settings.write("POSTGRES_USER = '%s'\n" % 'None')
+        secret_settings.write("POSTGRES_PASSWORD = '%s'\n" % 'None')
     from secret_settings import *
 
 

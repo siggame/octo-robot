@@ -1,4 +1,8 @@
 
+** checklist
+   - [ ] make sure head node is medium instance
+   - [ ] setup db
+
 ** Setup
    change head node instance to a medium
    create a bucket in s3 named as follows siggamegame-glog-%s % game-name
