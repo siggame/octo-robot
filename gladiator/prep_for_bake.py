@@ -11,6 +11,9 @@ import requests
 
 game_name = os.environ["GAME_NAME"]
 
+WEB_USER = 'arena'
+WEB_PASS = 'savesituationzooreceive'
+
 def main():
     api_url = "http://megaminerai.com/api/repo/tags/%s" % game_name
     r = requests.get(api_url, auth=(WEB_USER, WEB_PASS))
@@ -26,6 +29,7 @@ def main():
     
     for block in data:
         if block['team']['slug'] is not None:
+            print block['team']['slug'], block['tag']['name']
             update_local_repo(block)
 
 def update_local_repo(client):
@@ -44,7 +48,7 @@ def update_local_repo(client):
     subprocess.call(['git', 'pull'], cwd=client['team']['slug'],
                     stdout=file('%s-gitout.txt' % client['team']['slug'], 'a'),
                     stderr=subprocess.STDOUT)
-    subprocess.call(['git', 'checkout', client['tag']['slug']],
+    subprocess.call(['git', 'checkout', client['tag']['name']],
                     stdout=file('%s-gitout.txt' % client['team']['slug'], 'a'),
                     stderr=subprocess.STDOUT,
                     cwd=client['team']['slug'])
