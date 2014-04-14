@@ -15,7 +15,9 @@ def update_clients():
     except ValueError:
         data = []
         print r.text
-        
+    
+    updated_clients = []
+    
     for block in data:
         if block['team'] is None or block['repository'] is None or block['tag'] is None:
             continue
@@ -27,7 +29,18 @@ def update_clients():
             client.embargoed = False # this is the only place embargoed can be broken
             client.current_version = block['tag']['name']
             client.save()
-            
+        updated_clients.append(client)
+
+    current_clients = list(Client.objects.all())
+    missing_clients = [x for x in current_clients if x not in updated_clients]
+    print "Missing clients"
+    for i in missing_clients:
+        print i.name
+        c_stats = json.loads(i.stats)
+        c_stats['missing'] = True
+        i.stats = json.dumps(c_stats)
+        i.save()
+    
     
 def makeClient(block):
     '''Make a client object from the provided API data block'''

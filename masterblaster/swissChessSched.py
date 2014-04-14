@@ -128,13 +128,21 @@ def schedule_volley(stalk, sRound):
             print("games to go: %d" % len(uncompleted_games))
             time.sleep(2)
         
-        clients = list(Client.objects.exclude(name='bye').filter(embargoed=False))
+        clients = list(Client.objects.exclude(name='bye').filter(embargoed=False))               
 
         if not include_humans:
             for i in list(clients):
                 tempStats = json.loads(i.stats)
                 if tempStats['language'] == "Human":
                     clients.remove(i)
+
+        for i in list(clients):
+            c_stats = json.loads(i.stats)
+            try:
+                if c_stats['missing']:
+                    clients.remove(i)
+            except KeyError:
+                pass 
 
         competing_clients = [Player(j.name, 0, j.rating) for j in clients]
         
