@@ -93,7 +93,10 @@ m_port = int(sys.argv[4])
 middle.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 middle.bind((m_host, m_port))
 
-#this is where a ping should be sent to the client's machine
+# this is where a ping should be sent to the client's machine
+
+# send a message to the referee to do a job update so the archiver can process the job
+# which then gets updated on the db then people can refesh page and see the stuff
 
 middle.listen(1)
 conn, addr = middle.accept()
@@ -103,7 +106,6 @@ server.connect((s_host, s_port))
 
 conn.settimeout(0.5)
 server.settimeout(0.5)
-
 
 client_s = ClientPasser(conn, server)
 server_c = ServerPasser(server, conn, client_s)
