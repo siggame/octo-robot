@@ -136,6 +136,14 @@ def schedule_volley(stalk, sRound):
                 if tempStats['language'] == "Human":
                     clients.remove(i)
 
+        for i in list(clients):
+            c_stats = json.loads(i.stats)
+            try:
+                if c_stats['missing']:
+                    clients.remove(i)
+            except KeyError:
+                pass 
+
         competing_clients = [Player(j.name, 0, j.rating) for j in clients]
         
         # assign pairing numbers to each player

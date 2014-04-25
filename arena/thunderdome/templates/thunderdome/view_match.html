@@ -1,0 +1,66 @@
+{% extends "thunderdome/base.html" %}
+{% load url from future %}
+
+{% block title %}
+Match #{{ match.id }}
+{% endblock %}
+
+{% block content %}
+<h1>{% if match.root %}Championship{% endif %}
+  Match #{{ match.id }} - {{ match.status }}
+</h1>
+
+{% if match.status == "Complete" %}
+  <a href="{% url 'thunderdome.views.representative_game' match_id=match.id%}">Representative Game</a></br>
+{% endif %}
+Parent Matches:<br>
+<ul>
+  {% if match.father %}
+  <li><a href="{% url 'thunderdome.views.view_match' match_id=match.father.id %}">
+      Match #{{ match.father.id }}</a>
+      I take the player who
+      {% if match.father_type == 'win' %}
+        wins.
+      {% else %}
+        loses.
+      {% endif %}
+  </li>
+  {% endif %}
+  {% if match.mother %}
+  <li><a href="{% url 'thunderdome.views.view_match' match_id=match.mother.id %}">
+      Match #{{ match.mother.id }}</a>
+      I take the player who
+      {% if match.mother_type == 'win' %}
+        wins.
+      {% else %}
+        loses.
+      {% endif %}
+  </li>
+  {% endif %}
+</ul>
+
+{% if match.p0 %}
+  First Player: {{ match.p0.name }}
+  {% if match.father %} from
+    <a href="{% url 'thunderdome.views.view_match' match_id=match.father.id %}">
+    Match #{{ match.father.id }}</a>
+  {% endif %}
+{% endif %}
+    </br>
+{% if match.p1 %}
+  Second Player: {{ match.p1.name }}
+  {% if match.mother %} from
+    <a href="{% url 'thunderdome.views.view_match' match_id=match.mother.id %}">
+    Match #{{ match.mother.id }}</a><br>
+  {% endif %}
+{% endif %}
+    </br>
+
+Winner: {{ match.winner }}<br>
+Loser: {{ match.loser }}<br>
+<hr>
+{% for game in match.games.all %}
+  {% include 'thunderdome/single_game_block.html' %}
+  <hr>
+{% endfor %}
+{% endblock %}
