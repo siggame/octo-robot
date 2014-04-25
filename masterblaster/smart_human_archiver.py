@@ -88,7 +88,8 @@ def main():
         r.save()
 
         # add in information for human clients
-        for client in request['clients']:            
+        for client in request['clients']:
+            print "checking for human", client['name']
             if 'Human' in client['language']:
                 update_human(client)
 
@@ -97,6 +98,7 @@ def main():
         #log.info(json.dumps(request))
 
 def update_human(client):
+    print "updating human", client['name']
     c = Client.objects.get(name=client['name'])
     stats = json.loads(c.stats)
     print stats
@@ -111,7 +113,11 @@ def update_human(client):
     try:
         stats['game_number'] = client['game_number']
     except:
-        stats['game_number'] = 0
+        stats['game_number'] = 'None'
+    try:
+        stats['game_port'] = client['game_port']
+    except:
+        stats['game_port'] = 'None'
     c.stats = json.dumps(stats)
     c.save()
 

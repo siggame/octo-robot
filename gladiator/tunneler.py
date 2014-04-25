@@ -6,6 +6,8 @@ import time
 
 middle = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+referee = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
 
 server_pattern = '\(\\\\"game-winner\\\\"'
 client_pattern = "\(request-log "
@@ -19,6 +21,7 @@ class ClientPasser(threading.Thread):
         self.log_requested = False
         self.pattern = '\(request-log '
         threading.Thread.__init__(self)
+        self.client_login = False
 
     def run(self):
         while 1:
@@ -26,9 +29,14 @@ class ClientPasser(threading.Thread):
                 data = self.recieve_from.recv(10000)
             except socket.timeout:
                 data = None
+            if data is not None and not self.client_login:
+                referee.send_to.sendall('client_login')
+                
+                self.client_login = True
+
             if data is not None:
                 print "%s: %s" % (self.c_name, data)
-
+                
                 if data == '':
                     print "client has finished"
                     break
@@ -90,10 +98,20 @@ s_port = int(sys.argv[2])
 m_host = sys.argv[3]
 m_port = int(sys.argv[4])
 
+r_host = 'localhost'
+r_port = int(sys.argv[5])
+
 middle.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 middle.bind((m_host, m_port))
 
+time.sleep(10)
+
 # this is where a ping should be sent to the client's machine
+
+referee.connect(('localhost', r_port))
+referee.settimeout(0.5)
+
+
 
 # send a message to the referee to do a job update so the archiver can process the job
 # which then gets updated on the db then people can refesh page and see the stuff

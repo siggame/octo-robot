@@ -128,7 +128,7 @@ def schedule_volley(stalk, sRound):
             print("games to go: %d" % len(uncompleted_games))
             time.sleep(2)
         
-        clients = list(Client.objects.exclude(name='bye').filter(embargoed=False))               
+        clients = list(Client.objects.exclude(name='bye').filter(embargoed=False))
 
         if not include_humans:
             for i in list(clients):
