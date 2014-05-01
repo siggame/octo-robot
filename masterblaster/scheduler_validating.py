@@ -1,6 +1,6 @@
 
 import random
-
+import json
 import beanstalkc
 
 import break_embargos
@@ -12,16 +12,19 @@ from thunderdome.sked import sked
 def validateSched(stalk):
     print "Breaking embargoes"
     break_embargos.break_embargos()
-    print("Scheduling validation games")
+    print "Scheduling validation games"
     games = []
     stalk = beanstalkc.Connection()
     req_tube = "game-requests-%s" % game_name
     stalk.use(req_tube)
     clients = list(Client.objects.filter(eligible=True))
+    # remove humans
+    for i in list(clients):
+        stats = json.loads(i.stats)
+        if stats['language'] == 'Human':
+            clients.remove(i)
+    
     random.shuffle(clients)
-    for client in clients:
-        client.embargoed = False
-        client.save()
     while len(clients) > 1:
         (c1, c2) = clients[:2]
         clients = clients[2:]
@@ -42,24 +45,7 @@ def main():
     stalk = beanstalkc.Connection()
     req_tube = "game-requests-%s" % game_name
     stalk.use(req_tube)
-    clients = list(Client.objects.filter(eligible=True))
-    random.shuffle(clients)
-    for client in clients:
-        client.embargoed = False
-        client.save()
-    while len(clients) > 1:
-        (c1, c2) = clients[:2]
-        clients = clients[2:]
-        sked(c1, c2, stalk, "Validating Scheduler")
-        sked(c2, c1, stalk, "Validating Scheduler")
-
-    if len(clients == 1):
-        lastguy = clients[0]
-        clients = list(Client.objects.all())
-        clients.remove(lastguy)
-        otherguy = random.choice(clients)
-        sked(lastguy, otherguy, stalk, "Validating Scheduler")
-        sked(otherguy, lastguy, stalk, "Validating Scheduler")
+    validateSched(stalk)
 
 if __name__ == "__main__":
     main()
