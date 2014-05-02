@@ -8,8 +8,12 @@ import break_embargos
 from thunderdome.config import game_name
 from thunderdome.models import Client
 from thunderdome.sked import sked
+from masterblaster.utilities.webinteraction import update_clients
+
 
 def validateSched(stalk):
+    print "updating clients"
+    update_clients()
     print "Breaking embargoes"
     break_embargos.break_embargos()
     print "Scheduling validation games"
@@ -23,7 +27,12 @@ def validateSched(stalk):
         stats = json.loads(i.stats)
         if stats['language'] == 'Human':
             clients.remove(i)
-    
+        try:
+            if stats['missing']:
+                clients.remove(i)
+        except KeyError:
+            pass
+
     random.shuffle(clients)
     while len(clients) > 1:
         (c1, c2) = clients[:2]

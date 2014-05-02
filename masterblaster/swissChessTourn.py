@@ -403,10 +403,14 @@ def setup_group(group, score_brackets, sched_dir):
 def schedule_group(group, bracket_type, stalk):
     # takes in a group which is a list of clients which are to be paired for games
     # group needs to be "prepared" before getting scheduled based off 9.4
+    global competing_clients
     try:
         print "Group contains", len(group), "players", group[0].score
     except IndexError:
         print "group is empty"
+
+    games_all = Game.objects.all()
+    
     # schedule down
     pos = 0
     while pos < len(group)/2:
@@ -415,11 +419,38 @@ def schedule_group(group, bracket_type, stalk):
         c1 = Client.objects.get(name=i.name)
         c2 = Client.objects.get(name=j.name)
         # first player is white
-        uncompleted_games.append(sked(c1, c2, stalk, "Swiss sked").pk)
-        i.color_pref -= 1
-        j.color_pref += 1
-        i.past_competitors.append(j)
-        j.past_competitors.append(i)
+
+        # if a game is already computed, score the game instead of schedule
+        # this should only happen for AI vs AI games
+        score_game = False
+        game_to_score = None
+        for g in games:
+            g_stats = json.loads(g.stats)
+            if g_stats['clients'][0]['name'] == i.name and g_stats['clients'][1]['name'] == j.name:
+                score_game = True
+                print "Playing an AI vs AI game"
+                print g_stats['clients'][0]['name'], "vs", g_stats['clients'][1]['name']
+                time.sleep(2)
+                if g.winner is None:
+                    print "no winner there for its a tie"
+                    for c in competing_clients:
+                        if c.name == i.name:
+                            c.score += 0.5
+                        if c.name == j.name:
+                            c.score += 0.5
+                else:
+                    for c in competing_clients:
+                        if c.name == g.winner.name:
+                            print c.name, " is the winner right?", g.winner.name
+                            c.score += 1
+                break
+
+        if not score_game:
+            uncompleted_games.append(sked(c1, c2, stalk, "Swiss sked").pk)
+            i.color_pref -= 1
+            j.color_pref += 1
+            i.past_competitors.append(j)
+            j.past_competitors.append(i)
         pos += 1
 
 
