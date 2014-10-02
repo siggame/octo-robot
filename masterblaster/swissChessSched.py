@@ -63,6 +63,8 @@ class Player():
 
 def main():
     global current_round
+    global include_humans
+    global iterative_swiss
     parser = argparse.ArgumentParser(description='Swiss Chess scheduler')
     parser.add_argument('--h', action='store_true', help='Weither to include humans, mainly for the swiss tournament')
     parser.add_argument('--i', action='store_false', help='Schedule rounds iteratively, reseting after a winner has been found')
@@ -71,8 +73,11 @@ def main():
     print args
     include_humans = args.h
     iterative_swiss = args.i
+
+    print "Include humans", include_humans
+
     try:
-        stalk = beanstalkc.Connection()
+        stalk = beanstalkc.Connection(port=11300)
     except:
         raise Exception("Beanstalk error:")
     
@@ -115,6 +120,7 @@ def schedule_volley(stalk, sRound):
     global competing_clients
     global uncompleted_games
     global current_round
+    global include_humans
     if sRound == 0:
         WI.update_clients()
         # uncomment next line to validate each ai, break embargoes probably needs to be ran first. 
@@ -128,7 +134,7 @@ def schedule_volley(stalk, sRound):
             print("games to go: %d" % len(uncompleted_games))
             time.sleep(2)
         
-        clients = list(Client.objects.exclude(name='bye').filter(embargoed=False))
+        clients = list(Client.objects.exclude(name='bye').filter(embargoed=False))        
 
         if not include_humans:
             for i in list(clients):
@@ -143,6 +149,9 @@ def schedule_volley(stalk, sRound):
                     clients.remove(i)
             except KeyError:
                 pass 
+
+        for i in clients:
+            print i.name
 
         competing_clients = [Player(j.name, 0, j.rating) for j in clients]
         

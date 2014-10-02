@@ -41,6 +41,7 @@ def main():
             clients.remove(i)
 
     results = skedRoundRobin(clients, 2, stalk)
+    print "Number of clients: ", len(clients)
     print "Number of games: ", len(results)
     print "first game id", results[0].pk, "last game id", results[len(results)-1].pk
     temp = validateResults(results)

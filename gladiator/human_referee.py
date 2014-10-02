@@ -28,7 +28,7 @@ def get_interface_ip(ifname):
     return socket.inet_ntoa(fcntl.ioctl(s.fileno(), 0x8915, struct.pack('256s', ifname[:15]))[20:24])
 
 def public_ip():    
-    ec2conn = boto.connect_ec2(os.environ['ACCESS_CRED2'], os.environ['SECRET_CRED2'])
+    ec2conn = boto.connect_ec2(os.environ['ACCESS_CRED'], os.environ['SECRET_CRED'])
     reservations = ec2conn.get_all_instances()
     instances = [i for r in reservations for i in r.instances]
 
@@ -147,8 +147,8 @@ def looping(stalk):
         print "Index", index
         if index == 0:
             players.append(subprocess.Popen(['bash', 'run', server_host, game['number'], m_port_p0, human_port_p0],
-                                            #stdout=file('%s-stdout.txt' % cl['name'], 'w'),
-                                            #stderr=file('%s-stderr.txt' % cl['name'], 'w'),
+                                            stdout=file('%s-stdout.txt' % cl['name'], 'w'),
+                                            stderr=file('%s-stderr.txt' % cl['name'], 'w'),
                                             cwd=cl['name']))
 
         if index == 1:
@@ -205,11 +205,11 @@ def looping(stalk):
             stalk.put(json.dumps(game))
             job.touch()
             tunneler1.close()
+        sleep(10)
     #make sure beanstalk doesn't rest game
     if touch_job(job):
         return
 
-    
     stalk.put(json.dumps(game))
     job.touch()
 

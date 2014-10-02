@@ -21,7 +21,7 @@ mkdir /home/gladiator/arena
 cd /home/gladiator/arena
 
 # gather up the fixed components
-wget http://arena.mnuck.com/gladiator/gladiator_package.tgz
+wget http://54.83.195.22/gladiator/gladiator_package.tgz
 tar -xf gladiator_package.tgz
 
 cd server
@@ -33,27 +33,6 @@ ln referee.py 1/referee.py
 ln prep_for_bake.py 1/prep_for_bake.py
 cd 1
 ./referee.py $SERVER_PATH &
-cd ..
-
-mkdir 2
-ln referee.py 2/referee.py
-ln prep_for_bake.py 2/prep_for_bake.py
-cd 2
-./referee.py $SERVER_PATH
-cd ..
-
-mkdir 3
-ln referee.py 3/referee.py
-ln prep_for_bake.py 3/prep_for_bake.py
-cd 3
-./referee.py $SERVER_PATH
-cd ..
-
-mkdir 4
-ln referee.py 4/referee.py
-ln prep_for_bake.py 4/prep_for_bake.py
-cd 4
-./referee.py $SERVER_PATH
 cd ..
 
 EOF

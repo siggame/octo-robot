@@ -25,7 +25,7 @@ def update_clients():
             client = makeClient(block)
         else:
             client = Client.objects.get(name=block['team']['slug'])        
-            client.eligible = block['team']['eligible_to_win']
+            #client.eligible = block['team']['eligible_to_win']
         if client.current_version != block['tag']['name']:
             client.embargoed = False # this is the only place embargoed can be broken
             client.current_version = block['tag']['name']
@@ -55,3 +55,7 @@ def makeClient(block):
     client.seed = 0
     client.save()
     return client
+
+
+if __name__ == "__main__":
+    update_clients()
