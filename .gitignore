@@ -19,6 +19,7 @@ var/
 .installed.cfg
 bootstrap.py
 *.egg-info/
+buildout.cfg
 
 # Ignore SQLite3 files
 *.db

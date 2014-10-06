@@ -4,6 +4,11 @@ BOOTSTRAP_URL=http://downloads.buildout.org/2/bootstrap.py
 
 # Runs buildout
 default: bin/buildout
+	cp produc.cfg buildout.cfg
+	python bin/buildout
+
+develop: bootstrap.py bin/buildout
+	cp develop.cfg buildout.cfg
 	python bin/buildout
 
 # Runs bootstrap
