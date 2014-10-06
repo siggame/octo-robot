@@ -25,6 +25,3 @@ bootstrap.py
 
 # Ignore other nose files
 .noseids
-
-# Ignore the versions file. Buildout version may vary by machine
-versions.cfg
