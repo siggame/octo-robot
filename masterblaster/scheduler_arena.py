@@ -32,10 +32,10 @@ def main():
     except:
         raise Exception("Beanstalk Error: Possible that beanstalkd is not running, try running it from var/parts/beanstalkd")
     
-    client_updater = threading.Thread(target=t_clients)
-    client_updater.daemon = True
-    client_updater.start()
-    
+    #client_updater = threading.Thread(target=t_clients)
+    #client_updater.daemon = True
+    #client_updater.start()
+    print game_name
     req_tube = "game-requests-%s" % game_name
     stalk = beanstalkc.Connection()
     stalk.use(req_tube)
@@ -45,9 +45,6 @@ def main():
         stats = stalk.stats_tube(req_tube)
         if stats['current-jobs-ready'] < req_queue_len:
             schedule_a_game(stalk)
-        #except:
-        #    print "Arena scheduler could not schedule a game"
-        #    running = False
         time.sleep(1)
     stalk.close()
 
