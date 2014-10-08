@@ -84,6 +84,16 @@ def view_game(request, game_id):
     game = get_object_or_404(Game, pk=game_id)
     return render_to_response('thunderdome/view_game.html', {'game': game})
 
+def view_match(request, match_id):
+    match = get_object_or_404(Match, pk=match_id)
+    return render_to_response('thunderdome/view_match.html', {'match' : match})
+
+def representative_game(request, match_id):
+    match = Match.objects.get(pk=match_id)
+    if match.stats != 'Complete':
+        return HttpResponse("Incomplete match!")
+    game_id = 1
+    return view_game(request, game_id)
 
 def display_clients(request):
     clients = list(Client.objects.all())
