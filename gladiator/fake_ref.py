@@ -1,5 +1,3 @@
-
-
 import re
 import json
 import subprocess
@@ -13,12 +11,15 @@ from time import sleep
 from datetime import datetime
 from bz2 import BZ2File
 import beanstalkc
-
+from pprint import pprint
 
 def main():
-    stalk = beanstalkc.Connection(host=os.environ['BEANSTALK_HOST'])
-    stalk.watch('game-requests-%s' % os.environ['GAME_NAME']) # input
-    stalk.use('game-results-%s' % os.environ['GAME_NAME']) # output
+    # stalk = beanstalkc.Connection(host=os.environ['BEANSTALK_HOST'])
+    # stalk.watch('game-requests-%s' % os.environ['GAME_NAME']) # input
+    # stalk.use('game-results-%s' % os.environ['GAME_NAME']) # output
+    stalk = beanstalkc.Connection(host='localhost')
+    stalk.watch('game-requests-chess-2014')
+    stalk.use('game-results-chess-2014')
 
     while True:
         looping(stalk)
