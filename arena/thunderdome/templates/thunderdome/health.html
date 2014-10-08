@@ -23,6 +23,12 @@ Last Game Completed: {{ last }}<br>
 Sanity: {{ sanity }} </br>
 
 <h2>Match Statuses</h2>
+{% for match in matches %}
+  <a href="{% url 'thunderdome.views.view_match' match_id=match.id %}">{{ match.id }}</a> - {{ match.status }}
+  <a href="google.com">{{ match.id }}</a>
+  <br>
+{% endfor %}
+
 
 <h2>Node Throughput</h2>
 <table border='1'>
