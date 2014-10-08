@@ -61,10 +61,10 @@ def looping(stalk):
     print "running...", game['number']
     game['status'] = "Running"
     stalk.put(json.dumps(game))
-    sleep(11)
+    sleep(1)
 
     print "determining winner..."
-    winner = random.randint(0, 2)
+    winner = random.randint(0, 1)
     if winner == 2:
         game['tied'] = True
         print game['clients'][0]['name'], "and", \
@@ -81,6 +81,8 @@ def looping(stalk):
     # clean up
     game['status'] = "Complete"
     game['completed'] = str(datetime.now())
+    game['gamelog_url'] = 'wakka'
+    pprint(game)
     stalk.put(json.dumps(game))
     job.delete()
     print "%s done %s" % (game['number'], str(datetime.now()))
