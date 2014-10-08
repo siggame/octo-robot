@@ -11,7 +11,7 @@ from math import log, ceil
 from thunderdome.models import Client, Match
 from seeder import seed
 
-tournament = 201311
+tournament = 20133422
 
 ### clear old stuff
 #for m in Match.objects.all():
@@ -79,7 +79,7 @@ def build_triple_elim():
             make_match((1, j, i), 'win', 'win',
                        (1, j - 1, i),
                        (1, j - 1, bracket_size * 2 / x + 1 - i))
-    return
+    # return
 
     # double elim
     for i in xrange(1, 1 + bracket_size / 4):
