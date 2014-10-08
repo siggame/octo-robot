@@ -143,6 +143,7 @@ class GameData(models.Model):
         ordering = ['id']
 
     def __unicode__(self):
+        
         return u"%s - %s" % (self.game.pk , self.client.name)
 
 class InjectedGameForm(forms.Form):
@@ -183,7 +184,10 @@ class Match(models.Model):
     tournament = models.IntegerField(default=20)
     
     def __unicode__(self):
-        return u"%s - %s" % (self.p0.name, self.p1.name)
+        if self.p0 and self.p1:
+            return u"%s - %s" % (self.p0.name, self.p1.name)
+        else:
+            return u"%s - %s" % (self.status, str(self.root))
 
 class Referee(models.Model):
     blaster_id = models.CharField(max_length=200, default='')
