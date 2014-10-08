@@ -7,7 +7,7 @@ default: bin/buildout
 	python bin/buildout
 
 develop: bootstrap.py bin/buildout
-	python bin/buildout install development developpy
+	python bin/buildout install development developpy var-directory
 
 # Runs bootstrap
 bin/buildout: bootstrap.py
