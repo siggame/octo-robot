@@ -18,6 +18,8 @@ urlpatterns = patterns(
     url(r'^$', 'scoreboard'),
     url(r'^health$', 'health'),
     url(r'^view/(?P<game_id>\d+)$', 'view_game'),
+    url(r'^view_match/(?P<match_id>\d+)$', 'view_match', name='matchy'),
+    url(r'^represent/(?P<match_id>\d+)$', 'representative_game'),
     url(r'^inject$', 'inject'),
 
     url(r'^clients$', 'display_clients'),
