@@ -42,7 +42,8 @@ def main():
         needy = [x for x in championships if x.winner is None]
         stats = stalk.stats_tube(req_tube)
         if stats['current-jobs-ready'] < 1:
-            generate_speculative_game(random.choice(needy))
+            pass
+            # generate_speculative_game(random.choice(needy))
     for g in Game.objects.filter(claimed=False):
         g.claimed = True
         g.save()
@@ -260,6 +261,7 @@ def maintain_match(match):
             stalk.put(game.stats, ttr=300)
             print "Scheduled", player_order[0].name, "vs", player_order[1].name
         else:
+            player_order = list(game.clients.all())
             print "Got", player_order[0].name, "vs", player_order[1].name, "from pool"
             game.claimed = True
             game.save()
