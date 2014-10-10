@@ -195,7 +195,7 @@ class Referee(models.Model):
     started = models.DateTimeField(editable=True)
     last_update = models.DateTimeField(editable=True)
     games = models.ManyToManyField(Game)
-    dead = models.BooleanField()
+    dead = models.BooleanField(default=False)
     stats = models.TextField(default='') # holds extra stuff via JSON
 
     def __unicode__(self):
