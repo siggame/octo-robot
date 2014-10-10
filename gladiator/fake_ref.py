@@ -35,11 +35,6 @@ def looping(stalk):
     game['referee_id'] = os.getpid()
     game['started'] = str(datetime.now())
 
-    for prefix in [x['name'] for x in game['clients']]:
-        for suffix in ['stdout', 'stderr', 'makeout', 'gitout']:
-            with file('%s-%s.txt' % (prefix, suffix), 'w') as f:
-                f.write('empty')
-
     game['status'] = "Building"
     stalk.put(json.dumps(game))
     job.touch()
@@ -54,7 +49,6 @@ def looping(stalk):
         print "failing the game, someone didn't compile"
         game['status'] = "Failed"
         game['completed'] = str(datetime.now())
-        #push_datablocks(game)
         stalk.put(json.dumps(game))
         job.delete()
         return
