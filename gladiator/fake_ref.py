@@ -56,7 +56,12 @@ def looping(stalk):
     print "running...", game['number']
     game['status'] = "Running"
     stalk.put(json.dumps(game))
-    sleep(1)
+    sleep_amount = random.random() * 20
+    print "Sleep amount", sleep_amount
+    while sleep_amount > 0:
+        sleep(1)
+        job.touch()
+        sleep_amount -= 1
 
     print "determining winner..."
     winner = random.randint(0, 1)
