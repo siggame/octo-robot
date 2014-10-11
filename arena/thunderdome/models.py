@@ -257,8 +257,17 @@ class ArenaConfig(models.Model):
     game_name = models.CharField(max_length=200, default='')
     beanstalk_host = models.CharField(max_length=200, default='')
     # is the prefix url to where clients are stored
-    client_prefix = models.CharField(max_length=200, default='')
+    client_prefix = models.CharField(max_length=200, default='ssh://webserver@megaminerai.com')
     req_queue_length = models.IntegerField(default=5)
+    api_url_template = models.CharField(max_length=200, default='http://megaminerai.com/api/repo/tags/')
+    
+    parameters = {'active' : active,
+                  'config_game' : config_name,
+                  'game_name' : game_name,
+                  'beanstalk_host' : beanstalk_host,
+                  'client_prefix' : client_prefix,
+                  'req_queue_length' : req_queue_length,
+                  'api_url_template' : api_url_template}
     
 
 
