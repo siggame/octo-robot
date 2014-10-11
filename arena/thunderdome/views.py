@@ -23,8 +23,9 @@ from django.db.models import Max
 # My Imports
 from thunderdome.config import game_name, access_cred, secret_cred
 from thunderdome.models import Client, Game, ArenaConfig
-from thunderdome.models import Match, Referee, InjectedGameForm
+from thunderdome.models import Match, Referee, InjectedGameForm, SettingsForm
 from thunderdome.sked import sked
+from thunderdome.config_settings import load_settings
 
 def index(request):
     msg = "<html><body><p>Hello index page!</p></body></html>"
@@ -150,8 +151,29 @@ def inject(request):
     payload.update(csrf(request))
     return render_to_response('thunderdome/inject.html', payload)
 
+settings_loaded = False
 
 @login_required(login_url='/admin')
 def settings(request):
-    arena_settings = {'arena_settings' : list(ArenaConfig.objects.all())}
-    return render_to_response('thunderdome/settings.html', arena_settings)
+    global settings_loaded
+    if not settings_loaded:
+        print "loading settings"
+        load_settings()
+        settings_loaded = True
+    if request.method == 'POST':
+        form = SettingsForm(request.POST)
+        if form.is_valid():
+            for i in ArenaConfig.objects.all():
+                i.active = False
+                i.save()
+            arenaConfig = get_object_or_404(ArenaConfig, pk__iexact=form.cleaned_data['arenaConfig'])
+            arenaConfig.active = True
+            arenaConfig.save()
+    else:
+        form = SettingsForm()
+    payload = {'arena_settings' : list(ArenaConfig.objects.all())}
+    payload.update({'form' : form})
+    payload.update(csrf(request))
+    return render_to_response('thunderdome/settings.html', payload)
+
+

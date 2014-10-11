@@ -3,9 +3,7 @@ import json
 import os
 from thunderdome.models import ArenaConfig
 
-
 def save_settings(setting_loc=os.path.join(os.path.dirname(__file__), 'configs.json')):
-    print setting_loc
     arena_settings = list(ArenaConfig.objects.all())
     k = []
     for i in arena_settings:
@@ -16,13 +14,11 @@ def save_settings(setting_loc=os.path.join(os.path.dirname(__file__), 'configs.j
         dict_t.update({'req_queue_length' : i.req_queue_length})
         dict_t.update({'config_name' : i.config_name})
         k.append(dict_t)
-    print json.dumps(k, indent=4)
     filer = open(setting_loc, 'w')
     filer.write(json.dumps(k, indent=1))
     filer.close()
 
 def load_settings(setting_loc=os.path.join(os.path.dirname(__file__), 'configs.json')):
-    print setting_loc
     filer = open(setting_loc)
     k = json.load(filer)
     for i in k:
@@ -32,7 +28,7 @@ def load_settings(setting_loc=os.path.join(os.path.dirname(__file__), 'configs.j
         temp_config.req_queue_length = int(i['req_queue_length'])
         temp_config.game_name = i['game_name']
         temp_config.save()
-        print i
 
-save_settings()
-load_settings()        
+
+if __name__ == "__main__":
+    save_settings()

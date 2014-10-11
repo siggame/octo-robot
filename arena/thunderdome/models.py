@@ -251,8 +251,6 @@ class Referee(models.Model):
         return rate
                     
 
-
-
 class ArenaConfig(models.Model):
     active = models.BooleanField(default=False)
     config_name = models.CharField(max_length=200, default='')
@@ -262,3 +260,12 @@ class ArenaConfig(models.Model):
     client_prefix = models.CharField(max_length=200, default='')
     req_queue_length = models.IntegerField(default=5)
     
+
+
+class SettingsForm(forms.Form):
+    arenaConfig = forms.ChoiceField()
+
+    def __init__(self, *args, **kwarfs):
+        super(SettingsForm, self).__init__(*args, **kwarfs)
+        self.fields['arenaConfig'].choices = [(x.pk, x.config_name) for x in ArenaConfig.objects.all()]
+        
