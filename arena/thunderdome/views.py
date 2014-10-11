@@ -169,6 +169,8 @@ def settings(request):
             arenaConfig = get_object_or_404(ArenaConfig, pk__iexact=form.cleaned_data['arenaConfig'])
             arenaConfig.active = True
             arenaConfig.save()
+            # TODO have a redirect to a page that indicates what must be done
+            # after settings have been changed
     else:
         form = SettingsForm()
     payload = {'arena_settings' : list(ArenaConfig.objects.all())}
