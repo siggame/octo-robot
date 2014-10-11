@@ -9,6 +9,7 @@ admin.autodiscover()
 urlpatterns = patterns(
     '',
     url(r'^mies/thunderdome/', include('arena.thunderdome.urls')),
+    url(r'^accounts/login/$', 'django.contrib.auth.views.login'),
     url(r'^admin/', include(admin.site.urls)),
 )
 

@@ -1,0 +1,22 @@
+{% extends "thunderdome/base.html" %}
+{% load url from future %}
+
+{% block title %}
+Settings
+{% endblock %}
+
+{% block content %}
+<h1> Available settings </h1>
+
+{% for setting in arena_settings %}
+  {{ setting.active }}
+  {{ setting.game_name }}
+  {{ setting.beanstalk_host }}
+  {{ setting.client_prefix }}
+  {{ setting.req_queue_length }}
+  <br>
+{% endfor %}
+
+
+
+{% endblock %}

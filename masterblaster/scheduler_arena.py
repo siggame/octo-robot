@@ -12,7 +12,7 @@ import beanstalkc
 import gc
 
 from thunderdome.config import game_name, req_queue_len
-from thunderdome.models import Client
+from thunderdome.models import Client, ArenaConfig
 from thunderdome.sked import sked
 
 from utilities import webinteraction as wi

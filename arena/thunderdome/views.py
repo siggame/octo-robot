@@ -22,7 +22,7 @@ from django.db.models import Max
 
 # My Imports
 from thunderdome.config import game_name, access_cred, secret_cred
-from thunderdome.models import Client, Game
+from thunderdome.models import Client, Game, ArenaConfig
 from thunderdome.models import Match, Referee, InjectedGameForm
 from thunderdome.sked import sked
 
@@ -31,6 +31,7 @@ def index(request):
     return HttpResponse(msg)
 
 
+@login_required(login_url='/admin')
 def health(request):
     # Let's start by having this page show some arena health statistics
     p = dict() # payload for the render_to_response
@@ -126,7 +127,7 @@ def scoreboard(request):
     return render_to_response('thunderdome/scoreboard.html', payload)
 
 
-@login_required
+@login_required(login_url='/admin')
 def inject(request):
     ### Handle manual inject of a game into the system
     if request.method == 'POST':
@@ -148,3 +149,9 @@ def inject(request):
     payload = {'form': form}
     payload.update(csrf(request))
     return render_to_response('thunderdome/inject.html', payload)
+
+
+@login_required(login_url='/admin')
+def settings(request):
+    arena_settings = {'arena_settings' : list(ArenaConfig.objects.all())}
+    return render_to_response('thunderdome/settings.html', arena_settings)

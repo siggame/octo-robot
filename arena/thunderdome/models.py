@@ -250,3 +250,15 @@ class Referee(models.Model):
             slice_end += step
         return rate
                     
+
+
+
+class ArenaConfig(models.Model):
+    active = models.BooleanField(default=False)
+    config_name = models.CharField(max_length=200, default='')
+    game_name = models.CharField(max_length=200, default='')
+    beanstalk_host = models.CharField(max_length=200, default='')
+    # is the prefix url to where clients are stored
+    client_prefix = models.CharField(max_length=200, default='')
+    req_queue_length = models.IntegerField(default=5)
+    
