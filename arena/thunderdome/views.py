@@ -151,15 +151,9 @@ def inject(request):
     payload.update(csrf(request))
     return render_to_response('thunderdome/inject.html', payload)
 
-settings_loaded = False
 
 @login_required(login_url='/admin')
 def settings(request):
-    global settings_loaded
-    if not settings_loaded:
-        print "loading settings"
-        load_settings()
-        settings_loaded = True
     if request.method == 'POST':
         form = SettingsForm(request.POST)
         if form.is_valid():
