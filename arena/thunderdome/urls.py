@@ -2,7 +2,7 @@
 ### Missouri S&T ACM SIG-Game Arena (Thunderdome)
 #####
 
-from django.conf.urls.defaults import patterns, url, include
+from django.conf.urls import patterns, url, include
 from tastypie.api import Api
 from thunderdome.api import ClientResource, ClientNameResource, GameResource, GameDataResource, MatchResource
 

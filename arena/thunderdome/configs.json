@@ -3,7 +3,7 @@
   "client_prefix": "", 
   "beanstalk_host": "localhost", 
   "config_name": "testing_arena", 
-  "game_name": "chess-2013", 
+  "game_name": "chess-2014", 
   "req_queue_length": 5
  }, 
  {

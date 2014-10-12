@@ -4,18 +4,32 @@
 Settings
 {% endblock %}
 
+
 {% block content %}
+<h1> Currently Active Setting</h1>
+
+{% for setting in arena_settings %}
+  {% if setting.active %}
+    {{ setting.config_name }} 
+    {{ setting.game_name }}
+    {{ setting.beanstalk_host }}
+    {{ setting.client_prefix }}
+    {{ setting.req_queue_length }}
+  {% endif %}
+{% endfor %}
+
 <h1> Select a config </h1>
 
-<form method='POST' action='{% url thunderdome.views.settings %}'>
+<form method='POST' action="{% url 'thunderdome.views.settings' %}">
   {% csrf_token %}
   {{ form.as_p }}
   <input type='submit' value='Select' />
 </form>
 
-<h1> Available settings </h1>
+<h2> Available settings </h2>
 {% for setting in arena_settings %}
   {{ setting.active }}
+  {{ setting.config_name }}
   {{ setting.game_name }}
   {{ setting.beanstalk_host }}
   {{ setting.client_prefix }}
