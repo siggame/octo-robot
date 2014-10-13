@@ -3,6 +3,7 @@
 	"model" : "thunderdome.arenaconfig",
 	"pk" : 1,
 	"fields" : {
+	    "active" : "True",
 	    "client_prefix" : "",
 	    "beanstalk_host" : "localhost",
 	    "config_name" : "testing_arena",
