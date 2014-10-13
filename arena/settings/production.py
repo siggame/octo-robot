@@ -3,8 +3,8 @@ import arena.settings.defaults as default_settings
 from arena.settings.secret_settings import POSTGRES_NAME, POSTGRES_USER, POSTGRES_PASSWORD
 from arena.settings.defaults import *
 
-SITE_ID = 0
-DEBUG = False 
+SITE_ID = 1
+DEBUG = True
 USE_X_FORWARDED_HOST = True
 
 DATABASES = {
@@ -16,3 +16,6 @@ DATABASES = {
         'HOST': 'localhost',
      }
 }
+
+
+ALLOWED_HOSTS = ("localhost",)
