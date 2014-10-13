@@ -25,7 +25,6 @@ from thunderdome.config import game_name, access_cred, secret_cred
 from thunderdome.models import Client, Game, ArenaConfig
 from thunderdome.models import Match, Referee, InjectedGameForm, SettingsForm
 from thunderdome.sked import sked
-from thunderdome.config_settings import load_settings
 
 def index(request):
     msg = "<html><body><p>Hello index page!</p></body></html>"
