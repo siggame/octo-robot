@@ -46,9 +46,13 @@ def main():
     k = {}
     update_brackets(k, championship, 0)
     jsonschema.validate(k, schema)
-    print json.dumps(k, indent=4)
+    print json.dumps(k, indent=0)
+
 
 def get_best_gamelog(match):
+    """
+    This can be used to change what game gets visualized to during the tournament. 
+    """
     games = list(match.games.all())
     if games:
         return random.choice(games).gamelog_url
@@ -59,7 +63,6 @@ def get_best_gamelog(match):
 id_array = {}
 
 def update_brackets(parent_node, match, depth):
-    global loop
     global id_array
     father_dict = {}
     mother_dict = {}
@@ -69,9 +72,7 @@ def update_brackets(parent_node, match, depth):
                     "log_location" : get_best_gamelog(match),
                     "previous_matches" : []})
 
-    loop += 1
     parent_node.update(my_dict)
-
     id_array.update({match.pk : my_dict})
     
     if match.father and match.father.pk in id_array.keys():
