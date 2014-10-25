@@ -25,17 +25,22 @@ schema = {
         "previous_matches" : {
             "type" : "array",
             "items" : {
-                "type" : "object",
-                "minItems" : 2,
-                "maxItems" : 2,
-                "$ref" : "match",
+                "oneOf" : [
+                    {
+                        "type" : "object",
+                        "$ref" : "match"
+                    },
+                    {
+                        "type" : "integer",
+                    }
+                ]
             }
         }
     }
 }
 
 def main():
-    tournament_id = 20133422
+    tournament_id = 201334260
     championship = Match.objects.get(root=True, tournament=tournament_id)
 
     k = {}
@@ -70,7 +75,7 @@ def update_brackets(parent_node, match, depth):
     id_array.update({match.pk : my_dict})
     
     if match.father and match.father.pk in id_array.keys():
-        my_dict["previous_matches"].append(id_array[match.father.pk])
+        my_dict["previous_matches"].append(match.father.pk)
         return
 
     if match.father and match.father.pk not in id_array.keys():
@@ -78,7 +83,7 @@ def update_brackets(parent_node, match, depth):
         update_brackets(father_dict, match.father, depth+1)
     
     if match.mother and match.mother.pk in id_array.keys():
-        my_dict["previous_matches"].append(id_array[match.mother.pk])
+        my_dict["previous_matches"].append(match.mother.pk)
         return
 
     if match.mother and match.mother.pk not in id_array.keys():
