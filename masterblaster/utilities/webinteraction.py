@@ -8,7 +8,7 @@ from thunderdome.models import Client
 
 def update_clients():
     '''update the database with the current clients, based on game_name'''
-    api_url = api_url_template % game_name
+    api_url = api_url_template + game_name
     r = requests.get(api_url, auth=(WEBSITE_USER_NAME, WEBSITE_ARENA_PASSWORD))
     try:
         data = json.loads(r.text)
@@ -17,7 +17,9 @@ def update_clients():
         return
     
     # check if got an invalid password login
-    if 'detail' in data.keys():
+    print data
+    print type(data)
+    if type(data) == 'dict' and 'detail' in data.keys():
         print data['detail']
         return
 
@@ -42,7 +44,10 @@ def update_clients():
     print "Missing clients"
     for i in missing_clients:
         print i.name
-        c_stats = json.loads(i.stats)
+        try:
+            c_stats = json.loads(i.stats)
+        except ValueError: # i.stats isn't an object yet
+            c_stats = {}
         c_stats['missing'] = True
         i.stats = json.dumps(c_stats)
         i.save()
@@ -76,7 +81,10 @@ def update_clients_from(api_url):
     print "Missing clients"
     for i in missing_clients:
         print i.name
-        c_stats = json.loads(i.stats)
+        try:
+            c_stats = json.loads(i.stats) 
+        except ValueError: # i.stats isn't an object yet
+            c_stats = {}
         c_stats['missing'] = True
         i.stats = json.dumps(c_stats)
         i.save()
