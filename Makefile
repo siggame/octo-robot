@@ -7,6 +7,8 @@ default: bin/buildout
 	python bin/buildout
 
 develop: bootstrap.py bin/buildout
+	rm bin/production
+	rm bin/production~
 	python bin/buildout install development developpy var-directory beanstalkd
 
 # Runs bootstrap
