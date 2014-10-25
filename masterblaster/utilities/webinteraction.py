@@ -13,9 +13,14 @@ def update_clients():
     try:
         data = json.loads(r.text)
     except ValueError:
-        data = []
-        print r.text
+        print "couldn't parse text to json"
+        return
     
+    # check if got an invalid password login
+    if 'detail' in data.keys():
+        print data['detail']
+        return
+
     updated_clients = []
     
     for block in data:
@@ -25,7 +30,7 @@ def update_clients():
             client = makeClient(block)
         else:
             client = Client.objects.get(name=block['team']['slug'])        
-            #client.eligible = block['team']['eligible_to_win']
+            client.eligible = block['team']['eligible_to_win']
         if client.current_version != block['tag']['name']:
             client.embargoed = False # this is the only place embargoed can be broken
             client.current_version = block['tag']['name']
