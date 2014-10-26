@@ -25,6 +25,8 @@ schema = {
         "previous_matches" : {
             "type" : "array",
             "items" : {
+                "minItems" : 2,
+                "maxItems" : 2,
                 "oneOf" : [
                     {
                         "type" : "object",
@@ -46,7 +48,7 @@ def main():
     k = {}
     update_brackets(k, championship, 0)
     jsonschema.validate(k, schema)
-    print json.dumps(k, indent=0)
+    print json.dumps(k, indent=1)
 
 
 def get_best_gamelog(match):
