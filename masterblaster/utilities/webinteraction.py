@@ -17,8 +17,6 @@ def update_clients():
         return
     
     # check if got an invalid password login
-    print data
-    print type(data)
     if type(data) == 'dict' and 'detail' in data.keys():
         print data['detail']
         return
@@ -41,9 +39,7 @@ def update_clients():
 
     current_clients = list(Client.objects.all())
     missing_clients = [x for x in current_clients if x not in updated_clients]
-    print "Missing clients"
     for i in missing_clients:
-        print i.name
         try:
             c_stats = json.loads(i.stats)
         except ValueError: # i.stats isn't an object yet

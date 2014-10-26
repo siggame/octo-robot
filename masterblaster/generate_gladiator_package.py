@@ -5,18 +5,12 @@ import os
 import sys
 
 
-def main():
-    print sys.argv
-    if len(sys.argv) < 2:
-        print "Requires location of megmainer ai repo"
-        print "Also ensure that this machine and ssh clone access to the repo"
-        return
-
+def generate_package(megaminer_repo):
     file_path = os.path.abspath(__file__)
     home_dir = os.path.dirname(file_path)
     octo_robot_dir = os.path.dirname(home_dir)
 
-    gitrepo = 'git@github.com:siggame/%s' % sys.argv[1]
+    gitrepo = 'git@github.com:siggame/%s' % megaminer_repo
     repo_dir = os.path.join(octo_robot_dir, game_name)
     server_location = os.path.join(repo_dir, 'server')
     gladiator_location = os.path.join(octo_robot_dir, 'gladiator')
@@ -44,6 +38,16 @@ def main():
     for i in gladiator_files:
         shutil.copy(os.path.join(gladiator_location, i), os.path.join(gladiator_p_folder, i))
 
+
+
+def main():
+    print sys.argv
+    if len(sys.argv) < 2:
+        print "Requires location of megmainer ai repo"
+        print "Also ensure that this machine and ssh clone access to the repo"
+        return
+
+    generate_package(sys.argv[1])
     # shutil.make_archive(gladiator_p_folder, 'gztar', octo_robot_dir, gladiator_p_folder)
 
     # print gladiator_p_folder
