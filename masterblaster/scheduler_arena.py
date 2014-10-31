@@ -37,14 +37,18 @@ def main():
     #client_updater.start()
     print game_name
     req_tube = "game-requests-%s" % game_name
+    print req_tube
     stalk = beanstalkc.Connection()
     stalk.use(req_tube)
     while True:
         #try:
-        wi.update_clients()
+        # wi.update_clients()
         stats = stalk.stats_tube(req_tube)
         if stats['current-jobs-ready'] < req_queue_len:
+            print "schedule a game"
             schedule_a_game(stalk)
+        else:
+            print stats['current-jobs-ready']
         time.sleep(1)
     stalk.close()
 
@@ -56,10 +60,12 @@ def schedule_a_game(stalk):
         return
 
     worst_client = min(clients, key=lambda x: x.last_game())
+    print worst_client
     clients.remove(worst_client)
     partner = random.choice(clients)
     players = [worst_client, partner]
     random.shuffle(players)
+    print players
     sked(players[0], players[1], stalk, "Arena Scheduler")
 
 if __name__ == "__main__":
