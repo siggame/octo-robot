@@ -22,6 +22,12 @@ schema = {
         "log_location" : {
             "type" : "string",
         },
+        "player_1" : { 
+            "type" : "string",
+        },
+        "player_2" : {
+            "type" : "string",
+        },
         "previous_matches" : {
             "type" : "array",
             "items" : {
@@ -41,14 +47,21 @@ schema = {
     }
 }
 
+global_dict = {}
+
 def main():
-    tournament_id = 201334260
+    tournament_id = 20133440
     championship = Match.objects.get(root=True, tournament=tournament_id)
 
-    k = {}
-    update_brackets(k, championship, 0)
-    jsonschema.validate(k, schema)
-    print json.dumps(k, indent=1)
+    # k = {}
+    # update_brackets(k, championship, 0)
+    # jsonschema.validate(k, schema)
+    # print json.dumps(k, indent=1)
+    update_bracket(championship)
+    print json.dumps(global_dict, indent=1)
+    # keys = sorted(global_dict.keys(), key = lambda x : int(x))
+    # for i in keys:
+    #    print i, global_dict[i]
 
 
 def get_best_gamelog(match):
@@ -64,6 +77,26 @@ def get_best_gamelog(match):
 
 id_array = {}
 
+
+
+def update_bracket(match):
+    prev_games = []
+
+    global_dict.update({str(match.pk) : { "winner" : match.winner.name,
+                                         "log_location" : get_best_gamelog(match),
+                                         "previous_matches" : prev_games,
+                                         "player_1" : match.p0.name,
+                                          "player_2" : match.p1.name}})
+    
+    if match.father:
+        prev_games.append(match.father.pk)
+        update_bracket(match.father)
+        
+    if match.mother:
+        prev_games.append(match.mother.pk)
+        update_bracket(match.mother)
+    
+
 def update_brackets(parent_node, match, depth):
     global id_array
     father_dict = {}
@@ -72,7 +105,9 @@ def update_brackets(parent_node, match, depth):
     my_dict.update({"winner" : match.winner.name, 
                     "match_id" : str(match.pk),
                     "log_location" : get_best_gamelog(match),
-                    "previous_matches" : []})
+                    "previous_matches" : [],
+                    "player_1" : match.p0.name,
+                    "player_2" : match.p1.name})
 
     parent_node.update(my_dict)
     id_array.update({match.pk : my_dict})
