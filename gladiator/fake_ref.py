@@ -18,8 +18,8 @@ def main():
     # stalk.watch('game-requests-%s' % os.environ['GAME_NAME']) # input
     # stalk.use('game-results-%s' % os.environ['GAME_NAME']) # output
     stalk = beanstalkc.Connection(host='localhost')
-    stalk.watch('game-requests-chess-2014')
-    stalk.use('game-results-chess-2014')
+    stalk.watch('game-requests-megaminerai-14-plants')
+    stalk.use('game-results-megaminerai-14-plants')
 
     while True:
         looping(stalk)
@@ -56,7 +56,7 @@ def looping(stalk):
     print "running...", game['number']
     game['status'] = "Running"
     stalk.put(json.dumps(game))
-    sleep_amount = random.random() * 20
+    sleep_amount = random.random() * 1
     print "Sleep amount", sleep_amount
     while sleep_amount > 0:
         sleep(1)
