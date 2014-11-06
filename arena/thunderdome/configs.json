@@ -1,0 +1,16 @@
+[
+ {
+  "client_prefix": "", 
+  "beanstalk_host": "localhost", 
+  "config_name": "testing_arena", 
+  "game_name": "chess-2014", 
+  "req_queue_length": 5
+ }, 
+ {
+  "client_prefix": "ssh://webserver@megaminerai.com", 
+  "beanstalk_host": "localhost", 
+  "config_name": "megaminerai-13-droids", 
+  "game_name": "megaminerai-13-droids", 
+  "req_queue_length": 5
+ }
+]

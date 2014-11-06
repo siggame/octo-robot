@@ -22,8 +22,8 @@ from django.db.models import Max
 
 # My Imports
 from thunderdome.config import game_name, access_cred, secret_cred
-from thunderdome.models import Client, Game
-from thunderdome.models import Match, Referee, InjectedGameForm
+from thunderdome.models import Client, Game, ArenaConfig
+from thunderdome.models import Match, Referee, InjectedGameForm, SettingsForm
 from thunderdome.sked import sked
 
 def index(request):
@@ -31,6 +31,7 @@ def index(request):
     return HttpResponse(msg)
 
 
+@login_required(login_url='/admin')
 def health(request):
     # Let's start by having this page show some arena health statistics
     p = dict() # payload for the render_to_response
@@ -126,7 +127,7 @@ def scoreboard(request):
     return render_to_response('thunderdome/scoreboard.html', payload)
 
 
-@login_required
+@login_required(login_url='/admin')
 def inject(request):
     ### Handle manual inject of a game into the system
     if request.method == 'POST':
@@ -148,3 +149,26 @@ def inject(request):
     payload = {'form': form}
     payload.update(csrf(request))
     return render_to_response('thunderdome/inject.html', payload)
+
+
+@login_required(login_url='/admin')
+def settings(request):
+    if request.method == 'POST':
+        form = SettingsForm(request.POST)
+        if form.is_valid():
+            for i in ArenaConfig.objects.all():
+                i.active = False
+                i.save()
+            arenaConfig = get_object_or_404(ArenaConfig, pk__iexact=form.cleaned_data['arenaConfig'])
+            arenaConfig.active = True
+            arenaConfig.save()
+            # TODO have a redirect to a page that indicates what must be done
+            # after settings have been changed
+    else:
+        form = SettingsForm()
+    payload = {'arena_settings' : list(ArenaConfig.objects.all())}
+    payload.update({'form' : form})
+    payload.update(csrf(request))
+    return render_to_response('thunderdome/settings.html', payload)
+
+

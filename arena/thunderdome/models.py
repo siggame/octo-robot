@@ -195,7 +195,7 @@ class Referee(models.Model):
     started = models.DateTimeField(editable=True)
     last_update = models.DateTimeField(editable=True)
     games = models.ManyToManyField(Game)
-    dead = models.BooleanField()
+    dead = models.BooleanField(default=False)
     stats = models.TextField(default='') # holds extra stuff via JSON
 
     def __unicode__(self):
@@ -250,3 +250,31 @@ class Referee(models.Model):
             slice_end += step
         return rate
                     
+
+class ArenaConfig(models.Model):
+    active = models.BooleanField(default=False)
+    config_name = models.CharField(max_length=200, default='')
+    game_name = models.CharField(max_length=200, default='')
+    beanstalk_host = models.CharField(max_length=200, default='')
+    # is the prefix url to where clients are stored
+    client_prefix = models.CharField(max_length=200, default='ssh://webserver@megaminerai.com')
+    req_queue_length = models.IntegerField(default=5)
+    api_url_template = models.CharField(max_length=200, default='http://megaminerai.com/api/repo/tags/')
+    
+    parameters = {'active' : active,
+                  'config_game' : config_name,
+                  'game_name' : game_name,
+                  'beanstalk_host' : beanstalk_host,
+                  'client_prefix' : client_prefix,
+                  'req_queue_length' : req_queue_length,
+                  'api_url_template' : api_url_template}
+    
+
+
+class SettingsForm(forms.Form):
+    arenaConfig = forms.ChoiceField()
+
+    def __init__(self, *args, **kwarfs):
+        super(SettingsForm, self).__init__(*args, **kwarfs)
+        self.fields['arenaConfig'].choices = [(x.pk, x.config_name) for x in ArenaConfig.objects.all()]
+        

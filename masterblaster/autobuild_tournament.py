@@ -11,7 +11,7 @@ from math import log, ceil
 from thunderdome.models import Client, Match
 from seeder import seed
 
-tournament = 20133422
+tournament = 20133440
 
 ### clear old stuff
 #for m in Match.objects.all():
