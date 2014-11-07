@@ -27,5 +27,18 @@ def seed():
         client.seed = i
         client.save()
 
+
+def seed_tournament():
+    for client in Client.objects.all():
+        client.seed = -1
+        client.save()
+
+    clients = list(Client.objects.filter(embargoed=False).filter(eligible=True))
+    random.shuffle(clients)
+    for (i, client) in enumerate(clients, 1):
+        print i, client.name
+        client.seed = i
+        client.save()
+
 if __name__ == "__main__":
     seed()
