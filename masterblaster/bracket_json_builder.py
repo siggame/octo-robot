@@ -72,7 +72,7 @@ def get_best_gamelog(match):
     if games:
         return random.choice(games).gamelog_url
     else:
-        return "none"
+        return "no game log"
 
 
 id_array = {}

@@ -9,16 +9,16 @@ from math import log, ceil
 # My Imports
 #import bootstrap
 from thunderdome.models import Client, Match
-from seeder import seed
+from seeder import seed_tournament
 
-tournament = 20133440
+tournament = 201402312
 
 ### clear old stuff
 #for m in Match.objects.all():
 #  m.delete()
 
 ### seed doods
-seed()
+seed_tournament()
 
 try:
   Client.objects.get(name='bye')
