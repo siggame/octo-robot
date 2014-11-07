@@ -13,13 +13,16 @@ from bz2 import BZ2File
 import beanstalkc
 from pprint import pprint
 
+# only works for local ref, since it can get access to those variables
+from thunderdome.config import game_name, beanstalk_host
+
 def main():
     # stalk = beanstalkc.Connection(host=os.environ['BEANSTALK_HOST'])
     # stalk.watch('game-requests-%s' % os.environ['GAME_NAME']) # input
     # stalk.use('game-results-%s' % os.environ['GAME_NAME']) # output
     stalk = beanstalkc.Connection(host='localhost')
-    stalk.watch('game-requests-megaminerai-14-plants')
-    stalk.use('game-results-megaminerai-14-plants')
+    stalk.watch('game-requests-%s' % game_name)
+    stalk.use('game-results-%s' % game_name)
 
     while True:
         looping(stalk)
@@ -56,7 +59,7 @@ def looping(stalk):
     print "running...", game['number']
     game['status'] = "Running"
     stalk.put(json.dumps(game))
-    sleep_amount = random.random() * 1
+    sleep_amount = random.random() * 20
     print "Sleep amount", sleep_amount
     while sleep_amount > 0:
         sleep(1)

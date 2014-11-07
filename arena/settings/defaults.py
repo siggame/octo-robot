@@ -49,6 +49,7 @@ FIXTURE_DIRS = {
     os.path.join(PROJECT_DIR, "fixtures"),
 }
 
+
 TIME_ZONE = 'America/Chicago'
 LANGUAGE_CODE = 'en-us'
 USE_I18N = False
