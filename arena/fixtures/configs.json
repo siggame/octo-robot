@@ -25,13 +25,23 @@
 	"model" : "thunderdome.arenaconfig",
 	"pk" : 3,
 	"fields" : {
-	    "active" : "True",
 	    "client_prefix" : "git@github.com/",
 	    "beanstalk_host" : "localhost",
 	    "config_name" : "testing_plants",
 	    "game_name" : "megaminerai-14-plants",
 	    "req_queue_length" : 5
 	}
+    },
+    {
+	"model" : "thunderdome.arenaconfig",
+	"pk" : 4,
+	"fields" : {
+	    "active" : "True",
+	    "client_prefix" : "ssh://webserver@megaminerai.com",
+	    "beanstalk_host" : "arena.megaminerai.com",
+	    "config_name" : "megaminerai-14-plants-live",
+	    "game_name" : "megaminerai-14-plants",
+	    "req_queue_length" : 5
+	}
     }
-
 ]
