@@ -24,7 +24,7 @@ def main():
     stalk.use(req_tube)
     while True:
         stats = stalk.stats_tube(req_tube)
-        if stats['current-jobs-ready'] < 1:
+        if stats['current-jobs-ready'] < req_queue_len:
             schedule_a_game(stalk)
         time.sleep(1)
     stalk.close()
