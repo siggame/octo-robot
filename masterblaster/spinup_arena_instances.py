@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from thunderdome.config import arena_ami, access_cred, secret_cred, \
-    s3_prefix, beanstalk_host, game_name
+    s3_prefix, beanstalk_host, game_name, client_prefix
 
 user_data = \
 """#!/bin/bash
@@ -11,7 +11,7 @@ export ACCESS_CRED='%s'
 export SECRET_CRED='%s'
 export S3_PREFIX='%s'
 export GAME_NAME='%s'
-export CLIENT_PREFIX='ssh://webserver@megaminerai.com'
+export CLIENT_PREFIX='%s'
 export SERVER_HOST='localhost'
 export SERVER_PATH='/home/gladiator/arena/server'
 export BEANSTALK_HOST='%s'
@@ -21,7 +21,7 @@ mkdir /home/gladiator/arena
 cd /home/gladiator/arena
 
 # gather up the fixed components
-wget http://arena.mnuck.com/gladiator/gladiator_package.tgz
+wget http://arena.megaminerai.com/gladiator/gladiator_package.tgz
 tar -xf gladiator_package.tgz
 
 cd server
@@ -39,25 +39,25 @@ mkdir 2
 ln referee.py 2/referee.py
 ln prep_for_bake.py 2/prep_for_bake.py
 cd 2
-./referee.py $SERVER_PATH
+./referee.py $SERVER_PATH &
 cd ..
 
 #mkdir 3
 #ln referee.py 3/referee.py
 #ln prep_for_bake.py 3/prep_for_bake.py
 #cd 3
-#./referee.py $SERVER_PATH
+#./referee.py $SERVER_PATH &
 #cd ..
 
 #mkdir 4
 #ln referee.py 4/referee.py
 #ln prep_for_bake.py 4/prep_for_bake.py
 #cd 4
-#./referee.py $SERVER_PATH
+#./referee.py $SERVER_PATH &
 #cd ..
 
 EOF
-""" % (access_cred, secret_cred, s3_prefix, game_name, beanstalk_host)
+""" % (access_cred, secret_cred, s3_prefix, game_name, client_prefix, beanstalk_host)
 
 import boto
 
@@ -67,10 +67,9 @@ conn = boto.connect_ec2(access_cred, secret_cred)
 gladiator_image = conn.get_image(arena_ami)
 reservation = gladiator_image.run(min_count=count, max_count=count,
                                   user_data=user_data,
-                                  #instance_type='c1.medium',
                                   instance_type='c3.large',
-                                  key_name='ARENA_MND_KEY',
-                                  security_groups['MND_SSH'])
+                                  key_name='AREAN_MND_KEY2',
+                                  security_groups=['launch-wizard-1'])
 
 print user_data
 
