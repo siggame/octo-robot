@@ -10,20 +10,11 @@ from arena.settings.secret_settings import WEBSITE_USER_NAME, WEBSITE_ARENA_PASS
 from thunderdome.models import ArenaConfig
 
 a = ArenaConfig.objects.get(active=True)
-temp = """
-game_name = 'chess-2014'
-beanstalk_host = '54.83.195.22'
-client_prefix = 'ssh://webserver@megaminerai.com'
-arena_ami = 'ami-5a20c132'
-tournament_ami = ''
-req_queue_len = 5
-api_url_template = "http://megaminerai.com/api/repo/tags/%s/"
-"""
 
 game_name = a.game_name
 beanstalk_host = a.beanstalk_host
 client_prefix = a.client_prefix
 req_queue_len = a.req_queue_length
 api_url_template = a.api_url_template
-arena_ami = ''
+arena_ami = 'ami-9ea028f6' # current gladiator image id
 tournament_ami = ''
