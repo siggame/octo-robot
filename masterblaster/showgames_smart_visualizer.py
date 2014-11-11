@@ -13,7 +13,7 @@ import beanstalkc
 
 from thunderdome.models import Game
 
-dum_url = 'http://arena.megaminerai.com/mies/thunderdome/get_next_game_url_to_viualize_and_mark'
+dumb_url = 'http://arena.megaminerai.com/mies/thunderdome/get_next_game_url_to_visualize_and_mark'
 
 pool_size = 10
 
@@ -56,9 +56,13 @@ def showit(stalk):
 def main():
     stalk = beanstalkc.Connection()
     stalk.use('visualizer-requests')
+    print stalk.tubes()
     if 'visualizer-requests' not in stalk.tubes():
         showit(stalk)
     while True:
-        if stalk.stats_tube('visualizers-requests')['current-jobs-ready'] < 1:
+        if stalk.stats_tube('visualizer-requests')['current-jobs-ready'] < 1:
             showit(stalk)
         sleep(1)
+
+if __name__ == "__main__":
+    main()
