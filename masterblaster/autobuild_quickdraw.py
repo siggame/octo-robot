@@ -11,7 +11,7 @@ from math import log, ceil
 from thunderdome.models import Client, Match
 from seeder import seed
 
-tournament = 20133422
+tournament = 20513215
 
 ### clear old stuff
 #for m in Match.objects.all():
@@ -58,7 +58,7 @@ def build_single_elim():
         m.tournament = tournament
         m.save()
 
-    eligible_count = Client.objects.filter(embargoed=False).filter(eligible=True).count()
+    eligible_count = Client.objects.filter(embargoed=False).count()
     exp2 = int(ceil(log(eligible_count, 2)))
     bracket_size = pow2(exp2)
     print eligible_count
