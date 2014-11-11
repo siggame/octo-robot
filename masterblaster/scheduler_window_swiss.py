@@ -1,3 +1,8 @@
+#### Window Swiss Scheduler
+#### Golman's algorithm
+#### Brandon Phelps's implmentation
+
+
 import random
 import time
 
@@ -6,6 +11,7 @@ import beanstalkc
 from thunderdome.config import game_name, req_queue_len
 from thunderdome.models import Client, Game
 from thunderdome.sked import sked
+from utilities.webinteraction import update_clients
 
 from collections import defaultdict, deque
 from math import log
@@ -21,12 +27,15 @@ def main():
 
     print game_name
     req_tube = "game-requests-%s" % game_name
+    req_queue_len = 10
     stalk.use(req_tube)
     while True:
         stats = stalk.stats_tube(req_tube)
         if stats['current-jobs-ready'] < req_queue_len:
+            update_clients()
             schedule_a_game(stalk)
-        time.sleep(1)
+        else:
+            time.sleep(1)
     stalk.close()
 
 def update_window(max_size):
@@ -67,8 +76,8 @@ def schedule_a_game(stalk):
     # Updated completed game information
     update_window(int(log(len(clients), 2) - 1))
     # update_window(10)
-    for i in clients:
-        print i.name, score(i.name)
+    #for i in clients:
+    #    print i.name, score(i.name)
     
     # Find the lease recently played team
     least_recent = min(clients, key=lambda x: x.last_game())
