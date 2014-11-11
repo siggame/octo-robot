@@ -50,34 +50,24 @@ schema = {
 global_dict = {}
 
 def main():
-    tournament_id = 20133440
+    tournament_id = 20149907
     championship = Match.objects.get(root=True, tournament=tournament_id)
 
-    # k = {}
-    # update_brackets(k, championship, 0)
-    # jsonschema.validate(k, schema)
-    # print json.dumps(k, indent=1)
     update_bracket(championship)
     print json.dumps(global_dict, indent=1)
-    # keys = sorted(global_dict.keys(), key = lambda x : int(x))
-    # for i in keys:
-    #    print i, global_dict[i]
 
 
 def get_best_gamelog(match):
     """
     This can be used to change what game gets visualized to during the tournament. 
     """
-    games = list(match.games.all())
+    games = list(match.games.filter(winner=match.winner))
     if games:
         return random.choice(games).gamelog_url
     else:
         return "no game log"
 
-
 id_array = {}
-
-
 
 def update_bracket(match):
     prev_games = []
