@@ -89,6 +89,15 @@ def view_match(request, match_id):
     match = get_object_or_404(Match, pk=match_id)
     return render_to_response('thunderdome/view_match.html', {'match' : match})
 
+def get_next_game_url_to_visualize(request):
+    clients = Client.objects.exclude(name='bye').exclude(current_version='ShellAI')
+    worst_client = min(clients, key=lambda x: x.last_visualized())
+    next_gid = \
+        worst_client.games_played.all() \
+        .filter(status='Complete').aggregate(Max('pk'))['pk__max']
+    next_game = Game.objects.get(pk=next_gid)
+    return HttpResponse(next_game.gamelog_url)
+
 def representative_game(request, match_id):
     match = Match.objects.get(pk=match_id)
     if match.stats != 'Complete':
