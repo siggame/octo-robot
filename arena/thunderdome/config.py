@@ -17,4 +17,4 @@ client_prefix = a.client_prefix
 req_queue_len = a.req_queue_length
 api_url_template = a.api_url_template
 arena_ami = 'ami-9ea028f6' # current gladiator image id
-tournament_ami = ''
+tournament_ami = 'ami-74961d1c' #'ami-a221a9ca' # old touranment

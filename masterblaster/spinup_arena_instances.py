@@ -3,6 +3,8 @@
 from thunderdome.config import arena_ami, access_cred, secret_cred, \
     s3_prefix, beanstalk_host, game_name, client_prefix
 
+import sys
+
 user_data = \
 """#!/bin/bash
 su - gladiator << EOF
@@ -61,7 +63,11 @@ EOF
 
 import boto
 
-count = 1
+if len(sys.argv) > 1:
+   count = int(sys.argv[1])
+else:
+   count = 1
+
 print "spinning up %i gladiators..." % count
 conn = boto.connect_ec2(access_cred, secret_cred)
 gladiator_image = conn.get_image(arena_ami)
@@ -72,4 +78,3 @@ reservation = gladiator_image.run(min_count=count, max_count=count,
                                   security_groups=['launch-wizard-1'])
 
 print user_data
-

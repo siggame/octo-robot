@@ -32,7 +32,7 @@ import settings
 #from utilities import kmeans
 
 stalk = None
-tourny_time = False
+tourny_time = True 
 
 games = Game.objects.filter(tournament=False).filter(status='Complete')
 
