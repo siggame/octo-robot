@@ -4,9 +4,11 @@ BOOTSTRAP_URL=http://downloads.buildout.org/2/bootstrap.py
 
 # Runs buildout
 default: bin/buildout
+	rm -f bin/development
 	python bin/buildout
 
 develop: bootstrap.py bin/buildout
+	rm -f bin/production
 	python bin/buildout install development developpy var-directory beanstalkd
 
 # Runs bootstrap
