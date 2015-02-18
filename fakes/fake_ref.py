@@ -13,13 +13,15 @@ from bz2 import BZ2File
 import beanstalkc
 from pprint import pprint
 
+from thunderdome.config import game_name, beanstalk_host
+
 def main():
     # stalk = beanstalkc.Connection(host=os.environ['BEANSTALK_HOST'])
     # stalk.watch('game-requests-%s' % os.environ['GAME_NAME']) # input
     # stalk.use('game-results-%s' % os.environ['GAME_NAME']) # output
-    stalk = beanstalkc.Connection(host='localhost')
-    stalk.watch('game-requests-megaminerai-14-plants')
-    stalk.use('game-results-megaminerai-14-plants')
+    stalk = beanstalkc.Connection(host=beanstalk_host)
+    stalk.watch('game-requests-%s' % game_name)
+    stalk.use('game-results-%s' % game_name)
 
     while True:
         looping(stalk)
