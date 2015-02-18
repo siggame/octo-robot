@@ -13,7 +13,7 @@ from bz2 import BZ2File
 import beanstalkc
 from pprint import pprint
 
-from thunderdome.config import game_name, beanstalk_host, 
+from thunderdome.config import game_name, beanstalk_host
 
 def main():
     # stalk = beanstalkc.Connection(host=os.environ['BEANSTALK_HOST'])
