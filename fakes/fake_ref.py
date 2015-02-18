@@ -18,8 +18,8 @@ def main():
     # stalk.watch('game-requests-%s' % os.environ['GAME_NAME']) # input
     # stalk.use('game-results-%s' % os.environ['GAME_NAME']) # output
     stalk = beanstalkc.Connection(host='localhost')
-    stalk.watch('game-requests-megaminerai-14-plants')
-    stalk.use('game-results-megaminerai-14-plants')
+    stalk.watch('game-requests-megaminerai-13-droids')
+    stalk.use('game-results-megaminerai-13-droids')
 
     while True:
         looping(stalk)
