@@ -6,10 +6,12 @@ from thunderdome.config import api_url_template, game_name
 from thunderdome.config import WEBSITE_USER_NAME, WEBSITE_ARENA_PASSWORD
 from thunderdome.models import Client
 
-def update_clients():
+def update_clients(api_url=None, auth=None):
     '''update the database with the current clients, based on game_name'''
-    api_url = api_url_template + game_name
-    r = requests.get(api_url, auth=(WEBSITE_USER_NAME, WEBSITE_ARENA_PASSWORD))
+    if api_url is None:
+        api_url = api_url_template + game_name
+    if auth is None:
+        r = requests.get(api_url, auth=(WEBSITE_USER_NAME, WEBSITE_ARENA_PASSWORD))
     try:
         data = json.loads(r.text)
     except ValueError:
@@ -39,51 +41,10 @@ def update_clients():
 
     current_clients = list(Client.objects.all())
     missing_clients = [x for x in current_clients if x not in updated_clients]
+    if missing_clients:
+        print "missing clients, deleting"
     for i in missing_clients:
-        try:
-            c_stats = json.loads(i.stats)
-        except ValueError: # i.stats isn't an object yet
-            c_stats = {}
-        c_stats['missing'] = True
-        i.stats = json.dumps(c_stats)
-        i.save()
-    
-def update_clients_from(api_url):
-    r = requests.get(api_url)
-    try:
-        data = json.loads(r.text)
-    except ValueError:
-        data = []
-        print r.text
-    
-    updated_clients = []
-    
-    for block in data:
-        if block['team'] is None or block['repository'] is None or block['tag'] is None:
-            continue
-        if Client.objects.filter(name=block['team']['slug']).count() == 0:
-            client = makeClient(block)
-        else:
-            client = Client.objects.get(name=block['team']['slug'])        
-            #client.eligible = block['team']['eligible_to_win']
-        if client.current_version != block['tag']['name']:
-            client.embargoed = False # this is the only place embargoed can be broken
-            client.current_version = block['tag']['name']
-        client.save()
-        updated_clients.append(client)
-
-    current_clients = list(Client.objects.all())
-    missing_clients = [x for x in current_clients if x not in updated_clients]
-    print "Missing clients"
-    for i in missing_clients:
-        print i.name
-        try:
-            c_stats = json.loads(i.stats) 
-        except ValueError: # i.stats isn't an object yet
-            c_stats = {}
-        c_stats['missing'] = True
-        i.stats = json.dumps(c_stats)
-        i.save()
+        i.delete()
 
 def makeClient(block):
     '''Make a client object from the provided API data block'''
