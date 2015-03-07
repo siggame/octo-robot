@@ -28,9 +28,18 @@ def add_cluster_point(initial_data, cluster_id):
               cluster_id=cluster_id, data_point=False).save()
 
 # game_id is the corresponding pk_id of the Game models
-def add_data_point(data, game_id, cluster_id=-1):
-    DataPoint(attributes=data, game_id=game_id, 
-              cluster_id=cluster_id,data_point=True).save()
+# if a data point doesn't exist, it will then create one
+# else it will update the datapoint
+def update_data_point(data, game_id, cluster_id=-1):
+    dp, created = DataPoint.objects.create_or_get(game_id=game_id)
+    if created:
+        dp.attributes=data
+        dp.cluster_id=cluster_id
+        dp.data_point=True
+    else:
+        dp.attributes=data
+        dp.cluster_id=cluster_id
+    dp.save()
 
 def data_by_cluster_id(cluster_id):
     data_points = list(DataPoint.objects.filter(cluster_id=cluster_id))

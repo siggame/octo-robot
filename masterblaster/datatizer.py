@@ -5,7 +5,7 @@ from glogdata.file_manip import create_from_url
 
 import random
 
-# do note this will be very slow and take a lot of time
+# do note this will be very slow and can take a lot of time
 def update_all_data():
     games = list(Game.objects.all())
     for i in games:
@@ -14,7 +14,7 @@ def update_all_data():
 def create_fake_data():
     games = list(Game.objects.all())
     for i in games:
-        add_data_point([random.randint(0, 100) for j in range(4)], 
+        update_data_point([random.randint(0, 100) for j in range(4)], 
                        i.pk)
 
 def update_all_ratings():
@@ -30,11 +30,9 @@ def update_all_ratings():
 
 def add_gamelog_data(gamedata):
     if gamedata.gamelog_url:
-        print('creating from game data ' + gamedata.gamelog_url)
         gamelog_data = create_from_url(gamedata.gamelog_url)
-        print(gamelog_data.created_units)
+        update_data_point(gamelog_data.attributes, gamedata.pk)
 
 if __name__ == "__main__":
     update_all_data()
-    # update_all_ratings()
-    # create_fake_data()
+
