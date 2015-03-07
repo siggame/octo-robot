@@ -26,3 +26,5 @@ buildout.cfg
 
 # Ignore other nose files
 .noseids
+
+gladiator_package
