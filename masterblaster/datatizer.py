@@ -1,4 +1,4 @@
-from k_storage.models import add_data_point, DataPoint
+from k_storage.models import update_data_point, DataPoint
 from thunderdome.models import Game
 
 from glogdata.file_manip import create_from_url
