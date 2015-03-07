@@ -35,6 +35,7 @@ def update_all_ratings():
 
 def add_gamelog_data(gamedata):
     if gamedata.gamelog_url:
+        print "Adding gamelog data for gamelog with url", gamedata.gamelog_url
         gamelog_data = create_from_url(gamedata.gamelog_url)
         #print gamelog_data.attributes()
         update_data_point(gamelog_data.attributes(), gamedata.pk)
