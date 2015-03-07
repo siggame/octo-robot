@@ -31,8 +31,8 @@ def update_all_ratings():
 def add_gamelog_data(gamedata):
     if gamedata.gamelog_url:
         gamelog_data = create_from_url(gamedata.gamelog_url)
-        print gamelog_data.attributes
-        #update_data_point(gamelog_data.attributes, gamedata.pk)
+        print gamelog_data.attributes()
+        #update_data_point(gamelog_data.attributes(), gamedata.pk)
 
 if __name__ == "__main__":
     update_all_data()
