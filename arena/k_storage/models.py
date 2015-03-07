@@ -6,7 +6,9 @@ import json
 # Create your models here.
 class DataPoint(models.Model):
     cluster_id = models.IntegerField(default=-1)
-    data_point = models.BooleanField(default=True) # indicates wether or not the data point is a cluster value or an actual data point
+
+    # indicates wether or not the data point is a cluster value or an actual data point
+    data_point = models.BooleanField(default=True)
     rating_value = models.FloatField(default=0.0)
     game_id = models.IntegerField(default=-1) # if game_id equals -1 then it must also be a cluster point
     _attributes = models.TextField(default='')
@@ -21,7 +23,6 @@ class DataPoint(models.Model):
 
 
 # Helper functions
-
 def add_cluster_point(initial_data, cluster_id):
     DataPoint(attributes=initial_data, 
               cluster_id=cluster_id, data_point=False).save()
