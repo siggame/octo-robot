@@ -110,7 +110,7 @@ def rate_game(request, game_id, rating):
         data['rating'] = []
     
     try:
-        data['rating'].append(rating)
+        data['rating'].append(int(rating))
     except KeyError:
         data['rating'] = []
 
