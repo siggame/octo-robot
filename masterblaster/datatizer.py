@@ -1,7 +1,7 @@
 from k_storage.models import add_data_point, DataPoint
 from thunderdome.models import Game
 
-from glogdata import create_from_url
+from glogdata.file_manip import create_from_url
 
 import random
 
