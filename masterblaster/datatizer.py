@@ -1,11 +1,15 @@
 from k_storage.models import add_data_point, DataPoint
 from thunderdome.models import Game
 
+from glogdata import create_from_url
+
 import random
 
 # do note this will be very slow and take a lot of time
 def update_all_data():
-    pass
+    games = list(Game.objects.all())
+    for i in games:
+        add_gamelog_data(i)
 
 def create_fake_data():
     games = list(Game.objects.all())
@@ -25,9 +29,12 @@ def update_all_ratings():
             continue
 
 def add_gamelog_data(gamedata):
-    pass
-
+    if gamedata.gamelog_url:
+        print('creating from game data ' + gamedata.gamelog_url)
+        gamelog_data = create_from_url(gamedata.gamelog_url)
+        print(gamelog_data.created_units)
 
 if __name__ == "__main__":
-    update_all_ratings()
+    update_all_data()
+    # update_all_ratings()
     # create_fake_data()
