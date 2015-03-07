@@ -104,12 +104,13 @@ class Game(models.Model):
             self.save()
         return self.force_schedule()
     
-    def get_spect_rating(self):
+    def get_average_rating(self):
         data = json.loads(self.stats)
         try:
-            r = data['spect_rating']
+            r = sum(data['rating'])/len(data['rating'])
         except:
             r = 0
+        print "average rating", r
         return r
 
     def force_schedule(self):
