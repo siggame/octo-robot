@@ -31,7 +31,7 @@ def add_cluster_point(initial_data, cluster_id):
 # if a data point doesn't exist, it will then create one
 # else it will update the datapoint
 def update_data_point(data, game_id, cluster_id=-1):
-    dp, created = DataPoint.objects.create_or_get(game_id=game_id)
+    dp, created = DataPoint.objects.get_or_create(game_id=game_id)
     if created:
         dp.attributes=data
         dp.cluster_id=cluster_id
