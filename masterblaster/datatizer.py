@@ -11,6 +11,11 @@ def update_all_data():
     for i in games:
         add_gamelog_data(i)
 
+def clear_all_data():
+    data = list(DataPoint.objects.all())
+    for i in data:
+        i.delete()
+
 def create_fake_data():
     games = list(Game.objects.all())
     for i in games:

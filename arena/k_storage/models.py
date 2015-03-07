@@ -44,3 +44,4 @@ def update_data_point(data, game_id, cluster_id=-1):
 def data_by_cluster_id(cluster_id):
     data_points = list(DataPoint.objects.filter(cluster_id=cluster_id))
     return [i.attributes for i in data_points]
+
