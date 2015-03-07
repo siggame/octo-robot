@@ -107,8 +107,8 @@ class Game(models.Model):
     def get_average_rating(self):
         data = json.loads(self.stats)
         try:
-            r = sum(data['rating'])/len(data['rating'])
-        except:
+            r = sum(data['rating'])/float(len(data['rating']))
+        except KeyError:
             r = 0
         print "average rating", r
         return r
