@@ -9,7 +9,7 @@ import sys
 
 def main():
     api_url = sys.argv[1]
-    update_client(api_url)
+    update_clients(api_url)
 
 if __name__ == "__main__":
     main()
