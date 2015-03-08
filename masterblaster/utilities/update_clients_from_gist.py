@@ -3,7 +3,7 @@ import json
 
 from thunderdome.config import api_url_template
 from thunderdome.models import Client
-from masterblaster.utilities.webinteraction import update_clients_from
+from masterblaster.utilities.webinteraction import update_clients
 
 import sys
 
