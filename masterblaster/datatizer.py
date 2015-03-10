@@ -7,9 +7,14 @@ import random
 
 # do note this will be very slow and can take a lot of time
 def update_all_data():
-    games = list(Game.objects.all())
+    games = list(Game.objects.filter(status='Complete'))
     for i in games:
         add_gamelog_data(i)
+
+def update_data_range(min_id, max_id):
+    games = list(Game.objects.filter(pk__gte=min_id).filter(pk__lte=max_id))
+    for i in games:
+        print i.pk
 
 def clear_all_data():
     data = list(DataPoint.objects.all())
@@ -41,5 +46,6 @@ def add_gamelog_data(gamedata):
         update_data_point(gamelog_data.attributes(), gamedata.pk)
 
 if __name__ == "__main__":
-    update_all_data()
-
+    #update_all_data()
+    update_data_range(6000, 7000)
+    
