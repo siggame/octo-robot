@@ -14,7 +14,7 @@ def update_all_data():
 def update_data_range(min_id, max_id):
     games = list(Game.objects.filter(pk__gte=min_id).filter(pk__lte=max_id))
     for i in games:
-        print i.pk
+        add_gamelog_data(i)
 
 def clear_all_data():
     data = list(DataPoint.objects.all())
@@ -38,8 +38,11 @@ def update_all_ratings():
         except:
             continue
 
+# adds an data point to the provided game data object, should be of type Game
+# if the gamelog url is not a proper location such as '' then will not add a data point to the database
 def add_gamelog_data(gamedata):
     if gamedata.gamelog_url:
+        print "Adding data point for game", gamedata.pk
         gamelog_data = create_from_url(gamedata.gamelog_url)
         update_data_point(gamelog_data.attributes(), gamedata.pk)
 
