@@ -19,6 +19,7 @@ except ImportError:
         secret_settings.write("POSTGRES_NAME = '%s'\n" % 'None')
         secret_settings.write("POSTGRES_USER = '%s'\n" % 'None')
         secret_settings.write("POSTGRES_PASSWORD = '%s'\n" % 'None')
+        secret_settings.write("GITHUB_API_TOKEN = '%s'\n" % 'None')
     from secret_settings import *
 
 
