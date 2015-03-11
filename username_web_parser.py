@@ -1,5 +1,4 @@
 import requests  # Obtains a url page's source code
-from BeautifulSoup import BeautifulSoup  # Parses through a url's source code bs4 is beta and doesn't seem to be accessible to buildout thus we will use version 3
 from arena.settings.secret_settings import GITHUB_API_TOKEN
 
 def main():
@@ -73,8 +72,11 @@ def valid_input(string):
 
 
 def get_all_forks(game_name, languages=['cpp', 'python', 'csharp', 'java']):
-    for i in languages:
-        get_forks("%s-%s" % (game_name, i))
+    return [j for i in languages for j in get_forks("%s-%s" % (game_name, i))]
+    # t = []
+    # for i in languages:
+    #    t.append(get_forks("%s-%s" % (game_name, i)))
+    # return t
 
 def get_forks(repo_name):
     uri = 'https://api.github.com/repos/siggame/%s/forks' % repo_name
@@ -84,7 +86,7 @@ def get_forks(repo_name):
         return 
     json = r.json()
     for i in json:
-        print 'https://github.com/' + i['full_name']
+        yield 'https://github.com/' + i['full_name']
 
 if __name__ == "__main__":
     get_all_forks('pharaoh')
