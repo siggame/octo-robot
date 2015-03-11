@@ -110,6 +110,7 @@ INSTALLED_APPS = (
     # Uncomment the next line to enable admin documentation:
     'django.contrib.admindocs',
     'thunderdome',
+    'k_storage',
     'gunicorn',
     'south',
     'django_nose',

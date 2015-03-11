@@ -2,6 +2,8 @@
 ### Missouri S&T ACM SIG-Game Arena (Thunderdome)
 #####
 
+# a referee that if possible will put the game logs and data into the siggame-arena-test-bucket
+
 # Standard Imports
 import re
 import json

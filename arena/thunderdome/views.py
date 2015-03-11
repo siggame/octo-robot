@@ -98,6 +98,27 @@ def get_next_game_url_to_visualize(request):
     next_game = Game.objects.get(pk=next_gid)
     return HttpResponse(next_game.gamelog_url)
 
+def rate_game(request, game_id, rating):
+    print 'rating game', game_id, 'with rating', rating
+    print 'getting game with pk', game_id
+    game = Game.objects.get(pk=game_id)
+    try:
+        data = json.loads(game.stats)
+    except ValueError:
+        print "Value error"
+        data = {}
+        data['rating'] = []
+    
+    try:
+        data['rating'].append(int(rating))
+    except KeyError:
+        data['rating'] = []
+
+    data['rating'].append(rating)
+    game.stats = json.dumps(data)
+    game.save()
+    return HttpResponse("Rated game")
+
 def representative_game(request, match_id):
     match = Match.objects.get(pk=match_id)
     if match.stats != 'Complete':
