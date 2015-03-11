@@ -74,7 +74,7 @@ def valid_input(string):
 
 def get_all_forks(game_name, languages=['cpp', 'python', 'csharp', 'java']):
     for i in languages:
-        get_forks(game_name + '-' + i)
+        get_forks("%s-%s" % (game_name, i))
 
 def get_forks(repo_name):
     uri = 'https://api.github.com/repos/siggame/%s/forks' % repo_name
