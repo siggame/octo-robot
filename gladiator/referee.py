@@ -186,7 +186,7 @@ def push_file(local_filename, remote_filename):
     c = boto.connect_s3(access_cred, secret_cred)
     b = c.get_bucket(bucket_name)
     k = boto.s3.key.Key(b)
-    k.key = remote_filename
+    k.key = 'logs/%s/%s' % (os.environ['GAME_NAME'] % remote_filename)
     k.set_contents_from_filename(local_filename)
     k.set_acl('public-read')
     return "http://%s.s3.amazonaws.com/%s" % (bucket_name, k.key)
