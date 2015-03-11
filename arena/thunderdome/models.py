@@ -83,7 +83,7 @@ class Game(models.Model):
                                related_name='games_won')
     loser = models.ForeignKey(Client, null=True, blank=True,
                               related_name='games_lost')
-    status = models.CharField(max_length=20, default='New')
+    status = models.CharField(max_length=20, default='New') # a few states New, Complete, Failed, Building
     priority = models.IntegerField(default=1000)
     gamelog_url = models.CharField(max_length=200, default='')
     p0out_url = models.CharField(max_length=200, default='') # unused
@@ -104,12 +104,13 @@ class Game(models.Model):
             self.save()
         return self.force_schedule()
     
-    def get_spect_rating(self):
+    def get_average_rating(self):
         data = json.loads(self.stats)
         try:
-            r = data['spect_rating']
-        except:
+            r = sum(data['rating'])/float(len(data['rating']))
+        except KeyError:
             r = 0
+        print "average rating", r
         return r
 
     def force_schedule(self):

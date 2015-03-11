@@ -1,0 +1,3 @@
+[submodule "glogdata"]
+	path = glogdata
+	url = https://github.com/brandonphelps/GlogData
