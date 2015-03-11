@@ -1,5 +1,5 @@
 import requests  # Obtains a url page's source code
-from bs4 import BeautifulSoup  # Parses through a url's source code
+from BeautifulSoup import BeautifulSoup  # Parses through a url's source code bs4 is beta and doesn't seem to be accessible to buildout thus we will use version 3
 
 
 def main():
@@ -16,6 +16,7 @@ def main():
     #  Obtains the usernames from the specifid language and places them into a text file
     if valid_input(language) == 1:  # PYTHON
         r = requests.get('https://github.com/siggame/plants-python/network/members')
+        print r.text
         soup = BeautifulSoup(r.text)
 
         #Finds specific tags within source code
@@ -71,5 +72,19 @@ def valid_input(string):
         return 0
 
 
+def get_all_forks(game_name, languages=['cpp', 'python', 'csharp', 'java']):
+    for i in languages:
+        get_forks(game_name + '-' + i)
+
+def get_forks(repo_name):
+    uri = 'https://api.github.com/repos/siggame/' + repo_name +'/forks'
+    print uri
+    r = requests.get(uri)
+    json = r.json()
+    print json
+    for i in json:
+        print i
+        print 'https://github.com/' + i['full_name']
+
 if __name__ == "__main__":
-    main()
+    get_all_forks('pharaoh')
