@@ -51,7 +51,7 @@
 	    "active" : "False",
 	    "client_prefix" : "git@github.com:",
 	    "beanstalk_host" : "localhost",
-	    "config_name" : "testing_pharaoh"
+	    "config_name" : "testing_pharaoh",
 	    "game_name" : "megaminerai-15-pharaoh",
 	    "req_queue_length" : 5
 	}
