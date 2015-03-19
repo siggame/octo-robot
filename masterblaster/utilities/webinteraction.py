@@ -19,8 +19,9 @@ def update_clients(api_url=None, auth=None):
         return
     
     # check if got an invalid password login
-    if type(data) == 'dict' and 'detail' in data.keys():
-        print data['detail']
+    if r.status_code != 200: 
+        print "website error code", r.status_code
+        print data
         return
 
     updated_clients = []
