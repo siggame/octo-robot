@@ -46,8 +46,9 @@ def update_clients(api_url=None, auth=None):
     missing_clients = [x for x in current_clients if x not in updated_clients]
     if missing_clients:
         print "missing clients, deleting"
-    for i in missing_clients:
-        i.delete()
+        for i in missing_clients:
+            i.missing = True
+            i.save()
 
 def makeClient(block):
     '''Make a client object from the provided API data block'''
@@ -59,6 +60,7 @@ def makeClient(block):
     client.embargoed = False
     client.eligible = block['team']['eligible_to_win']
     client.seed = 0
+    client.missing = False
     client.save()
     return client
 
