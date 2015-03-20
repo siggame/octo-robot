@@ -22,20 +22,21 @@ def get_non_existant_files(filepaths):
     t = [i for i in filepaths if not os.path.exists(os.path.abspath(i))]
     return t
 
-
 def download_glog(url, download_destinations=None):
     if download_destinations is None:
         download_destinations = ['.']
     else:
         if type(download_destinations) is type(""):
             download_destinations = [download_destinations]
+    
+    filename = glog_name(url)
+    filenames = [os.path.join(i, filename) for i in download_destinations] # add in the name of the file to the path
 
-    files_to_write = get_non_existant_files(download_destinations)
+    files_to_write = get_non_existant_files(filenames)
     if files_to_write: # checks to see if any of the clients are missing a gamelog, if so download the data and write to the specific files
-        filename = glog_name(url)
         data = get_glog_data(url)
         for i in files_to_write:
-            write_file(data, filename, i)
+            write_file(data, filename)
 
 def glog_name(url):
     t = url.split('/')
