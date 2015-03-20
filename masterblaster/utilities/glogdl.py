@@ -5,14 +5,12 @@ import sys
 from thunderdome.models import Game
 
 def get_glog_data(url):
-    print "Getting glog data"
     urlreader = urllib.urlopen(url)
     data = urlreader.read()
     return data
 
 def write_file(data, file_name, path='.'):
     absolute_path = os.path.abspath(os.path.join('.', path))
-    print "writing file to path", absolute_path
     if not os.path.exists(absolute_path):
         os.mkdir(absolute_path)
     filewriter = open(os.path.join(absolute_path, file_name), 'w')
@@ -22,7 +20,6 @@ def write_file(data, file_name, path='.'):
 # takes a list of filepaths, and returns a list of filepaths that do not exist
 def get_non_existant_files(filepaths):
     t = [i for i in filepaths if not os.path.exists(os.path.abspath(i))]
-    print t
     return t
 
 
