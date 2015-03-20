@@ -10,8 +10,10 @@ def update_clients(api_url=None, auth=None):
     '''update the database with the current clients, based on game_name'''
     if api_url is None:
         api_url = api_url_template + game_name
+
     if auth is None:
         r = requests.get(api_url, auth=(WEBSITE_USER_NAME, WEBSITE_ARENA_PASSWORD))
+
     try:
         data = json.loads(r.text)
     except ValueError:
@@ -19,9 +21,10 @@ def update_clients(api_url=None, auth=None):
         return
     
     # check if got an invalid password login
-    if type(data) == 'dict' and 'detail' in data.keys():
-        print data['detail']
-        return
+    if r.status_code != 200:
+        print "Error when attempting to pull clients data", r.status_code
+        print data
+        return 
 
     updated_clients = []
     
