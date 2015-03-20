@@ -24,8 +24,8 @@ def glog_name(url):
 def download_all_gamelogs(download_folder='var/static/gladiator'):
     for i in list(Game.objects.all()):
         if i.gamelog_url:
-            client_folder1 = os.path.join(download_folder, list(i.clients.all())[0])
-            client_folder2 = os.path.join(download_folder, list(i.clients.all())[1])
+            client_folder1 = os.path.join(download_folder, list(i.clients.all())[0].name)
+            client_folder2 = os.path.join(download_folder, list(i.clients.all())[1].name)
             download_glog(i.gamelog_url, client_folder1)
             download_glog(i.gamelog_url, client_folder2)
 
