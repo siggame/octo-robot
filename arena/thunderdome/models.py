@@ -25,6 +25,8 @@ class Client(models.Model):
     score = models.FloatField(default=0.0)
     rating = models.IntegerField(default=2300)
     stats = models.TextField(default='') # extra json field for stuff
+    game_name = models.CharField(max_length=200, default='')
+    missing = models.BooleanField(default=False)
 
     def inc_score(self, delta):
         # wishing for an atomic increment
