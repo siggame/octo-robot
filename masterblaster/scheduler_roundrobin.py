@@ -32,7 +32,7 @@ def main():
     stalk = beanstalkc.Connection()
     req_tube = "game-requests-%s" % game_name
     stalk.use(req_tube)
-    clients = list(Client.objects.filter(eligible=True).filter(embargoed=False))
+    clients = list(Client.objects.filter(eligible=True).filter(embargoed=False).filter(missing=False))
     
     # remove humans
     for i in list(clients):

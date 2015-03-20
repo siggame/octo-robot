@@ -23,7 +23,7 @@ seed()
 try:
   Client.objects.get(name='bye')
 except:
-  Client.objects.create(name='bye', embargoed=True, eligible=False)
+  Client.objects.create(name='bye', embargoed=True, eligible=False, missing=False)
 
 
 def seed_or_bye(n):
@@ -58,7 +58,7 @@ def build_single_elim():
         m.tournament = tournament
         m.save()
 
-    eligible_count = Client.objects.filter(embargoed=False).count()
+    eligible_count = Client.objects.filter(embargoed=False).filter(eligible=True).filter(missing=False).count()
     exp2 = int(ceil(log(eligible_count, 2)))
     bracket_size = pow2(exp2)
     print eligible_count

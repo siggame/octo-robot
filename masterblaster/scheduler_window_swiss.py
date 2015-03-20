@@ -68,7 +68,7 @@ def score(team):
     return 0.5
 
 def schedule_a_game(stalk):
-    clients = list(Client.objects.exclude(name='bye').filter(embargoed=False))
+    clients = list(Client.objects.exclude(name='bye').filter(embargoed=False).filter(missing=False))
     if len(clients) < 2: # takes two to tango
         print "only", len(clients), "clients in the aren"
         return
