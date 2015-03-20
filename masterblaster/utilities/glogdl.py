@@ -5,17 +5,23 @@ import sys
 from thunderdome.models import Game
 
 def get_glog_data(url):
+    print "Downloading", url
     urlreader = urllib.urlopen(url)
     data = urlreader.read()
     return data
 
-def write_file(data, file_name, path='.'):
-    absolute_path = os.path.abspath(os.path.join('.', path))
-    if not os.path.exists(absolute_path):
-        os.mkdir(absolute_path)
-    filewriter = open(os.path.join(absolute_path, file_name), 'w')
-    filewriter.write(data)
-    filewriter.close()
+def write_file(data, filepath):
+    if not os.path.exists(filepath):
+        t = filepath.split('/')
+        file_name = t[len(t)-1]
+        path = filepath.strip(file_name)
+        absolute_path = os.path.abspath(path)
+        if not os.path.exists(absolute_path):
+            os.mkdir(absolute_path)
+        print "Writing file", filepath
+        filewriter = open(filepath, 'w')
+        filewriter.write(data)
+        filewriter.close()
 
 # takes a list of filepaths, and returns a list of filepaths that do not exist
 def get_non_existant_files(filepaths):
@@ -31,7 +37,6 @@ def download_glog(url, download_destinations=None):
     
     filename = glog_name(url)
     filenames = [os.path.join(i, filename) for i in download_destinations] # add in the name of the file to the path
-
     files_to_write = get_non_existant_files(filenames)
     if files_to_write: # checks to see if any of the clients are missing a gamelog, if so download the data and write to the specific files
         data = get_glog_data(url)
