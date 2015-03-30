@@ -56,7 +56,7 @@ def download_all_gamelogs(download_folder='var/static/gladiator'):
             download_glog(i.gamelog_url, [client_folder1, client_folder2])
 
 def main():
-    download_glog("http://siggame-arena-test-bucket.s3.amazonaws.com/logs/megaminerai-15-pharaoh/859-02771.glog", ['var/static/gladiator/client1', 'var/static/gladiator/client2'])
+    download_all_gamelogs()
 
 
 if __name__ == "__main__":
