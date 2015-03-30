@@ -21,10 +21,10 @@ def update_clients(api_url=None, auth=None):
         return
     
     # check if got an invalid password login
-    if r.status_code != 200:
-        print "Error when attempting to pull clients data", r.status_code
+    if r.status_code != 200: 
+        print "website error code", r.status_code
         print data
-        return 
+        return
 
     updated_clients = []
     
