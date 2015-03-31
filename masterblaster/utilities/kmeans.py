@@ -60,7 +60,7 @@ def compute_centroids():
     
 def compute_centroid(data):
     if data:
-        attributes = [0 for i in len(data.attributes)]
+        attributes = [0 for i in len(data[0].attributes)]
         for i in data:
             for index, j in enumerate(i.attributes):
                 attributes[index] += j
