@@ -1,5 +1,5 @@
 from k_storage.models import DataPoint
-from random import random
+from random import random, choice
 from collections import defaultdict
 import math
 
@@ -29,23 +29,25 @@ def create_random_clusters(cluster_count, attribute_count):
             i.delete()
 
     clusters = [DataPoint(data_point=False, cluster_id=i) for i in range(cluster_count)]
-    print clusters
+    data = list(DataPoint.objects.all())
     for i in clusters:
-        i.attributes = [1000 * random() for j in range(attribute_count)]
+        i.attributes = choice(data).attributes
         i.save()
     return clusters
 
 def assign_clusters(clusters):
     data = list(DataPoint.objects.filter(data_point=True))
     
+    #for i in data:
+    #    min_dist = float('inf')
+    #    for j in clusters:
+    #        temp_d = man_hat(i, j)
+    #        if temp_d < min_dist:
+    #            min_dist = temp_d
+    #            i.cluster_id = j.cluster_id
+    #            i.save()
     for i in data:
-        min_dist = float('inf')
-        for j in clusters:
-            temp_d = man_hat(i, j)
-            if temp_d < min_dist:
-                min_dist = temp_d
-                i.cluster_id = j.cluster_id
-                i.save()
+        i.cluster_id = 
 
 def update_clusters(clusters):
     centroids = compute_centroids()
