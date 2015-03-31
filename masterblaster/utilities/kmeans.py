@@ -38,16 +38,14 @@ def create_random_clusters(cluster_count, attribute_count):
 def assign_clusters(clusters):
     data = list(DataPoint.objects.filter(data_point=True))
     
-    #for i in data:
-    #    min_dist = float('inf')
-    #    for j in clusters:
-    #        temp_d = man_hat(i, j)
-    #        if temp_d < min_dist:
-    #            min_dist = temp_d
-    #            i.cluster_id = j.cluster_id
-    #            i.save()
     for i in data:
-        i.cluster_id = 
+        min_dist = float('inf')
+        for j in clusters:
+            temp_d = man_hat(i, j)
+            if temp_d < min_dist:
+                min_dist = temp_d
+                i.cluster_id = j.cluster_id
+                i.save()
 
 def update_clusters(clusters):
     centroids = compute_centroids()
