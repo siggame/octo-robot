@@ -11,15 +11,16 @@ def generate_clusters(cluster_count, eplison):
         print i.attributes
 
     run_count = 10
+    c = 0
+    while c < run_count: 
+        assign_clusters(clusters)
+        update_clusters(clusters)
+        clusters = list(DataPoint.objects.filter(data_point=False))
+        print "After update"
+        for i in clusters:
+            print i.attributes
 
-    assign_clusters(clusters)
-    update_clusters(clusters)
-
-    clusters = list(DataPoint.objects.filter(data_point=False))
-
-    print "After update"
-    for i in clusters:
-        print i.attributes
+        c += 1
 
 # deletes old clusters and creates new ones
 def create_random_clusters(cluster_count, attribute_count):
@@ -52,8 +53,6 @@ def update_clusters(clusters):
     clusters = list(DataPoint.objects.filter(data_point=False))
     for i in clusters:
         try:
-            print i.cluster_id
-            print centroids[i.cluster_id]
             i.attributes = centroids[i.cluster_id]
             i.save()
         except:
@@ -84,5 +83,5 @@ def man_hat(point1, point2):
     return sum_t
 
 if __name__ == "__main__":
-    generate_clusters(3, 1)
+    generate_clusters(2, 1)
     #create_random_clusters(2, 1)
