@@ -6,7 +6,7 @@ import math
 # returns a list of data points which represent clusters, each having a rating value
 # also setups up the database for queries 
 def generate_clusters(cluster_count, eplison):
-    clusters = create_random_clusters(cluster_count, 1)
+    clusters = create_random_clusters(cluster_count, 2)
     for i in clusters:
         print i.attributes
 
@@ -14,6 +14,8 @@ def generate_clusters(cluster_count, eplison):
 
     assign_clusters(clusters)
     update_clusters(clusters)
+
+    clusters = list(DataPoint.objects.filter(data_point=False))
 
     print "After update"
     for i in clusters:
@@ -50,6 +52,8 @@ def update_clusters(clusters):
     clusters = list(DataPoint.objects.filter(data_point=False))
     for i in clusters:
         try:
+            print i.cluster_id
+            print centroids[i.cluster_id]
             i.attributes = centroids[i.cluster_id]
             i.save()
         except:
