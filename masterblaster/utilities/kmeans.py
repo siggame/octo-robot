@@ -55,7 +55,7 @@ def compute_centroids():
     cluster_dict = defaultdict(list)
     for i in data:
         cluster_dict[i.cluster_id].append(i)
-    centroids = {cluster_dict[i].cluster_id : compute_centroid(cluster_dict[i]) for i in cluster_dict.keys()}
+    centroids = {i : compute_centroid(cluster_dict[i]) for i in cluster_dict.keys()}
     return centroids
     
 def compute_centroid(data):
