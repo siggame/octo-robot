@@ -21,7 +21,7 @@ def create_random_clusters(cluster_count, attribute_count):
     clusters = [DataPoint(data_point=False, cluster_id=i) for i in range(cluster_count)]
     print clusters
     for i in clusters:
-        i.attributes = [random() for i in range(attribute_count)]
+        i.attributes = [random() for j in range(attribute_count)]
         i.save()
     return clusters
 
