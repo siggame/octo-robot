@@ -19,11 +19,11 @@ def create_random_clusters(cluster_count, attribute_count):
             i.delete()
 
     clusters = [DataPoint(data_point=False, cluster_id=i) for i in range(cluster_count)]
+    print clusters
     for i in clusters:
         i.attributes = [random() for i in range(attribute_count)]
         i.save()
     return clusters
-
 
 def assign_clusters(clusters):
     data = list(DataPoint.objects.filter(data_point=True))
@@ -36,7 +36,6 @@ def assign_clusters(clusters):
                 min_dist = temp_d
                 i.cluster_id = j.cluster_id
                 i.save()
-                
 
 def update_clusters(clusters):
     centroids = compute_centroids()
@@ -44,7 +43,6 @@ def update_clusters(clusters):
     for i in clusters:
         i.attributes = centroids[i.cluster_id]
         i.save()
-    
 
 def compute_centroids():
     data = list(DataPoint.objects.filter(data_point=True))
@@ -70,6 +68,6 @@ def man_hat(point1, point2):
         sum_t += math.abs(i - j)
     return sum_t
 
-
 if __name__ == "__main__":
-    generate_clusters(3, 1)
+    # generate_clusters(3, 1)
+    create_random_clusters(2, 3)
