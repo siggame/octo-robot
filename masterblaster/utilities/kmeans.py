@@ -70,4 +70,4 @@ def man_hat(point1, point2):
 
 if __name__ == "__main__":
     # generate_clusters(3, 1)
-    create_random_clusters(2, 0)
+    create_random_clusters(2, 1)
