@@ -6,9 +6,11 @@ import math
 # returns a list of data points which represent clusters, each having a rating value
 # also setups up the database for queries 
 def generate_clusters(cluster_count, eplison):
-    clusters = create_random_clusters(cluster_count, 0)
+    clusters = create_random_clusters(cluster_count, 1)
     for i in clusters:
         print i.attributes
+
+    run_count = 10
 
     assign_clusters(clusters)
     update_clusters(clusters)
@@ -27,7 +29,7 @@ def create_random_clusters(cluster_count, attribute_count):
     clusters = [DataPoint(data_point=False, cluster_id=i) for i in range(cluster_count)]
     print clusters
     for i in clusters:
-        i.attributes = [random() for j in range(attribute_count)]
+        i.attributes = [1000 * random() for j in range(attribute_count)]
         i.save()
     return clusters
 
@@ -47,8 +49,11 @@ def update_clusters(clusters):
     centroids = compute_centroids()
     clusters = list(DataPoint.objects.filter(data_point=False))
     for i in clusters:
-        i.attributes = centroids[i.cluster_id]
-        i.save()
+        try:
+            i.attributes = centroids[i.cluster_id]
+            i.save()
+        except:
+            pass
 
 def compute_centroids():
     data = list(DataPoint.objects.filter(data_point=True))
@@ -71,7 +76,7 @@ def compute_centroid(data):
 def man_hat(point1, point2):
     sum_t = 0
     for i, j in zip(point1.attributes, point2.attributes):
-        sum_t += math.abs(i - j)
+        sum_t += abs(i - j)
     return sum_t
 
 if __name__ == "__main__":
