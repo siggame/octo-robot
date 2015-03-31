@@ -6,10 +6,16 @@ import math
 # returns a list of data points which represent clusters, each having a rating value
 # also setups up the database for queries 
 def generate_clusters(cluster_count, eplison):
-    clusters = create_random_clusters(cluster_count, 10)
-    
+    clusters = create_random_clusters(cluster_count, 0)
+    for i in clusters:
+        print i.attributes
+
     assign_clusters(clusters)
     update_clusters(clusters)
+
+    print "After update"
+    for i in clusters:
+        print i.attributes
 
 # deletes old clusters and creates new ones
 def create_random_clusters(cluster_count, attribute_count):
@@ -69,5 +75,5 @@ def man_hat(point1, point2):
     return sum_t
 
 if __name__ == "__main__":
-    # generate_clusters(3, 1)
-    create_random_clusters(2, 1)
+    generate_clusters(3, 1)
+    #create_random_clusters(2, 1)
