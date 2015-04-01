@@ -181,6 +181,7 @@ def parse_gamelog(game_number):
 def push_file(local_filename, remote_filename):
     ''' Push this thing to s3 '''
     bucket_name = "%s-%s" % (os.environ['S3_PREFIX'], os.environ['GAME_NAME'])
+    bucket_name = "siggame-arena-test-bucket"
     access_cred = os.environ['ACCESS_CRED']
     secret_cred = os.environ['SECRET_CRED']
     if access_cred == 'None' or secret_cred == 'None':

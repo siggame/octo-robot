@@ -8,8 +8,6 @@ def update_clients():
     repo_name = game_name.split("-")[::-1][0]
     updated_clients = []
     for i in get_all_forks(repo_name):
-        print i
-        print "user name", repo_username(i)
         user_name = repo_username(i)
         if Client.objects.filter(name=user_name).count() == 0:
             client = makeClient(i, user_name)
