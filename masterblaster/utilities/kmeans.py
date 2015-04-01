@@ -21,6 +21,8 @@ def generate_clusters(cluster_count, eplison):
             print i.attributes
 
         c += 1
+        if c == run_count:
+            cull_clusters()
 
 # deletes old clusters and creates new ones
 def create_random_clusters(cluster_count, attribute_count):
@@ -89,6 +91,9 @@ def eqlid_dist(point1, point2):
     return math.sqrt(sum_t)
 
 def evaluate_clusters(clusters):
+    pass
+
+def cull_clusters():
     pass
 
 def output_data():
