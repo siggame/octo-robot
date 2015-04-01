@@ -2,7 +2,7 @@ from thunderdome.models import Client
 from test_arena.username_web_parser import get_all_forks, repo_username
 from thunderdome.config import game_name
 
-def update_clients_from_github():
+def update_clients()
     subs = game_name.split("-")
     repo_name = game_name.split("-")[::-1][0]
     updated_clients = []
@@ -12,6 +12,8 @@ def update_clients_from_github():
         user_name = repo_username(i)
         if Client.objects.filter(name=user_name).count() == 0:
             client = makeClient(i, user_name)
+        else:
+            client = Client.objects.get(name=user_name)
         updated_clients.append(client)
 
     current_clients = list(Client.objects.all())
@@ -21,6 +23,7 @@ def update_clients_from_github():
     for i in missing_clients:
         i.missing = True
         i.save()
+
 
 def makeClient(url, client_name):
     client = Client.objects.create()
