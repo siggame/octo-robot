@@ -273,7 +273,8 @@ class ArenaConfig(models.Model):
                   'api_url_template' : api_url_template}
     
     def __unicode__(self):
-        return "Active" + str(active) + "\n Config name " + str(config_name)  + "\n Game name " + str(game_name) + " \n Client Prefix " + str(client_prefix)
+        return "Active" + str(self.active) + "\n Config name " + str(self.config_name) + \
+            "\n Game name " + str(self.game_name) + " \n Client Prefix " + str(self.client_prefix)
 
 
 
