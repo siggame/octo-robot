@@ -19,13 +19,16 @@ def update_clients_from_github():
     if missing_clients:
         print "missing clients, deleting"
     for i in missing_clients:
-        i.delete()
+        i.missing = True
+        i.save()
 
 def makeClient(url, client_name):
     client = Client.objects.create()
     client.name = client_name
     client.current_version = "master"
     client.repo = url
+    client.missing = False
+    client.game_name = game_name
     client.embargoed = False
     client.eligible = True
     client.save()
