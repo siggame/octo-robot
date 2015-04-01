@@ -5,11 +5,31 @@ from thunderdome.config import game_name
 def update_clients_from_github():
     subs = game_name.split("-")
     repo_name = game_name.split("-")[::-1][0]
+    updated_clients = []
     for i in get_all_forks(repo_name):
         print i
         print "user name", repo_username(i)
-        
+        user_name = repo_username(i)
+        if Client.objects.filter(name=user_name).count() == 0:
+            client = makeClient(i, user_name)
+        updated_clients.append(client)
 
+    current_clients = list(Client.objects.all())
+    missing_clients = [x for x in current_clients if x not in updated_clients]
+    if missing_clients:
+        print "missing clients, deleting"
+    for i in missing_clients:
+        i.delete()
+
+def makeClient(url, client_name):
+    client = Client.objects.create()
+    client.name = client_name
+    client.current_version = "master"
+    client.repo = url
+    client.embargoed = False
+    client.eligible = True
+    client.save()
+    return client
 
 if __name__ == "__main__":
     update_clients_from_github()
