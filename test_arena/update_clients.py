@@ -1,8 +1,9 @@
 from thunderdome.models import Client
 from test_arena.username_web_parser import get_all_forks, repo_username
 from thunderdome.config import game_name
+import json
 
-def update_clients()
+def update_clients():
     subs = game_name.split("-")
     repo_name = game_name.split("-")[::-1][0]
     updated_clients = []
@@ -30,6 +31,7 @@ def makeClient(url, client_name):
     client.name = client_name
     client.current_version = "master"
     client.repo = url
+    client.stats = json.dumps({"language" : "any"})
     client.missing = False
     client.game_name = game_name
     client.embargoed = False
