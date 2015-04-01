@@ -38,4 +38,4 @@ def makeClient(url, client_name):
     return client
 
 if __name__ == "__main__":
-    update_clients_from_github()
+    update_clients()
