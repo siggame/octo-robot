@@ -30,7 +30,7 @@ def makeClient(url, client_name):
     client = Client.objects.create()
     client.name = client_name
     client.current_version = "master"
-    client.repo = url
+    client.repo = url.strip('https://github.com/')
     client.stats = json.dumps({"language" : "any"})
     client.missing = False
     client.game_name = game_name
