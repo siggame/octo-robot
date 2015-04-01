@@ -17,7 +17,7 @@ def generate_clusters(cluster_count, eplison):
         update_clusters(clusters)
         clusters = list(DataPoint.objects.filter(data_point=False))
         print "After update"
-        for i in clusters:
+        for i in sorted(clusters, key=lambda x : x.cluster_id):
             print i.attributes
 
         c += 1
@@ -82,6 +82,22 @@ def man_hat(point1, point2):
         sum_t += abs(i - j)
     return sum_t
 
+def eqlid_dist(point1, point2):
+    sum_t = 0
+    for i, j in zip(point1.attributes, point2.attributes):
+        sum_t += math.pow(i - j, 2)
+    return math.sqrt(sum_t)
+
+def evaluate_clusters(clusters):
+    pass
+
+def output_data():
+    t = [i.attributes for i in list(DataPoint.objects.filter(data_point=True))]
+    import json
+    print json.dumps(t)
+
 if __name__ == "__main__":
-    generate_clusters(2, 1)
+    k = int(mat.sqrt(len(list(DataPoint.objects.filter(data_point=True)))/2))
+    print "Cluster count", k
+    generate_clusters(k, 1)
     #create_random_clusters(2, 1)
