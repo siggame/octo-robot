@@ -272,6 +272,9 @@ class ArenaConfig(models.Model):
                   'req_queue_length' : req_queue_length,
                   'api_url_template' : api_url_template}
     
+    def __unicode__(self):
+        return "Active" + str(active) + "\n Config name " + str(config_name)  + "\n Game name " + str(game_name) + " \n Client Prefix " + str(client_prefix)
+
 
 
 class SettingsForm(forms.Form):
