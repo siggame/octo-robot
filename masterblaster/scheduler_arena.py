@@ -50,7 +50,7 @@ def main():
 
 def schedule_a_game(stalk):
     '''Schedule the most needy client and a random partner for a game'''
-    clients = list(Client.objects.exclude(name='bye').filter(embargoed=False))
+    clients = list(Client.objects.exclude(name='bye').filter(embargoed=False).filter(missing=False))
     if len(clients) < 2: # takes two to tango
         print "only", len(clients), "clients in the arena"
         return

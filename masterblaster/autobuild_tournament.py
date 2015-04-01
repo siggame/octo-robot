@@ -18,7 +18,7 @@ seed_tournament()
 try:
   Client.objects.get(name='bye')
 except:
-  Client.objects.create(name='bye', embargoed=True, eligible=False)
+  Client.objects.create(name='bye', embargoed=True, eligible=False, missing=False)
 
 
 def seed_or_bye(n):
@@ -53,7 +53,7 @@ def build_triple_elim():
         m.tournament = tournament
         m.save()
 
-    eligible_count = Client.objects.filter(embargoed=False).filter(eligible=True).count()
+    eligible_count = Client.objects.filter(embargoed=False).filter(eligible=True).filter(missing=False).count()
     exp2 = int(ceil(log(eligible_count, 2)))
     bracket_size = pow2(exp2)
     print eligible_count
@@ -74,7 +74,6 @@ def build_triple_elim():
             make_match((1, j, i), 'win', 'win',
                        (1, j - 1, i),
                        (1, j - 1, bracket_size * 2 / x + 1 - i))
-    # return
 
     # double elim
     for i in xrange(1, 1 + bracket_size / 4):

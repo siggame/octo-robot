@@ -21,17 +21,12 @@ def validateSched(stalk):
     stalk = beanstalkc.Connection()
     req_tube = "game-requests-%s" % game_name
     stalk.use(req_tube)
-    clients = list(Client.objects.filter(eligible=True))
+    clients = list(Client.objects.filter(eligible=True).filter(missing=False))
     # remove humans
     for i in list(clients):
         stats = json.loads(i.stats)
         if stats['language'] == 'Human':
             clients.remove(i)
-        try:
-            if stats['missing']:
-                clients.remove(i)
-        except KeyError:
-            pass
 
     random.shuffle(clients)
     while len(clients) > 1:
