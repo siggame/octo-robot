@@ -22,9 +22,6 @@ import boto
 
 
 def main(games_to_play=None):
-    start_ref(games_to_play)
-
-def start_ref(games_to_play=None):
     stalk = beanstalkc.Connection(host=os.environ['BEANSTALK_HOST'])
     stalk.watch('game-requests-%s' % os.environ['GAME_NAME'])  # input
     stalk.use('game-results-%s' % os.environ['GAME_NAME'])     # output
@@ -248,4 +245,4 @@ def update_local_repo(client):
 
 
 if __name__ == "__main__":
-    main()
+    main(100)
