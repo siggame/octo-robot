@@ -21,14 +21,21 @@ import beanstalkc
 import boto
 
 
-def main(games_to_play=100):
+def main(games_to_play=None):
+    start_ref(games_to_play)
+
+def start_ref(games_to_play=None):
     stalk = beanstalkc.Connection(host=os.environ['BEANSTALK_HOST'])
     stalk.watch('game-requests-%s' % os.environ['GAME_NAME'])  # input
     stalk.use('game-results-%s' % os.environ['GAME_NAME'])     # output
-    games_played = 0
-    while games_played < games_to_play:
-        looping(stalk)
-        games_played += 1
+    if games_to_play is None:
+        while True:
+            looping(stalk)
+    else:
+        games_played = 0
+        while games_played < games_to_play:
+            looping(stalk)
+            games_played += 1
 
 def looping(stalk):
     '''Get a game, process it, repeat'''

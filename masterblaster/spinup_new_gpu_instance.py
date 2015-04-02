@@ -21,16 +21,7 @@ cd /home/gladiator/arena
 wget http://54.83.195.22/gladiator/gladiator_package.tgz
 tar -xf gladiator_package.tgz
 
-cd server
-python main.py -arena > ../server-output.txt &
-cd ..
-
-mkdir 1
-ln referee.py 1/referee.py
-ln prep_for_bake.py 1/prep_for_bake.py
-cd 1
-./referee.py $SERVER_PATH &
-cd ..
+python gladiator.py
 
 EOF
 """ % (access_cred, secret_cred, s3_prefix, game_name, beanstalk_host)
