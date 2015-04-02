@@ -24,7 +24,11 @@ def get_forks(repo_name):
     yield "siggame/%s" % repo_name
 
 def repo_username(repo_url):
-    return repo_url.split("/")[0]
+    name = repo_url.split("/")[0]
+    if name == "siggame":
+        return name + "_" + repo_url.split("/")[1].split("-")[1]
+    else:
+        return name
 
 if __name__ == "__main__":
     for i in get_all_forks('pharaoh'):
