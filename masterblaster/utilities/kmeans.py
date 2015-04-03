@@ -51,6 +51,8 @@ def create_random_clusters(cluster_count, attribute_count):
                     d_choice = choice(list(DataPoint.objects.filter(data_point=True)))
                 else:
                     d_choice = choice(data)
+            else:
+                added = True
 
         i.attributes = d_choice.attributes
         i.save()
