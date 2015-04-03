@@ -18,7 +18,7 @@ def generate_clusters(cluster_count, eplison):
         clusters = list(DataPoint.objects.filter(data_point=False))
         print "After update"
         for i in sorted(clusters, key=lambda x : x.cluster_id):
-            print i.attributes
+            print i.cluster_id, i.attributes
 
         c += 1
         if c == run_count:
@@ -49,6 +49,7 @@ def create_random_clusters(cluster_count, attribute_count):
                 data.remove(d_choice)
                 if not data:
                     d_choice = choice(list(DataPoint.objects.filter(data_point=True)))
+                    added = True
                 else:
                     d_choice = choice(data)
             else:
