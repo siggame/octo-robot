@@ -55,7 +55,7 @@ def create_random_clusters(cluster_count, attribute_count):
                     d_choice = choice(data)
             else:
                 print "Not found", d_choice.attributes
-                added = True
+                break
 
         i.attributes = d_choice.attributes
         i.save()
