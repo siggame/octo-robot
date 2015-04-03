@@ -50,9 +50,9 @@ def create_random_clusters(cluster_count, attribute_count):
                 if not data:
                     print "Ran out of data"
                     d_choice = choice(list(DataPoint.objects.filter(data_point=True)))
-                    added = True
                 else:
                     d_choice = choice(data)
+                    added = False
             else:
                 print "Not found", d_choice.attributes
                 break
