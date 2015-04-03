@@ -40,7 +40,7 @@ def create_random_clusters(cluster_count, attribute_count):
         while not added:
             for j in clusters:
                 try:
-                    if j.attributes == choice(data).attributes:
+                    if j.attributes == d_choice.attributes:
                         added = True
                         break
                 except:
