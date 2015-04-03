@@ -32,9 +32,26 @@ def create_random_clusters(cluster_count, attribute_count):
             i.delete()
 
     clusters = [DataPoint(data_point=False, cluster_id=i) for i in range(cluster_count)]
-    data = list(DataPoint.objects.all())
+    data = list(DataPoint.objects.filter(data_point=True))
     for i in clusters:
-        i.attributes = choice(data).attributes
+        d_choice = choice(data)
+        added = False
+        while not added:
+            for j in clusters:
+                try:
+                    if j.attributes == choice(data).attributes:
+                        added = True
+                        break
+                except:
+                    pass
+            if added:
+                data.remove(d_choice)
+                if not data:
+                    d_choice = choice(list(DataPoint.objects.filter(data_point=True)))
+                else:
+                    d_choice = choice(data)
+
+        i.attributes = d_choice.attributes
         i.save()
     return clusters
 
