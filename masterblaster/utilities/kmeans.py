@@ -97,7 +97,7 @@ def cull_clusters():
     pass
 
 def output_data():
-    t = [i.attributes for i in list(DataPoint.objects.filter(data_point=True))]
+    t = [(i.cluster_id, i.attributes) for i in list(DataPoint.objects.filter(data_point=True))]
     import json
     print json.dumps(t)
 
