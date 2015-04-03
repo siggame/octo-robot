@@ -36,8 +36,8 @@ def create_random_clusters(cluster_count, attribute_count):
     for i in clusters:
         d_choice = choice(data)
         added = False
-        print "Trying ", d_choice.attributes
         while not added:
+            print "Trying ", d_choice.attributes
             for j in clusters:
                 try:
                     if j.attributes == d_choice.attributes:
