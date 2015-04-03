@@ -18,7 +18,7 @@ def generate_clusters(cluster_count, eplison):
         clusters = list(DataPoint.objects.filter(data_point=False))
         print "After update"
         for i in sorted(clusters, key=lambda x : x.cluster_id):
-            print i.attributes
+            print i.cluster_id, i.attributes
 
         c += 1
         if c == run_count:
@@ -32,9 +32,33 @@ def create_random_clusters(cluster_count, attribute_count):
             i.delete()
 
     clusters = [DataPoint(data_point=False, cluster_id=i) for i in range(cluster_count)]
-    data = list(DataPoint.objects.all())
+    data = list(DataPoint.objects.filter(data_point=True))
     for i in clusters:
-        i.attributes = choice(data).attributes
+        d_choice = choice(data)
+        added = False
+        while not added:
+            print "Trying ", d_choice.attributes
+            for j in clusters:
+                try:
+                    if j.attributes == d_choice.attributes:
+                        added = True
+                        break
+                except:
+                    pass
+            if added:
+                data.remove(d_choice)
+                if not data:
+                    print "Ran out of data"
+                    d_choice = choice(list(DataPoint.objects.filter(data_point=True)))
+                else:
+                    d_choice = choice(data)
+                    added = False
+            else:
+                print "Not found", d_choice.attributes
+                break
+
+        print "Setting attributes", d_choice.attributes
+        i.attributes = d_choice.attributes
         i.save()
     return clusters
 
@@ -97,7 +121,7 @@ def cull_clusters():
     pass
 
 def output_data():
-    t = [i.attributes for i in list(DataPoint.objects.filter(data_point=True))]
+    t = [(i.cluster_id, i.attributes) for i in list(DataPoint.objects.filter(data_point=True))]
     import json
     print json.dumps(t)
 
