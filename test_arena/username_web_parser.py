@@ -18,10 +18,18 @@ def get_forks(repo_name):
         return 
     json = r.json()
     for i in json:
-        yield 'https://github.com/' + i['full_name']
+        yield i['full_name']
+
+    # return the base repo
+    yield "siggame/%s" % repo_name
 
 def repo_username(repo_url):
-    return repo_url.strip("https://github.com/").split("/")[0]
+    name = repo_url.split("/")[0]
+    if name == "siggame":
+        return name + "_" + repo_url.split("/")[1].split("-")[1]
+    else:
+        return name
 
 if __name__ == "__main__":
-    get_all_forks('pharaoh')
+    for i in get_all_forks('pharaoh'):
+        print i
