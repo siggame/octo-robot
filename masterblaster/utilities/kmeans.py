@@ -3,7 +3,7 @@ from random import random, choice
 from collections import defaultdict
 import math
 
-# returns a list of data points which represent clusters, each having a rating value
+# creates a list of data points which represent clusters, each having a rating value
 # also setups up the database for queries 
 def generate_clusters(cluster_count, eplison):
     clusters = create_random_clusters(cluster_count, 2)
