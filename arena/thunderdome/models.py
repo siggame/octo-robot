@@ -197,6 +197,7 @@ class Match(models.Model):
             game = None
             for i in winners_games:
                 stats = json.loads(i.stats)
+                print stats
                 try:
                     if stats['calc_rating'] > max_rating:
                         max_rating = stats
