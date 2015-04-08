@@ -9,7 +9,6 @@ from datetime import datetime
 import beanstalkc
 import time
 import json
-from masterblaster.datatizer import estimate_rating
 
 # Django Imports
 from django import forms
