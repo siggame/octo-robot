@@ -15,8 +15,6 @@ def start_server(current_server=None):
 
 def make_ref_folder(ref_id):
     if os.path.exists(str(ref_id)):
-        shutil.rmtree(str(ref_id))
-        os.mkdir(str(ref_id))
         shutil.copyfile('referee.py', "%d/referee.py" % (ref_id))
         shutil.copyfile('prep_for_bake.py', "%d/prep_for_bake.py" % (ref_id))
     else:

@@ -47,5 +47,5 @@ def add_gamelog_data(gamedata):
         update_data_point(gamelog_data.attributes(), gamedata.pk)
 
 if __name__ == "__main__":
-    update_data_range(6000, 7000)
+    update_all_data()
     
