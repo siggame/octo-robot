@@ -190,6 +190,10 @@ class Match(models.Model):
     status = models.TextField(default='Waiting')
     root = models.BooleanField(default=False)
     tournament = models.IntegerField(default=20)
+
+    def get_representative_game(self):
+        winner_winners_games = self.game.objects.filter(winner=self.winner)
+        print winner_winners_games
     
     def __unicode__(self):
         if self.p0 and self.p1:
