@@ -192,7 +192,7 @@ class Match(models.Model):
 
     def get_representative_game(self):
         if self.games.all():
-            winners_games = m.games.filter(winner=self.winner)
+            winners_games = self.games.filter(winner=self.winner)
             max_rating = 0
             game = None
             for i in winners_games:
