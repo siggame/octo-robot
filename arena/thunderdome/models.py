@@ -192,13 +192,14 @@ class Match(models.Model):
 
     def get_representative_game(self):
         if self.games.all():
+            print "I has games"
             winners_games = self.games.filter(winner=self.winner)
             max_rating = 0
             game = None
             for i in winners_games:
                 stats = json.loads(i.stats)
-                print stats
                 try:
+                    print stats['calc_rating']
                     if stats['calc_rating'] > max_rating:
                         max_rating = stats
                         game = i
