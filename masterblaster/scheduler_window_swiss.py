@@ -41,7 +41,6 @@ def main():
 def update_window(max_size):
     for g in list(uncompleted_games):
         game_data = Game.objects.get(pk=g.pk)
-        print game_data, game_data.status
         if game_data.status == "Complete":
             uncompleted_games.remove(g)
             
