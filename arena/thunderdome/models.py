@@ -191,8 +191,18 @@ class Match(models.Model):
     tournament = models.IntegerField(default=20)
 
     def get_representative_game(self):
-        winner_winners_games = self.game.objects.filter(winner=self.winner)
-        print winner_winners_games
+        if self.games.all():
+            winners_games = m.games.filter(winner=self.winner)
+            max_rating = 0
+            game = None
+            for i in winners_games:
+                stats = json.loads(i.stats)
+                if stats['calc_rating'] > max_rating:
+                    max_rating = stats
+                    game = i
+            return game
+        else:
+            return None
     
     def __unicode__(self):
         if self.p0 and self.p1:
