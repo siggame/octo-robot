@@ -9,6 +9,7 @@ from datetime import datetime
 import beanstalkc
 import time
 import json
+from masterblaster.datatizer import estimate_rating
 
 # Django Imports
 from django import forms
@@ -114,6 +115,10 @@ class Game(models.Model):
             r = 0
         print "average rating", r
         return r
+
+    # Pre: kmeans has been ran and calculated ratings
+    def get_estimated_rating(self):
+        return estimate_rating(self)
 
     def force_schedule(self):
         c = beanstalkc.Connection()

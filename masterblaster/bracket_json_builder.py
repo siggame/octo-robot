@@ -77,7 +77,7 @@ def update_bracket(match):
                                          "previous_matches" : prev_games,
                                          "player_1" : match.p0.name,
                                           "player_2" : match.p1.name}})
-    
+
     if match.father:
         prev_games.append(match.father.pk)
         update_bracket(match.father)
@@ -85,38 +85,6 @@ def update_bracket(match):
     if match.mother:
         prev_games.append(match.mother.pk)
         update_bracket(match.mother)
-    
-
-def update_brackets(parent_node, match, depth):
-    global id_array
-    father_dict = {}
-    mother_dict = {}
-    my_dict = {}
-    my_dict.update({"winner" : match.winner.name, 
-                    "match_id" : str(match.pk),
-                    "log_location" : get_best_gamelog(match),
-                    "previous_matches" : [],
-                    "player_1" : match.p0.name,
-                    "player_2" : match.p1.name})
-
-    parent_node.update(my_dict)
-    id_array.update({match.pk : my_dict})
-    
-    if match.father and match.father.pk in id_array.keys():
-        my_dict["previous_matches"].append(match.father.pk)
-        return
-
-    if match.father and match.father.pk not in id_array.keys():
-        my_dict["previous_matches"].append(father_dict)
-        update_brackets(father_dict, match.father, depth+1)
-    
-    if match.mother and match.mother.pk in id_array.keys():
-        my_dict["previous_matches"].append(match.mother.pk)
-        return
-
-    if match.mother and match.mother.pk not in id_array.keys():
-        my_dict["previous_matches"].append(mother_dict)
-        update_brackets(mother_dict, match.mother, depth+1)
 
 if __name__ == "__main__":
     main()

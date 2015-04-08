@@ -2,6 +2,7 @@ from k_storage.models import DataPoint
 from random import random, choice
 from collections import defaultdict
 import math
+from masterblaster.datatizer import add_gamelog_data
 
 # returns a list of data points which represent clusters, each having a rating value
 # also setups up the database for queries 
@@ -74,6 +75,15 @@ def assign_clusters(clusters):
                 i.cluster_id = j.cluster_id
                 i.save()
 
+def assign_cluster(data_point, clusters):
+    min_dist = float('inf')
+    for j in clusters:
+        temp_d = man_hat(data_point, j)
+        if temp_d < min_dist:
+            min_dist = temp_d
+            data_point.cluster_id = j.cluster_id
+            data_point.save()
+
 def update_clusters(clusters):
     centroids = compute_centroids()
     clusters = list(DataPoint.objects.filter(data_point=False))
@@ -124,6 +134,11 @@ def output_data():
     t = [(i.cluster_id, i.attributes) for i in list(DataPoint.objects.filter(data_point=True))]
     import json
     print json.dumps(t)
+
+def estimate_rating(game):
+    add_gamelog_data(game)
+    assign_cluster(DataPoint.objects.get(game_id=game.pk), DataPoint.objects.filter(data_point=False))
+    return DataPoint.objects.get(cluster_id=DataPoint.objects.get(game_id=game.pk).cluster_id)).rating
 
 if __name__ == "__main__":
     k = int(math.sqrt(len(list(DataPoint.objects.filter(data_point=True)))/2))
