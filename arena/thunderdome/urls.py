@@ -19,7 +19,7 @@ urlpatterns = patterns(
     url(r'^health$', 'health'),
     url(r'^view/(?P<game_id>\d+)$', 'view_game'),
     url(r'^view_match/(?P<match_id>\d+)$', 'view_match', name='matchy'),
-    url(r'^rate_game/(?P<game_id>\d+)&(?P<rating>\d+)', 'rate_game'),
+    url(r'^rate_game/(?P<game_id>\d+)/(?P<rating>\d+)', 'rate_game'),
     url(r'^represent/(?P<match_id>\d+)$', 'representative_game'),
     url(r'^inject$', 'inject'),
     url(r'^get_next_game_url_to_visualize_and_mark$', 'get_next_game_url_to_visualize'),
