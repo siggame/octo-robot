@@ -147,6 +147,7 @@ def assign_ratings():
         i.save()
     
 def assign_calc_rating(game):
+    print game
     data_point = DataPoint.objects.get(game_id=game.pk)
     assign_cluster(data_point, list(DataPoint.objects.filter(data_point=False)))
     cluster_rating = DataPoint.objects.get(cluster_id=data_point.cluster_id, data_point=False).rating_value
