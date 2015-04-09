@@ -61,9 +61,15 @@ def get_best_gamelog(match):
     """
     This can be used to change what game gets visualized to during the tournament. 
     """
-    games = list(match.games.filter(winner=match.winner))
-    if games:
-        return random.choice(games).gamelog_url
+    
+    #games = list(match.games.filter(winner=match.winner))
+    #if games:
+    #    return random.choice(games).gamelog_url
+    #else:
+    #    return "no game log"
+    game = match.get_representative_game()
+    if game:
+        return game.gamelog_url
     else:
         return "no game log"
 
