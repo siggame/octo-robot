@@ -7,7 +7,7 @@ import json
 
 # creates a list of data points which represent clusters, each having a rating value
 # also setups up the database for queries 
-def generate_clusters(cluster_count, eplison):
+def generate_clusters(cluster_count):
     clusters = create_random_clusters(cluster_count, 2)
     for i in clusters:
         print i.attributes
@@ -167,5 +167,5 @@ if __name__ == "__main__":
     k = int(math.sqrt(len(list(DataPoint.objects.filter(data_point=True)))/2))
     k = 10
     print "Cluster count", k
-    generate_clusters(k, 1)
+    generate_clusters(k)
     #create_random_clusters(2, 1)

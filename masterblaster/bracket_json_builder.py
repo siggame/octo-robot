@@ -4,6 +4,8 @@ from copy import deepcopy
 import random
 import jsonschema
 import json
+from masterblaster.utilities.kmeans import generate_clusters
+
 
 loop = 0
 
@@ -53,6 +55,10 @@ def main():
     tournament_id = 20149907
     championship = Match.objects.get(root=True, tournament=tournament_id)
 
+    print "Running kmeans"
+    generate_clusters(10)
+
+    print "Updating bracket'
     update_bracket(championship)
     print json.dumps(global_dict, indent=1)
 
