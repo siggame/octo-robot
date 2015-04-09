@@ -215,16 +215,14 @@ class Match(models.Model):
 
     def get_representative_game(self):
         if self.games.all():
-            print "I has games"
             winners_games = self.games.filter(winner=self.winner)
             max_rating = -1 * float('inf')
             game = None
             for i in winners_games:
+                i.update_calc_rating()
                 if i.get_calc_rating() > max_rating:
                     max_rating = i.get_calc_rating()
                     game = i
-
-            print "My winner", self.winner, " Games winner", game.winner
             return game
         else:
             return None
