@@ -194,7 +194,7 @@ class Match(models.Model):
         if self.games.all():
             print "I has games"
             winners_games = self.games.filter(winner=self.winner)
-            max_rating = 0
+            max_rating = -1 * float('inf')
             game = None
             for i in winners_games:
                 stats = json.loads(i.stats)
