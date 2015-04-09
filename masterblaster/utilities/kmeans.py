@@ -3,6 +3,7 @@ from random import random, choice
 from collections import defaultdict
 import math
 from masterblaster.datatizer import add_gamelog_data
+import json
 
 # creates a list of data points which represent clusters, each having a rating value
 # also setups up the database for queries 
@@ -22,8 +23,8 @@ def generate_clusters(cluster_count, eplison):
             print i.cluster_id, i.attributes
 
         c += 1
-        if c == run_count:
-            cull_clusters()
+    
+    assign_ratings()
 
 # deletes old clusters and creates new ones
 def create_random_clusters(cluster_count, attribute_count):
@@ -140,6 +141,14 @@ def estimate_rating(game):
     assign_cluster(DataPoint.objects.get(game_id=game.pk), DataPoint.objects.filter(data_point=False))
     return DataPoint.objects.get(cluster_id=DataPoint.objects.get(game_id=game.pk).cluster_id)).rating
 
+def assign_ratings():
+    for i in list(DataPoint.objects.filter(data_point=False)):
+        rating_sum = 0
+        for j in list(DataPoint.objects.filter(cluster_id=i.cluster_id)):
+            rating_sum += j.get_average_rating()
+        i.rating = rating_sum
+        i.save()
+                  
 if __name__ == "__main__":
     k = int(math.sqrt(len(list(DataPoint.objects.filter(data_point=True)))/2))
     print "Cluster count", k
