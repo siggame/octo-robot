@@ -2,7 +2,7 @@ from k_storage.models import DataPoint
 from random import random, choice
 from collections import defaultdict
 import math
-from masterblaster.datatizer import add_gamelog_data, update_all_ratings()
+from masterblaster.datatizer import add_gamelog_data, update_all_ratings
 import json
 
 # creates a list of data points which represent clusters, each having a rating value
