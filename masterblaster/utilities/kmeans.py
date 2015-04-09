@@ -136,11 +136,6 @@ def output_data():
     import json
     print json.dumps(t)
 
-def estimate_rating(game):
-    add_gamelog_data(game)
-    assign_cluster(DataPoint.objects.get(game_id=game.pk), DataPoint.objects.filter(data_point=False))
-    return DataPoint.objects.get(cluster_id=DataPoint.objects.get(game_id=game.pk).cluster_id)).rating
-
 def assign_ratings():
     for i in list(DataPoint.objects.filter(data_point=False)):
         rating_sum = 0

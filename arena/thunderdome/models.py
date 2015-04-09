@@ -115,10 +115,6 @@ class Game(models.Model):
         print "average rating", r
         return r
 
-    # Pre: kmeans has been ran and calculated ratings
-    def get_estimated_rating(self):
-        return estimate_rating(self)
-
     # TODO clean up force schedule some of the code is very out of date
     def force_schedule(self):
         c = beanstalkc.Connection()
