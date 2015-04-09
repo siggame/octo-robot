@@ -24,7 +24,9 @@ def generate_clusters(cluster_count, eplison):
 
         c += 1
     
+    print "Updating all rating for data points"
     update_all_ratings()
+    print "Assigning rating to clusters"
     assign_ratings()
 
 # deletes old clusters and creates new ones
@@ -138,12 +140,12 @@ def output_data():
     print json.dumps(t)
 
 def assign_ratings():
-    print "Assigning ratings to clusters based on average games ratings"
     for i in list(DataPoint.objects.filter(data_point=False)):
         rating_sum = 0
-        for j in list(DataPoint.objects.filter(cluster_id=i.cluster_id)):
+        data_list = list(DataPoint.objects.filter(cluster_id=i.cluster_id))
+        for j in data_list:
             rating_sum += j.rating_value
-        i.rating_value = rating_sum
+        i.rating_value = rating_sum/float(len(data_list))
         i.save()
     
 def assign_calc_rating(game):
