@@ -14,6 +14,7 @@ import json
 from django import forms
 from django.db import models
 from django.db.models import Max
+import masterblaster
 
 class Client(models.Model):
     name = models.CharField(max_length=200)
