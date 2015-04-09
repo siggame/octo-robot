@@ -148,6 +148,7 @@ def assign_ratings():
                   
 if __name__ == "__main__":
     k = int(math.sqrt(len(list(DataPoint.objects.filter(data_point=True)))/2))
+    k = 10
     print "Cluster count", k
     generate_clusters(k, 1)
     #create_random_clusters(2, 1)
