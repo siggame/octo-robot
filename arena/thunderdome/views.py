@@ -100,22 +100,8 @@ def get_next_game_url_to_visualize(request):
 
 def rate_game(request, game_id, rating):
     print 'rating game', game_id, 'with rating', rating
-    print 'getting game with pk', game_id
     game = Game.objects.get(pk=game_id)
-    try:
-        data = json.loads(game.stats)
-    except ValueError:
-        print "Value error"
-        data = {}
-        data['rating'] = []
-    
-    try:
-        data['rating'].append(int(rating))
-    except KeyError:
-        data['rating'] = []
-
-    data['rating'].append(int(rating))
-    game.stats = json.dumps(data)
+    game.add_rating(rating)
     game.save()
     message = {"status" : "Rated"} 
     return HttpResponse(json.dumps(message))
