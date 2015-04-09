@@ -14,7 +14,6 @@ import json
 from django import forms
 from django.db import models
 from django.db.models import Max
-import masterblaster
 
 class Client(models.Model):
     name = models.CharField(max_length=200)
@@ -108,7 +107,8 @@ class Game(models.Model):
         return self.force_schedule()
 
     def update_calc_rating(self):
-        masterblaster.utilities.kmeans.assign_calc_rating(self)
+        from masterblaster.utilities.kmeans import assign_calc_rating
+        assign_calc_rating(self)
 
     def set_calc_rating(self, rating):
         data = json.loads(self.stats)
