@@ -223,6 +223,8 @@ class Match(models.Model):
                 if i.get_calc_rating() > max_rating:
                     max_rating = i.get_calc_rating()
                     game = i
+
+            print "My winner", self.winner, " Games winner", game.winner
             return game
         else:
             return None
