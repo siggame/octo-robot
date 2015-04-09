@@ -119,6 +119,7 @@ class Game(models.Model):
     def get_estimated_rating(self):
         return estimate_rating(self)
 
+    # TODO clean up force schedule some of the code is very out of date
     def force_schedule(self):
         c = beanstalkc.Connection()
         c.use('game-requests') # this is out of date very out of date

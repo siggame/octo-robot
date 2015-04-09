@@ -114,10 +114,11 @@ def rate_game(request, game_id, rating):
     except KeyError:
         data['rating'] = []
 
-    data['rating'].append(rating)
+    data['rating'].append(int(rating))
     game.stats = json.dumps(data)
     game.save()
-    return HttpResponse("Rated game")
+    message = {"status" : "Rated"} 
+    return HttpResponse(json.dumps(message))
 
 def representative_game(request, match_id):
     match = Match.objects.get(pk=match_id)
