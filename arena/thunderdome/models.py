@@ -108,6 +108,12 @@ class Game(models.Model):
 
     def update_calc_rating(self):
         masterblaster.utilities.kmeans.assign_calc_rating(self)
+
+    def set_calc_rating(self, rating):
+        data = json.loads(self.stats)
+        data['calc_rating'] = rating
+        self.stats = json.dumps(data)
+        self.save()
         
     def get_calc_rating(self):
         data = json.loads(self.stats)
@@ -116,13 +122,22 @@ class Game(models.Model):
         except:
             return 0
 
+    def add_rating(self, rating):
+        data = json.loads(self.stats)
+        try:
+            data['rating'].append(int(rating))
+        except:
+            data['rating'] = []
+            data['rating'].append(int(rating))
+        self.stats = json.dumps(data)
+        self.save()
+
     def get_average_rating(self):
         data = json.loads(self.stats)
         try:
             r = sum(data['rating'])/float(len(data['rating']))
         except KeyError:
             r = 0
-        print "average rating", r
         return r
 
     # TODO clean up force schedule some of the code is very out of date
