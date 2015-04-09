@@ -145,7 +145,17 @@ def assign_ratings():
             rating_sum += j.rating_value
         i.rating_value = rating_sum
         i.save()
-                  
+    
+def assign_calc_rating(game):
+    data_point = DataPoint.objects.get(game_id=game.pk)
+    assign_cluster(data_point, list(DataPoint.objects.filter(data_point=False)))
+    cluster_rating = DataPoint.objects.get(cluster_id=data_point.cluster_id, data_point=False).rating_value
+    print "Assigning rating to game", game, " of ", cluster_rating
+    stats = json.loads(game.stats)
+    stats['calc_rating'] = cluster_rating
+    game.stats = json.dumps(stats)
+    game.save()
+
 if __name__ == "__main__":
     k = int(math.sqrt(len(list(DataPoint.objects.filter(data_point=True)))/2))
     k = 10

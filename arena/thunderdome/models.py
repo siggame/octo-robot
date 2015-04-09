@@ -105,7 +105,17 @@ class Game(models.Model):
         if self.pk is None:
             self.save()
         return self.force_schedule()
-    
+
+    def update_calc_rating(self):
+        masterblaster.utilities.kmeans.assign_calc_rating(self)
+        
+    def get_calc_rating(self):
+        data = json.loads(self.stats)
+        try:
+            return data['calc_rating']
+        except:
+            return 0
+
     def get_average_rating(self):
         data = json.loads(self.stats)
         try:
