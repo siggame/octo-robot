@@ -2,7 +2,7 @@ from k_storage.models import DataPoint
 from random import random, choice
 from collections import defaultdict
 import math
-from masterblaster.datatizer import add_gamelog_data
+from masterblaster.datatizer import add_gamelog_data, update_all_ratings()
 import json
 
 # creates a list of data points which represent clusters, each having a rating value
@@ -24,6 +24,7 @@ def generate_clusters(cluster_count, eplison):
 
         c += 1
     
+    update_all_ratings()
     assign_ratings()
 
 # deletes old clusters and creates new ones
@@ -137,10 +138,11 @@ def output_data():
     print json.dumps(t)
 
 def assign_ratings():
+    print "Assigning ratings to clusters based on average games ratings"
     for i in list(DataPoint.objects.filter(data_point=False)):
         rating_sum = 0
         for j in list(DataPoint.objects.filter(cluster_id=i.cluster_id)):
-            rating_sum += j.get_average_rating()
+            rating_sum += j.rating
         i.rating = rating_sum
         i.save()
                   
