@@ -221,7 +221,7 @@ class Match(models.Model):
             game = None
             for i in winners_games:
                 if i.get_calc_rating() > max_rating:
-                    max_rating = stats
+                    max_rating = i.get_calc_rating()
                     game = i
             return game
         else:
