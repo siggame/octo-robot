@@ -26,6 +26,8 @@ from thunderdome.models import Client, Game, ArenaConfig
 from thunderdome.models import Match, Referee, InjectedGameForm, SettingsForm
 from thunderdome.sked import sked
 
+from k_storage.models import DataPoint
+
 def index(request):
     msg = "<html><body><p>Hello index page!</p></body></html>"
     return HttpResponse(msg)
@@ -103,7 +105,12 @@ def rate_game(request, game_id, rating):
     game = Game.objects.get(pk=game_id)
     game.add_rating(rating)
     game.save()
-    message = {"status" : "Rated"} 
+    
+    data_point = DataPoint.objects.get(game_id=game_id)
+    data_point.rating_value = game.get_average_rating()
+    data_point.save()
+
+    message = {"status" : "Rated"}
     return HttpResponse(json.dumps(message))
 
 def representative_game(request, match_id):

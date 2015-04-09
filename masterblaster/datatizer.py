@@ -27,6 +27,7 @@ def create_fake_data():
         update_data_point([random.randint(0, 100) for j in range(4)], 
                        i.pk)
 
+# TODO update a specific game, when its rating is changed
 def update_all_ratings():
     games = list(Game.objects.all())
     for i in games:
