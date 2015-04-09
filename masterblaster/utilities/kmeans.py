@@ -142,8 +142,8 @@ def assign_ratings():
     for i in list(DataPoint.objects.filter(data_point=False)):
         rating_sum = 0
         for j in list(DataPoint.objects.filter(cluster_id=i.cluster_id)):
-            rating_sum += j.rating
-        i.rating = rating_sum
+            rating_sum += j.rating_value
+        i.rating_value = rating_sum
         i.save()
                   
 if __name__ == "__main__":
