@@ -98,6 +98,10 @@ class Game(models.Model):
 
     class Meta():
         ordering = ['-completed', '-id']
+
+    def set_visualized(self):
+        visualized = datetime.time()
+        self.save()
     
     def schedule(self):
         if self.status != 'New':

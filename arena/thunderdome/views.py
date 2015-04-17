@@ -97,7 +97,12 @@ def get_next_game_url_to_visualize(request):
     next_gid = \
         worst_client.games_played.all() \
         .filter(status='Complete').aggregate(Max('pk'))['pk__max']
-    next_game = Game.objects.get(pk=next_gid)
+
+    try:
+        next_game = Game.objects.get(pk=next_gid)
+    except Game.DoesNotExist:
+        return HttpResponse("")
+    next_game.set_visualized()
     return HttpResponse(next_game.gamelog_url)
 
 def rate_game(request, game_id, rating):
