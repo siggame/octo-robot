@@ -7,6 +7,8 @@ from masterblaster.utilities.webinteraction import update_clients
 
 import sys
 
+requests.packages.urllib3.disable_warnings()
+
 def main():
     api_url = sys.argv[1]
     update_clients(api_url)

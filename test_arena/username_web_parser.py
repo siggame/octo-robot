@@ -1,6 +1,8 @@
 import requests  # Obtains a url page's source code
 from arena.settings.secret_settings import GITHUB_API_TOKEN
 
+requests.packages.urllib3.disable_warnings()
+
 # returns a list of all the github url locations of possible forks
 def get_all_forks(game_name, languages=['cpp', 'python', 'csharp', 'java']):
     return [j for i in languages for j in get_forks("%s-%s" % (game_name, i))]

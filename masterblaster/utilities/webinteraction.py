@@ -6,6 +6,8 @@ from thunderdome.config import api_url_template, game_name
 from thunderdome.config import WEBSITE_USER_NAME, WEBSITE_ARENA_PASSWORD
 from thunderdome.models import Client
 
+requests.packages.urllib3.disable_warnings()
+
 def update_clients(api_url=None, auth=None):
     '''update the database with the current clients, based on game_name'''
     if api_url is None:
