@@ -22,7 +22,7 @@ urlpatterns = patterns(
     url(r'^rate_game/(?P<game_id>\d+)/(?P<rating>\d+)', 'rate_game'),
     url(r'^represent/(?P<match_id>\d+)$', 'representative_game'),
     url(r'^inject$', 'inject'),
-    url(r'^get_next_game_url_to_visualize_and_mark$', 'get_next_game_url_to_visualize'),
+    url(r'^get_next_game$', 'get_next_game_url_to_visualize'),
 
     url(r'^settings$', 'settings'),
 
