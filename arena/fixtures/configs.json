@@ -58,7 +58,7 @@
     },
     {
 	"model" : "thunderdome.arenaconfig",
-	"pk" : ,
+	"pk" : 6,
 	"fields" : {
 	    "active" : "False",
 	    "client_prefix" : "ssh://webserver@megaminerai.com",
