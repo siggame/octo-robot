@@ -26,23 +26,25 @@ cd /home/gladiator/arena
 wget http://arena.megaminerai.com/gladiator/gladiator_package.tgz
 tar -xf gladiator_package.tgz
 
-cd server
-python main.py -arena > ../server-output.txt &
-cd ..
+python gladiator.py
 
-mkdir 1
-ln referee.py 1/referee.py
-ln prep_for_bake.py 1/prep_for_bake.py
-cd 1
-./referee.py $SERVER_PATH &
-cd ..
+# cd server
+# python main.py -arena > ../server-output.txt &
+# cd ..
 
-mkdir 2
-ln referee.py 2/referee.py
-ln prep_for_bake.py 2/prep_for_bake.py
-cd 2
-./referee.py $SERVER_PATH &
-cd ..
+# mkdir 1
+# ln referee.py 1/referee.py
+# ln prep_for_bake.py 1/prep_for_bake.py
+# cd 1
+# ./referee.py $SERVER_PATH &
+# cd ..
+
+# mkdir 2
+# ln referee.py 2/referee.py
+# ln prep_for_bake.py 2/prep_for_bake.py
+# cd 2
+# ./referee.py $SERVER_PATH &
+# cd ..
 
 #mkdir 3
 #ln referee.py 3/referee.py
