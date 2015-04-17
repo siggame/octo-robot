@@ -21,7 +21,7 @@ def make_ref_folder(ref_id):
         os.mkdir(str(ref_id))
         make_ref_folder(ref_id)
 
-def start_referee(ref_id, games_to_play):
+def start_referee(ref_id):
     make_ref_folder(ref_id)
     print "Starting referee", ref_id
     return subprocess.Popen(['python', 'referee.py'],
