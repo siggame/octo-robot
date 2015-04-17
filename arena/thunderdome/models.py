@@ -100,7 +100,7 @@ class Game(models.Model):
         ordering = ['-completed', '-id']
 
     def set_visualized(self):
-        visualized = datetime.time()
+        visualized = datetime.datetime.now()
         self.save()
     
     def schedule(self):
