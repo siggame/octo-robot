@@ -55,6 +55,18 @@
 	    "game_name" : "megaminerai-15-pharaoh",
 	    "req_queue_length" : 5
 	}
+    },
+    {
+	"model" : "thunderdome.arenaconfig",
+	"pk" : ,
+	"fields" : {
+	    "active" : "False",
+	    "client_prefix" : "ssh://webserver@megaminerai.com",
+	    "beanstalk_host" : "arena.megaminerai.com",
+	    "config_name" : "live_pharaoh",
+	    "game_name" : "megaminerai-15-pharaoh",
+	    "req_queue_length" : 5
+	}
     }
 ]
 
