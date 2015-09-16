@@ -1,5 +1,5 @@
 
-How to run the arena, there are more specifics on how to run the arena for a live competition or tournament, but this will be specificly aimed at having the nessassary information to getting an arena up and running so that an individiual can see stuff happen and start there experience to learn about and experement with the arena. 
+How to run the arena, there are more specifics on how to run the arena for a live competition or tournament, but this will be specificly aimed at having the nessassary information to getting an arena up and running so that an individiual can see stuff happen and start there experience to learn about and experiment with the arena. 
 
 This will assume some basic information about linux, and git. 
 All testing and development for the arena has been done on linux.
