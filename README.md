@@ -11,7 +11,7 @@ First step is to clone the arena's code base, do this via
 
 1) git clone git@github.com:siggame/octo-robot.git
 
-The arena uses buildout to download and install all the nessaray packages and libraries, so after the clone is complete 
+The arena uses buildout to download and install all the necessary packages and libraries, so after the clone is complete 
 
 2) cd octo-robot
 
