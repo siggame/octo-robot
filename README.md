@@ -72,7 +72,7 @@ At this point the entire headnode should be setup, and all that is left is to cr
 Additionally there should be 5 games already scheduled, and some output on the scheduler indicating this. 
 
 10) Start a gladiator. 
-   There is a file on the main branch called generate_gladiator_package.py, this file was created to easy the difficulty of starting a gladiator. Normally one would have to download the server, and tar the server files and the files in the gladiator folder, this should do that for you you'll just need to pass in the parameter for where to find the MegaMinerAI repository that you'll want the server from. 
+   - There is a file on the main branch called generate_gladiator_package.py, this file was created to easy the difficulty of starting a gladiator. Normally one would have to download the server, and tar the server files and the files in the gladiator folder, this should do that for you you'll just need to pass in the parameter for where to find the MegaMinerAI repository that you'll want the server from. 
     An example for MegaMinerAI11 is as such, 
     - cd octo-robot
     - ./bin/python masterblaster/generate_gladiator_package MegaMinerAI-11
@@ -95,4 +95,4 @@ Additionally there should be 5 games already scheduled, and some output on the s
 
 
 11) Monitoring 
-   At this point he arena should be running and you'll just have to do monitoring. 
+   - At this point he arena should be running and you'll just have to do monitoring. 
