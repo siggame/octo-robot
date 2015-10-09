@@ -59,7 +59,8 @@ You will only need to read steps 1 through 7 everything else will be explained. 
 
 8) Start the scheduler 
    - cd octo-robot
-   - ./bin/python masterblaster/scheduler_window_swiss.py
+   - ./bin/python masterblaster/scheduler_arena.py (For testing)
+   - ./bin/python masterblaster/scheduler_window_swiss.py (For real)
    
 afterwhich the scheduler will use a whole terminal so create a new one
 
