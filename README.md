@@ -24,12 +24,64 @@ A perfect example that teaches one how to set this up step by step can be locate
 
 You will only need to read steps 1 through 7 everything else will be explained. I would however suggest using a different database name and user name for the postgress database, but reguardless of what you use just remember to write it down somewhere as it will be used later. 
 
-4) Configure the database connection. 
-   - In the folder arena/settings is a file named production.py this file will need to have the database information. 
-   - Change the fields "Engine" : to have 'django.db.backends.postgresql_psycopg2'
-   - set name to what you called your database
-   - set the user and password into the secret_settings.py file located in arena/settings/ folder. (note this file will not exist intially and will be created upon first accessing a django model if you have made the database this file should have been created)
+3.4 ish)
 
+more or less exact command to complete setting up a postgres server 
+
+
+sudo apt-get update && sudo apt-get upgrade && sudo apt-get install libpq-dev python-dev 
+sudo apt-get install postgresql postgresql-contrib
+These should install the nessasary libraries for postgres python will still need some required packages to interact with postgres
+which should be satified by psycopg2, this should be covered by buildout
+
+Now we'll need to build the database and the user
+
+Everything in qoutes will be used as the name of what it was used for, but should be renamed when you are making the object
+
+sudo su - postgres
+
+should have postgres as the user name of who you are log in as, i.e. the first word on the far left of the terminal
+
+createdb "arena_test_db"
+
+createuser "arena_test_user" -P
+
+You'll be prompted for a password for new role. make sure to remember the password.
+
+exit
+
+to logout from the postgres user
+
+then you'll need to set the postgres user name, db name, and password in the secret file.
+
+4) Configure the database connection. 
+   - In the folder arena/settings is a file named production.py this file will need to have the database information.
+       this information is passed in from a file named secret_settings.py
+   - Change the fields "Engine" : to have 'django.db.backends.postgresql_psycopg2'
+
+
+The secret file is located in teh settings folder, if the secret file does not exist then you'll need to atleast run
+./bin/production
+
+which will generate it for you.
+
+after which open the secret_settings.py file in arena/settings folder and add int eh postgres name, db the user and password
+
+
+should be good to go on generating the database scheme and getting the magic of the arena.
+
+cd back to the base project directory, octo-robot
+
+./bin/production sql thunderdome
+./bin/production sql k_storage
+./bin/production syncdb
+
+You should get a prompt asking for information about setting up a test user.
+Fill all that information in.
+should be like user name, email and password its all for the admin account of the django website. 
+
+
+(IGNORE STEP 5)
 5) create the database
    - now that django knows where the database is, go into the home directory. 
    type ./bin/production migrate thunderdome
