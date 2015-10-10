@@ -1,19 +1,21 @@
 
-How to run the arena, there are more specifics on how to run the arena for a live competition or tournament, but this will be specificly aimed at having the nessassary information to getting an arena up and running so that an individiual can see stuff happen and start there experience to learn about and experiment with the arena. 
+How to run the arena.
+These will be very specific instructions on how to setup the arena for an actual tournament. There might be some slight differences when running this as a "test" arena, but those are typically for either convenience or pertain to other parts that are not functional before MegaminerAI starts. 
 
 This will assume some basic information about linux, and git. 
-All testing and development for the arena has been done on linux.
+All testing and development for the arena is currentlying being done in a linux environment, the current arena nodes are using some version of ubuntu, 12.04 I think. (these should get upgraded to 14.04)
 If you do not know about git or wish to learn more about it I would suggest visiting try.github.com along with git-scm.com/documentation
 
 All steps will be done via terminal. Additionally I will refer to the base folder, octo-robot, as home directory.
 
-First step is to clone the arena's code base, do this via
 
-1) git clone git@github.com:siggame/octo-robot.git
+1) Clone the arena directory
 
-The arena uses buildout to download and install all the necessary packages and libraries, so after the clone is complete 
+`git clone git@github.com:siggame/octo-robot.git`
 
-2) cd octo-robot
+The arena uses buildout to download and install all the necessary python packages and libraries, so after the clone is complete 
+
+`cd octo-robot`
 
 Step 3 will require psycopg2 which is the python postgresql drivers which will require python-dev and postgres to be installed. 
 
