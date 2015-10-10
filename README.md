@@ -8,12 +8,21 @@ If you do not know about git or wish to learn more about it I would suggest visi
 
 All steps will be done via terminal. Additionally I will refer to the base folder, octo-robot, as home directory.
 
-
 1) Clone the arena directory
 
 `git clone git@github.com:siggame/octo-robot.git`
 
-The arena uses buildout to download and install all the necessary python packages and libraries, so after the clone is complete 
+2) build the arena
+
+The arena uses buildout to download and install all the necessary python packages and libraries, but there are a few that can not be downloaded through buildout since they require some c header.
+
+install these by
+
+`sudo apt-get update && sudo apt-get upgade && sudo apt-get install build-essential python-dev`
+
+
+
+ so after the clone is complete 
 
 `cd octo-robot`
 
