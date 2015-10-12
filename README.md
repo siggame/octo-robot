@@ -22,8 +22,8 @@ install these by
 
 Should now be good to go and build the arena
 
-`cd octo-robot`
-`make` this will setup the postgresql db usage `make develop` will create a sqlitedb, this can be useful / easier to setup than the postgresdb. 
+```cd octo-robot```
+```make``` this will setup the postgresql db usage `make develop` will create a sqlitedb, this can be useful / easier to setup than the postgresdb. 
 
 
 3) Database setup
