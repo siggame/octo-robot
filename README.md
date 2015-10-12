@@ -10,7 +10,9 @@ All steps will be done via terminal. Additionally I will refer to the base folde
 
 1) Clone the arena directory
 
-`git clone git@github.com:siggame/octo-robot.git`
+```
+git clone git@github.com:siggame/octo-robot.git
+```
 
 2) build the arena
 
@@ -18,30 +20,41 @@ The arena uses buildout to download and install all the necessary python package
 
 install these by
 
-`sudo apt-get update && sudo apt-get upgade && sudo apt-get install build-essential python-dev postgresql`
+```
+sudo apt-get update
+sudo apt-get upgade
+sudo apt-get install build-essential python-dev postgresql
+```
 
 Should now be good to go and build the arena
 
 ```
 cd octo-robot
 make
-``` 
-this will setup the postgresql db usage `make develop` will create a sqlitedb, this can be useful / easier to setup than the postgresdb. 
+```
+
+this will setup the project file for using a postgresql db
+
+using `make develop` instead will setup the aren for using a sqlitedb, this can be useful and easier to setup than the postgresdb. 
 
 
 3) Database setup
 
-If you've done `make develop` in step two, then the database setup is fairly simple and will be explained in step 4
+If you've done `make develop` in step two, then the database initialization is fairly simple and will be explained in step 4
 
 
 Next the arena's database will need to be setup. This is a somewhat intense task as it requires setting up a postgres database. 
 To start type
 
-`sudo apt-get update && sudo apt-get upgrade && sudo apt-get install libpq-dev python-dev 
-sudo apt-get install postgresql postgresql-contrib`
+```
+sudo apt-get update
+sudo apt-get upgrade
+sudo apt-get install libpq-dev python-dev 
+sudo apt-get install postgresql postgresql-contrib
+```
 
-These should install the nessasary libraries for postgres python will still need some required packages to interact with postgres
-which should be satified by psycopg2, this should be covered by buildout
+These should install the nessasary libraries for postgres, python will still need some required packages to interact with postgres
+which should be satified by psycopg2, these should be covered by buildout
 
 
    
