@@ -72,7 +72,7 @@ You'll be prompted for a password for a new role. Do record or make note of the 
 exit
 ```
 
-4) Database Initilization
+4) Database Initilization (django 1.7) 
 
 In the folder arena/settings if a file named production.py, this file will need to have the database information provided above. Edit the "ENGINE" field to 'django.db.backends.postgresql_psycopg2'. The other fields will have the information passed to the production.py file from a file named secret_settings.py. The secret_settings file should also be in the arena/settings folder. If the secret_settings folder is missing then run `./bin/production` and the secret_settings.py file should be generated. If you are doing testing the file might be called `./bin/development` instead
 
@@ -80,29 +80,41 @@ After which open the secret_settings.py file in arena/settings folder and add in
 
 cd back to the base project directory, octo-robot
 
+```
 ./bin/production sql thunderdome
 ./bin/production sql k_storage
 ./bin/production syncdb
+```
 
 You should get a prompt asking for information about setting up a test user.
 Fill all that information in.
 should be like user name, email and password its all for the admin account of the django website. 
 
+These steps are for running the database the very first time. If changes to the models in the thunderdome or k_storage app, you'll have to run the `migrate` appname command. These command will change depending on the django version
 
-(IGNORE STEP 5)
-5) create the database
-   - now that django knows where the database is, go into the home directory. 
-   type ./bin/production migrate thunderdome
-   this will create the database tables, if you are using a django version older than 1.7 then type ./bin/production sql thunderdome instead
 
-6) Get some test clients
+
+6) Configure the Arena
+Now that the database is up and the schema is set the arena will need some clients. This is currently the hardest part of setting up a test arena, as the website that provides clients to the arena is usually down during non MegaMinerAI times. Most of the production stuff should be setup as the default is to reach out the website and look for clients. This is all done based on the name of the game. The arena has some config settings that define what game it should be playing, what game clients to look for etc. These are stored in models / fixtures ArenaConfig.
+
+There are some past configs that are available for the purpose of running old games / as an example for setting future configs settings. To load these old configs run.
+
+```
+./bin/production loaddata arena/fixtures/configs.json
+```
+
+The selected config is denoted by which one is "active" check the database looking for which config is "active" if its not the one your look for it, switch that one to be the active one. (TODO: fill the details)
+
+
+7) Get some test clients
+
    - now that the database is up the arena will need some clients
    - I have created a fake clients file that will add in some clients for fake testing purposes, 
    - this file can be located at https://gist.github.com/brandonphelps/4d812a128e09bedec729
    - all that needs to be down now is to run the file masterblaster/utilities/update_clients_from_gist.py and pass the url as parameter. 
    
 
-6) Get some real clients
+8) Get some real clients
    - If setting up for an actual arena run, the arena will get the information from the webserver instead of a test file. 
    - this is done as a multistep process. 
     a) First obtain a user name and password from the webserver and enter them into the secret settings file. 
@@ -110,7 +122,7 @@ should be like user name, email and password its all for the admin account of th
        - replace game_name with the game name type, this would be obtained from the webserver team, 
        - same with client_prefix and api_url_template
 
-7) Start the beanstalkc
+9) Start the beanstalkc
    - cd octo-robot/var/parts/beanstalkd/
    - make
    - ./beanstalkd & 
@@ -122,7 +134,7 @@ should be like user name, email and password its all for the admin account of th
    - ./bin/python masterblaster/scheduler_arena.py (For testing)
    - ./bin/python masterblaster/scheduler_window_swiss.py (For real)
    
-afterwhich the scheduler will use a whole terminal so create a new one
+Afterwhich the scheduler will use a whole terminal so create a new one
 
 9) Start the archiver
    - cd octo-robot
