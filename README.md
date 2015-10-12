@@ -8,6 +8,13 @@ If you do not know about git or wish to learn more about it I would suggest visi
 
 All steps will be done via terminal. Additionally I will refer to the base folder, octo-robot, as home directory.
 
+To start off lets make sure everything is up to date.
+
+```
+sudo apt-get update
+sudo apt-get upgrade
+```
+
 1) Clone the arena directory
 
 ```
@@ -21,8 +28,6 @@ The arena uses buildout to download and install all the necessary python package
 install these by
 
 ```
-sudo apt-get update
-sudo apt-get upgade
 sudo apt-get install build-essential python-dev postgresql
 ```
 
@@ -47,62 +52,31 @@ Next the arena's database will need to be setup. This is a somewhat intense task
 To start type
 
 ```
-sudo apt-get update
-sudo apt-get upgrade
 sudo apt-get install libpq-dev python-dev 
 sudo apt-get install postgresql postgresql-contrib
 ```
 
-These should install the nessasary libraries for postgres, python will still need some required packages to interact with postgres
-which should be satified by psycopg2, these should be covered by buildout
+These should install the nessasary libraries for postgres, python will still need some required packages to interact with postgres which should be satified by psycopg2, these should be covered by buildout
 
+Now that postgres is installed and we have the proper packages we'll switch over to the postgres user and preform the database setup. Everything in qoutes will be shall be the name of what it was used to create. I suggest using a different name when setting up the arena 
 
-   
-A perfect example that teaches one how to set this up step by step can be located at https://www.digitalocean.com/community/tutorials/how-to-install-and-configure-django-with-postgres-nginx-and-gunicorn. That tutorial also includes setting up nginx and gunicorn which are also used for the arena's website component. Another thing to keep in mind about buildout is that it will create executables which will be used instead of any other executable instead of ones that are already on the system, it will create a python executable which will be used instead of the system provided python. 
-
-You will only need to read steps 1 through 7 everything else will be explained. I would however suggest using a different database name and user name for the postgress database, but reguardless of what you use just remember to write it down somewhere as it will be used later. 
-
-3.4 ish)
-
-more or less exact command to complete setting up a postgres server 
-
-
-
-Now we'll need to build the database and the user
-
-Everything in qoutes will be used as the name of what it was used for, but should be renamed when you are making the object
-
+```
 sudo su - postgres
-
-should have postgres as the user name of who you are log in as, i.e. the first word on the far left of the terminal
-
 createdb "arena_test_db"
-
 createuser "arena_test_user" -P
+```
 
-You'll be prompted for a password for new role. make sure to remember the password.
+You'll be prompted for a password for a new role. Do record or make note of the password.
 
+```
 exit
+```
 
-to logout from the postgres user
+4) Database Initilization
 
-then you'll need to set the postgres user name, db name, and password in the secret file.
+In the folder arena/settings if a file named production.py, this file will need to have the database information provided above. Edit the "ENGINE" field to 'django.db.backends.postgresql_psycopg2'. The other fields will have the information passed to the production.py file from a file named secret_settings.py. The secret_settings file should also be in the arena/settings folder. If the secret_settings folder is missing then run `./bin/production` and the secret_settings.py file should be generated. If you are doing testing the file might be called `./bin/development` instead
 
-4) Configure the database connection. 
-   - In the folder arena/settings is a file named production.py this file will need to have the database information.
-       this information is passed in from a file named secret_settings.py
-   - Change the fields "Engine" : to have 'django.db.backends.postgresql_psycopg2'
-
-
-The secret file is located in teh settings folder, if the secret file does not exist then you'll need to atleast run
-./bin/production
-
-which will generate it for you.
-
-after which open the secret_settings.py file in arena/settings folder and add int eh postgres name, db the user and password
-
-
-should be good to go on generating the database scheme and getting the magic of the arena.
+After which open the secret_settings.py file in arena/settings folder and add in the postgres name, db the user and password. The postgres name should be equal to the database name that was used in the `createdb` command. You should now be good to go on generating the database schema.
 
 cd back to the base project directory, octo-robot
 
