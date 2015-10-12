@@ -119,7 +119,8 @@ should be like user name, email and password its all for the admin account of th
 
 8) Start the scheduler 
    - cd octo-robot
-   - ./bin/python masterblaster/scheduler_window_swiss.py
+   - ./bin/python masterblaster/scheduler_arena.py (For testing)
+   - ./bin/python masterblaster/scheduler_window_swiss.py (For real)
    
 afterwhich the scheduler will use a whole terminal so create a new one
 
