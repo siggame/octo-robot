@@ -18,19 +18,30 @@ The arena uses buildout to download and install all the necessary python package
 
 install these by
 
-`sudo apt-get update && sudo apt-get upgade && sudo apt-get install build-essential python-dev`
+`sudo apt-get update && sudo apt-get upgade && sudo apt-get install build-essential python-dev postgresql`
 
-
-
- so after the clone is complete 
+Should now be good to go and build the arena
 
 `cd octo-robot`
+`make` this will setup the postgresql db usage `make develop` will create a sqlitedb, this can be useful / easier to setup than the postgresdb. 
 
-Step 3 will require psycopg2 which is the python postgresql drivers which will require python-dev and postgres to be installed. 
 
-3) make
+3) Database setup
+
+If you've done `make develop` in step two, then the database setup is fairly simple and will be explained in step 4
+
 
 Next the arena's database will need to be setup. This is a somewhat intense task as it requires setting up a postgres database. 
+To start type
+
+`sudo apt-get update && sudo apt-get upgrade && sudo apt-get install libpq-dev python-dev 
+sudo apt-get install postgresql postgresql-contrib`
+
+These should install the nessasary libraries for postgres python will still need some required packages to interact with postgres
+which should be satified by psycopg2, this should be covered by buildout
+
+
+   
 A perfect example that teaches one how to set this up step by step can be located at https://www.digitalocean.com/community/tutorials/how-to-install-and-configure-django-with-postgres-nginx-and-gunicorn. That tutorial also includes setting up nginx and gunicorn which are also used for the arena's website component. Another thing to keep in mind about buildout is that it will create executables which will be used instead of any other executable instead of ones that are already on the system, it will create a python executable which will be used instead of the system provided python. 
 
 You will only need to read steps 1 through 7 everything else will be explained. I would however suggest using a different database name and user name for the postgress database, but reguardless of what you use just remember to write it down somewhere as it will be used later. 
@@ -40,10 +51,6 @@ You will only need to read steps 1 through 7 everything else will be explained. 
 more or less exact command to complete setting up a postgres server 
 
 
-sudo apt-get update && sudo apt-get upgrade && sudo apt-get install libpq-dev python-dev 
-sudo apt-get install postgresql postgresql-contrib
-These should install the nessasary libraries for postgres python will still need some required packages to interact with postgres
-which should be satified by psycopg2, this should be covered by buildout
 
 Now we'll need to build the database and the user
 
