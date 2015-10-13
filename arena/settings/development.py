@@ -1,5 +1,4 @@
 
-import arena.settings.defaults as default_settings
 from arena.settings.defaults import *
 
 SITE_ID = 1

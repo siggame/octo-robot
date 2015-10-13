@@ -74,7 +74,11 @@ exit
 
 4) Database Initilization (django 1.7) 
 
-In the folder arena/settings if a file named production.py, this file will need to have the database information provided above. Edit the "ENGINE" field to 'django.db.backends.postgresql_psycopg2'. The other fields will have the information passed to the production.py file from a file named secret_settings.py. The secret_settings file should also be in the arena/settings folder. If the secret_settings folder is missing then run `./bin/production` and the secret_settings.py file should be generated. If you are doing testing the file might be called `./bin/development` instead
+In the folder arena/settings is a file named production.py, this file will need to have the database information provided above.
+For production you'll need to edit the "ENGINE" field to 'django.db.backends.postgresql_psycopg2' where as for testing, you'll need to change "ENGINE" to be 'django.db.backends.sqlite3'. 
+For testing the file is instead called developement.py and should have all the required information already provided. 
+
+The other fields will have the information passed to the production.py file from a file named secret_settings.py. The secret_settings file should also be in the arena/settings folder. If the secret_settings folder is missing then run `./bin/production` and the secret_settings.py file should be generated. If you are doing testing the file might be called `./bin/development` instead
 
 After which open the secret_settings.py file in arena/settings folder and add in the postgres name, db the user and password. The postgres name should be equal to the database name that was used in the `createdb` command. You should now be good to go on generating the database schema.
 
@@ -93,7 +97,6 @@ should be like user name, email and password its all for the admin account of th
 These steps are for running the database the very first time. If changes to the models in the thunderdome or k_storage app, you'll have to run the `migrate` appname command. These command will change depending on the django version
 
 
-
 6) Configure the Arena
 Now that the database is up and the schema is set the arena will need some clients. This is currently the hardest part of setting up a test arena, as the website that provides clients to the arena is usually down during non MegaMinerAI times. Most of the production stuff should be setup as the default is to reach out the website and look for clients. This is all done based on the name of the game. The arena has some config settings that define what game it should be playing, what game clients to look for etc. These are stored in models / fixtures ArenaConfig.
 
@@ -104,6 +107,57 @@ There are some past configs that are available for the purpose of running old ga
 ```
 
 The selected config is denoted by which one is "active" check the database looking for which config is "active" if its not the one your look for it, switch that one to be the active one. (TODO: fill the details)
+
+7) Checking out the website.
+Production, o god this is complicated and requires setting up nginx and blah blah
+
+
+Testing
+
+Procced to the root directory, octo-robot, and run the command `./bin/development runserver` This will set it up on 127.0.0.1:8000. I am running this in a vm so I choose to run it like `./bin/development runserver 0.0.0.0:80000` then I can access the website via my host machine. 
+
+Then go to the website 127.0.0.1:8000/admin.
+This is the base url of the admin site that django provides. Here you'll need to enter the username and password that was provided in step 5. Then type go to 127.0.0.1:8000/mies/thunderdome, the site itself is very minimal. Click on the Settings button on the top left, above Scoreboard. On here you should see a Currently Active Settings, Select a config and an Available settings display.
+
+(github issue 30)
+
+After issue 30 is resolved you'll be able click on new settings or something and add a new custom setting but in the mean time you'll have to create a new setting by hand. This will also be good pratice for interacting with the database using django's ORM.
+
+To do this run
+```
+./bin/development shell
+```
+
+This opens an interactive python shell with all the correct module imports and proper paths set.
+
+run
+
+```
+from thunderdome.models import ArenaConfig
+active_config = ArenaConfig.objects.get(active=True)
+active_config.active = False 
+active_config.save()
+
+new_config = ArenaConfig()
+new_config.name = "new_config"
+new_config.game_name = "megaminerai-##-specific-name"
+```
+
+There are a few other parameters that can also be important depending on what you are doing, such as
+
+```
+new_config.beanstalk_host
+new_config.client_prefix
+new_config.api_url_template
+```
+
+All of those are specific to what your setup looks like.
+
+The beanstalk_host refers what ip the beanstalkd process is running, (the beanstalkd will be explained later TODO add step number). Client prefix refers to the server location of where the git clients are stored. Typically they will be on the webserver, but for testing it most likely be github take a look at the testing_plants arena settings to get an idea for how the client prefix looks. I think currently its like git@github.com/ the api_url_template is specific to the production and has to do with updating the clients. 
+
+In production the game name will be specific to what ever the website team comes up with, hopefully you can show this to them and they'll know what you are asking for, I believe they call it the game name slug
+
+
 
 
 7) Get some test clients
