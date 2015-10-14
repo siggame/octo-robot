@@ -151,6 +151,7 @@ active_config.save()
 new_config = ArenaConfig()
 new_config.name = "new_config"
 new_config.game_name = "megaminerai-##-specific-name"
+new_config.active = True
 ```
 
 There are a few other parameters that can also be important depending on what you are doing, such as
@@ -161,12 +162,21 @@ new_config.client_prefix
 new_config.api_url_template
 ```
 
+
 All of those are specific to what your setup looks like.
 
 The beanstalk_host refers what ip the beanstalkd process is running, (the beanstalkd will be explained later TODO add step number). Client prefix refers to the server location of where the git clients are stored. Typically they will be on the webserver, but for testing it most likely be github take a look at the testing_plants arena settings to get an idea for how the client prefix looks. I think currently its like git@github.com/ the api_url_template is specific to the production and has to do with updating the clients. 
 
 In production the game name will be specific to what ever the website team comes up with, hopefully you can show this to them and they'll know what you are asking for, I believe they call it the game name slug
 
+
+After you are happy with the configuration, you'll need to save the model.
+
+To do this type in
+
+```
+new_config.save()
+```
 
 
 8) Get some test clients
@@ -188,8 +198,7 @@ In production the game name will be specific to what ever the website team comes
    - cd octo-robot/var/parts/beanstalkd/
    - make
    - ./beanstalkd & 
-   This will start the beanstalkc deamon process that will do all the message passing between the different processes
-
+   This will start the beanstalkc deamon process that will do all the message passing between the different processes, this will start the process in the background and shouldn't involve anything else. If there is some error message like port is already binded or something then you'll need to figure out which program is the port specified then procceed to stop it then restart the beanstalkd process. 
 
 8) Start the scheduler 
    - cd octo-robot
@@ -210,7 +219,7 @@ Additionally there should be 5 games already scheduled, and some output on the s
    - There is a file on the main branch called generate_gladiator_package.py, this file was created to easy the difficulty of starting a gladiator. Normally one would have to download the server, and tar the server files and the files in the gladiator folder, this should do that for you you'll just need to pass in the parameter for where to find the MegaMinerAI repository that you'll want the server from. 
     An example for MegaMinerAI11 is as such, 
     - cd octo-robot
-    - ./bin/python masterblaster/generate_gladiator_package MegaMinerAI-11
+    - ./bin/python masterblaster/generate_gladiator_package.py MegaMinerAI-11
     for development work all that is then needed is to change the path for living_corders in the spinup_local_gladiator.py file
     then ./bin/python masterblaster/spinup_local_gladiator.py
     This will create a replica of what a real gladiator would have. 
