@@ -8,16 +8,17 @@ from thunderdome.models import Client
 
 requests.packages.urllib3.disable_warnings()
 
-def update_clients(api_url=None, auth=None):
+def update_clients(api_url=None):
     '''update the database with the current clients, based on game_name'''
     if api_url is None:
         api_url = api_url_template + game_name
-
-    if auth is None:
         r = requests.get(api_url, auth=(WEBSITE_USER_NAME, WEBSITE_ARENA_PASSWORD))
-
+    else:
+        print "Attempting to get cliens from", api_url
+        r = requests.get(api_url)
+        
     try:
-        data = json.loads(r.text)
+        data = json.loads(r.text) # TODO: change this to r.json()
     except ValueError:
         print "couldn't parse text to json"
         return
