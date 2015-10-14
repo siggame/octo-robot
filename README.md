@@ -45,8 +45,7 @@ using `make develop` instead will setup the aren for using a sqlitedb, this can 
 
 3) Database setup
 
-If you've done `make develop` in step two, then the database initialization is fairly simple and will be explained in step 4
-
+If in step 2 you ran `make develop` then skip this step and procede to step 4. 
 
 Next the arena's database will need to be setup. This is a somewhat intense task as it requires setting up a postgres database. 
 To start type
