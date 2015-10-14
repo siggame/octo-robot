@@ -169,11 +169,10 @@ In production the game name will be specific to what ever the website team comes
 
 
 
-7) Get some test clients
-
+8) Get some test clients
    - now that the database is up the arena will need some clients
    - I have created a fake clients file that will add in some clients for fake testing purposes, 
-   - this file can be located at https://gist.github.com/brandonphelps/4d812a128e09bedec729
+   - this file can be located at https://gist.githubusercontent.com/brandonphelps/4d812a128e09bedec729/raw/d34b833ed30dca6f24a1b1a48b13f3f7e21bd7b8/gistfile1.txt
    - all that needs to be down now is to run the file masterblaster/utilities/update_clients_from_gist.py and pass the url as parameter. 
    
 
