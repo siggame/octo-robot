@@ -40,7 +40,7 @@ make
 
 this will setup the project file for using a postgresql db
 
-using `make develop` instead will setup the aren for using a sqlitedb, this can be useful and easier to setup than the postgresdb. 
+using `make develop` instead will setup the arena for using a sqlitedb, this can be useful and easier to setup than the postgresdb. 
 
 
 3) Database setup
