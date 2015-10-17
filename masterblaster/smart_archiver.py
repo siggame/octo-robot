@@ -23,7 +23,7 @@ from thunderdome.config import game_name
 from thunderdome.models import Client, Game, GameData, Referee
 from thunderdome.models import WinRatePrediction
 
-from datatizer import add_gamelog_data
+#from datatizer import add_gamelog_data
 
 #from thunderdome.loggly_logging import log
 from gviz_api import DataTable
@@ -258,7 +258,7 @@ def handle_completion(request, game):
         assign_elo(game.winner, game.loser)
         adjust_win_rate(game.winner, game.loser)
 
-    add_gamelog_data(game)
+    #add_gamelog_data(game)
 
     # increment winner and losers game played
     #for client in [game.winner, game.loser]:
