@@ -28,3 +28,7 @@ buildout.cfg
 .noseids
 
 gladiator_package
+
+# MegaMinerAI repo
+
+megaminerai-15-pharaoh
