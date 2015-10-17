@@ -1,6 +1,6 @@
 
 How to run the arena.
-These will be very specific instructions on how to setup the arena for an actual tournament. There might be some slight differences when running this as a "test" arena, but those are typically for either convenience or pertain to other parts that are not functional before MegaminerAI starts. 
+These will be very specific instructions on how to setup the arena for an actual tournament. There might be some slight differences when running this as a "test" arena, but those are typically for either convenience or pertain to other parts that are not functional before MegaminerAI starts. For testing and development, replace 'production' with 'development' in all commands.
 
 This will assume some basic information about linux, and git. 
 All testing and development for the arena is currentlying being done in a linux environment, the current arena nodes are using some version of ubuntu, 12.04 I think. (these should get upgraded to 14.04)
@@ -40,7 +40,7 @@ make
 
 this will setup the project file for using a postgresql db
 
-using `make develop` instead will setup the aren for using a sqlitedb, this can be useful and easier to setup than the postgresdb. 
+using `make develop` instead will setup the arena for using a sqlitedb, this can be useful and easier to setup than the postgresdb. 
 
 
 3) Database setup
@@ -183,7 +183,7 @@ new_config.save()
    - now that the database is up the arena will need some clients
    - I have created a fake clients file that will add in some clients for fake testing purposes, 
    - this file can be located at https://gist.githubusercontent.com/brandonphelps/4d812a128e09bedec729/raw/d34b833ed30dca6f24a1b1a48b13f3f7e21bd7b8/gistfile1.txt
-   - all that needs to be down now is to run the file masterblaster/utilities/update_clients_from_gist.py and pass the url as parameter. 
+   - all that needs to be down now is to run `./bin/python masterblaster/utilities/update_clients_from_gist.py `and pass the url as parameter. 
    
 
 8) Get some real clients
