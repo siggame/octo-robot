@@ -40,9 +40,9 @@ def update_clients(api_url=None):
         else:
             client = Client.objects.get(name=block['team']['slug'])        
             client.eligible = block['team']['eligible_to_win']
-        if client.current_version != block['tag']['name']:
+        if client.current_version != block['tag']['commit']:
             client.embargoed = False # this is the only place embargoed can be broken
-            client.current_version = block['tag']['name']
+            client.current_version = block['tag']['commit']
 
         client.save()
         updated_clients.append(client)
@@ -50,7 +50,7 @@ def update_clients(api_url=None):
     current_clients = list(Client.objects.all()) # list of all clients
     missing_clients = [x for x in current_clients if x not in updated_clients] # list of clients not in the updated list
     if missing_clients:
-        print "missing clients, deleting"
+        print "missing clients, marking as missing"
         for i in missing_clients:
             i.missing = True
             i.save()
@@ -59,7 +59,7 @@ def makeClient(block):
     '''Make a client object from the provided API data block'''
     client = Client.objects.create()
     client.name = block['team']['slug']
-    client.current_version = block['tag']['name']
+    client.current_version = block['tag']['commit']
     client.repo = block['repository']['path']    
     client.stats = json.dumps({"language" : block['language']})
     client.embargoed = False
