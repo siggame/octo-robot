@@ -15,13 +15,20 @@ sudo apt-get update
 sudo apt-get upgrade
 ```
 
-1) Clone the arena directory
+1) Generate an SSH key for Github
+
+This link should tell you everything you need to do:
+
+https://help.github.com/articles/generating-ssh-keys/
+
+2) Install all necessary libraries
 
 ```
-git clone git@github.com:siggame/octo-robot.git
+sudo apt-get install libpq-dev python-dev 
+sudo apt-get install postgresql postgresql-contrib
 ```
 
-2) build the arena
+These should install the nessasary libraries for postgres, python will still need some required packages to interact with postgres which should be satified by psycopg2, these should be covered by buildout
 
 The arena uses buildout to download and install all the necessary python packages and libraries, but there are a few that can not be downloaded through buildout since they require some c header.
 
@@ -31,7 +38,19 @@ install these by
 sudo apt-get install build-essential python-dev postgresql
 ```
 
-Should now be good to go and build the arena
+The webserver that is currently used is called nginx, make sure to install it with
+
+```
+sudo apt-get install nginx
+```
+
+1) Clone the arena directory
+
+```
+git clone git@github.com:siggame/octo-robot.git
+```
+
+2) build the arena
 
 ```
 cd octo-robot
@@ -48,16 +67,8 @@ using `make develop` instead will setup the arena for using a sqlitedb, this can
 If in step 2 you ran `make develop` then skip this step and procede to step 4. 
 
 Next the arena's database will need to be setup. This is a somewhat intense task as it requires setting up a postgres database. 
-To start type
 
-```
-sudo apt-get install libpq-dev python-dev 
-sudo apt-get install postgresql postgresql-contrib
-```
-
-These should install the nessasary libraries for postgres, python will still need some required packages to interact with postgres which should be satified by psycopg2, these should be covered by buildout
-
-Now that postgres is installed and we have the proper packages we'll switch over to the postgres user and preform the database setup. Everything in qoutes will be shall be the name of what it was used to create. I suggest using a different name when setting up the arena 
+We need to switch over to the postgres user and preform the database setup. Everything in quotes will be the name of what it was used to create. I suggest using a different name when setting up the arena 
 
 ```
 sudo su - postgres
@@ -110,11 +121,6 @@ The selected config is denoted by which one is "active" check the database looki
 7) Checking out the website.
 Production, o god this is complicated and requires setting up nginx and blah blah
 
-The webserver that is currently used is called nginx, make sure to install it with
-
-```
-sudo apt-get install nginx
-```
 
 nginx is complicated and is not in the scope of explination of this document, thus I point you to the nginx website and some if its documentation. The main nginx website is located at https://www.nginx.com and a beginners guide is located at http://nginx.org/en/docs/beginners_guide.html. I would highly suggest reading the beginners guide.
 
