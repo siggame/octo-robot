@@ -5,6 +5,7 @@
 # Standard Imports
 import re
 import json
+import gzip
 import subprocess
 import os
 import signal
@@ -84,7 +85,7 @@ def looping(stalk):
     for cl in game['clients']:
         sleep(10)  # ensures ['clients'][0] plays as p0
         players.append(
-            subprocess.Popen(['bash', 'run', server_host, game['number']],
+            subprocess.Popen(['bash', 'run', 'Checkers', '-r', game['number'], '-s', server_host],
                              stdout=file('%s-stdout.txt' % cl['name'], 'w'),
                              stderr=file('%s-stderr.txt' % cl['name'], 'w'),
                              cwd=cl['name']))
@@ -102,7 +103,7 @@ def looping(stalk):
         sleep(5)
         p0_good = players[0].poll() is None
         p1_good = players[1].poll() is None
-        glog_done = os.access("%s/logs/%s.glog" %
+        glog_done = os.access("%s/output/gamelogs/Checkers-%s.json.gz" %
                               (server_path, game['number']), os.F_OK)
 
     for x in players:
@@ -172,12 +173,24 @@ def parse_gamelog(game_number):
     ''' Determine winner by parsing that last s-expression in the gamelog
         the gamelog is now compressed. '''
     server_path = os.environ['SERVER_PATH']
-    f = BZ2File("%s/logs/%s.glog" % (server_path, game_number), 'r')
-    log = f.read()
-    f.close()
-    match = re.search("\"game-winner\" (\d+) \"[^\"]+\" (\d+)", log)
-    if match:
-        return match.groups()[1]
+    with gzip.open("%s/output/gamelogs/Checkers-%s.json.gz" % (server_path, game_number), 'rb') as f:
+    	log = f.read()
+    parsed = json.loads(log)
+    winners = parsed['winners']
+    losers = parsed['losers']
+    realWinner = None
+    for winner in winners:
+        if realWinner is None:
+            realWinner = winner['index']
+        else:
+            return '2' # there was more than one winner, so it's a tie
+
+    if len(losers) == 2:
+        return '2' # again, a tie
+    
+    if realWinner != None:
+        return str(realWinner)
+
     return None
 
 
@@ -214,10 +227,10 @@ def push_datablocks(game):
 def push_gamelog(game):
     '''Push gamelog to S3'''
     server_path = os.environ['SERVER_PATH']
-    gamelog_filename = "%s/logs/%s.glog" % (server_path, game['number'])
+    gamelog_filename = "%s/output/gamelogs/Checkers-%s.json.gz" % (server_path, game['number'])
     # salt exists to stop people from randomly probing for files
     salt = md5.md5(str(random.random())).hexdigest()[:5]
-    remote = "%s-%s.glog" % (game['number'], salt)
+    remote = "%s-Checkers-%s.json.gz" % (game['number'], salt)
     game['gamelog_url'] = push_file(gamelog_filename, remote)
     os.remove(gamelog_filename)
 

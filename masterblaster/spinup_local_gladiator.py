@@ -25,8 +25,8 @@ file_path = os.path.abspath(__file__)
 home_dir = os.path.dirname(file_path)
 octo_robot_dir = os.path.dirname(home_dir)
 
-living_corders = '/home/daniel17sep/Documents/gladiators-pharaoh/' # this is identical to the gladiator's arena folder
-server_path = os.path.join(living_corders, 'server')
+living_corders = '/home/daniel17sep/Documents/gladiators-checkers/' # this is identical to the gladiator's arena folder
+server_path = '/home/daniel17sep/Documents/Cadre-MegaMinerAI-Dev/Cerveau/'
 gladiator_pck = os.path.join(octo_robot_dir, 'gladiator_package')
 
 if not os.path.exists(gladiator_pck):
@@ -52,10 +52,11 @@ export CLIENT_PREFIX='%s'
 export SERVER_HOST='%s'
 export SERVER_PATH='%s'
 export BEANSTALK_HOST='%s'
+export LIVING_CORDERS='%s'
 
-cd server
-python main.py -arena > ../server-output.txt &
-cd ..
+cd $SERVER_PATH
+node main.js > ../server-output.txt &
+cd $LIVING_CORDERS
 
 mkdir 1
 ln referee.py 1/referee.py
@@ -64,7 +65,7 @@ cd 1
 python referee.py &
 cd ..
 
-""" % (str(access_cred), str(secret_cred), str(s3_prefix), game_name, client_prefix, 'localhost', server_path, 'localhost')
+""" % (str(access_cred), str(secret_cred), str(s3_prefix), game_name, client_prefix, 'localhost', server_path, 'localhost', living_corders)
 
 writer.write(bash_mesg)
 writer.close()
