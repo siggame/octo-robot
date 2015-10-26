@@ -44,6 +44,12 @@ The webserver that is currently used is called nginx, make sure to install it wi
 sudo apt-get install nginx
 ```
 
+You need git so you can interface with GitHub
+
+```
+sudo apt-get install git
+```
+
 1) Clone the arena directory
 
 ```
