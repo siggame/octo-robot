@@ -26,6 +26,8 @@ https://help.github.com/articles/generating-ssh-keys/
 
 ```
 sudo apt-get install libpq-dev python-dev libyaml-dev postgresql postgresql-contrib
+sudo apt-get install python-pip libffi-dev
+pip install cffi
 ```
 
 These should install the nessasary libraries for postgres, python will still need some required packages to interact with postgres which should be satified by psycopg2, these should be covered by buildout
