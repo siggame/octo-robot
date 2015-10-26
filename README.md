@@ -128,6 +128,7 @@ There are some past configs that are available for the purpose of running old ga
 The selected config is denoted by which one is "active" check the database looking for which config is "active" if its not the one your look for it, switch that one to be the active one. (TODO: fill the details)
 
 7) Checking out the website.
+
 Production, o god this is complicated and requires setting up nginx and blah blah
 
 
