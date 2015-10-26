@@ -116,6 +116,7 @@ These steps are for running the database the very first time. If changes to the 
 
 
 6) Configure the Arena
+
 Now that the database is up and the schema is set the arena will need some clients. This is currently the hardest part of setting up a test arena, as the website that provides clients to the arena is usually down during non MegaMinerAI times. Most of the production stuff should be setup as the default is to reach out the website and look for clients. This is all done based on the name of the game. The arena has some config settings that define what game it should be playing, what game clients to look for etc. These are stored in models / fixtures ArenaConfig.
 
 There are some past configs that are available for the purpose of running old games / as an example for setting future configs settings. To load these old configs run.
