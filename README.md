@@ -26,7 +26,7 @@ https://help.github.com/articles/generating-ssh-keys/
 
 ```
 sudo apt-get install libpq-dev python-dev libyaml-dev postgresql postgresql-contrib
-sudo apt-get install python-pip libffi-dev python-beanstalkc
+sudo apt-get install python-pip libffi-dev python-beanstalkc python-boto
 pip install cffi
 ```
 
@@ -143,7 +143,7 @@ Testing
 Procced to the root directory, octo-robot, and run the command `./bin/development runserver` This will set it up on 127.0.0.1:8000. I am running this in a vm so I choose to run it like `./bin/development runserver 0.0.0.0:80000` then I can access the website via my host machine. 
 
 Then go to the website 127.0.0.1:8000/admin.
-This is the base url of the admin site that django provides. Here you'll need to enter the username and password that was provided in step 5. Then type go to 127.0.0.1:8000/mies/thunderdome, the site itself is very minimal. Click on the Settings button on the top left, above Scoreboard. On here you should see a Currently Active Settings, Select a config and an Available settings display.  For testing with pharaoh, there is already config; if you need to make a new one, complete this step.
+This is the base url of the admin site that django provides. Here you'll need to enter the username and password that was provided in step 5. Then type go to 127.0.0.1:8000/mies/thunderdome, the site itself is very minimal. Click on the Settings button on the top left, above Scoreboard. On here you should see a Currently Active Settings, Select a config and an Available settings display.
 
 (github issue 30)
 
