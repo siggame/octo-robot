@@ -239,9 +239,11 @@ Additionally there should be 5 games already scheduled, and some output on the s
       - ./bin/python masterblaster/generate_gladiator_package.py MegaMinerAI-15
    
 For development work all that is then needed is to change the path for living_corders in the spinup_local_gladiator.py file then 
+
 ./bin/python masterblaster/spinup_local_gladiator.py
-    This will create a replica of what a real gladiator would have. 
-    then one can go into the living_corders directory and run the ./kick.sh file which will spinup a gladiator, which will then should begin runnning games. 
+    
+This will create a replica of what a real gladiator would have. 
+then one can go into the living_corders directory and run the ./kick.sh file which will spinup a gladiator, which will then should begin runnning games. 
     
 For actual running the arena its a bit more complicated. 
 The folder that the generate_gladiator_package creates will have to be targed as a tgz
