@@ -243,7 +243,11 @@ For development work all that is then needed is to change the path for living_co
 ./bin/python masterblaster/spinup_local_gladiator.py
     
 This will create a replica of what a real gladiator would have. 
-then one can go into the living_corders directory and run the ./kick.sh file which will spinup a gladiator, which will then should begin runnning games. 
+then one can go into the living_corders directory and 
+
+bash ./kick.sh
+
+which will spinup a gladiator, which will then should begin runnning games. 
     
 For actual running the arena its a bit more complicated. 
 The folder that the generate_gladiator_package creates will have to be targed as a tgz
