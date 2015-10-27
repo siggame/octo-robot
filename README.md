@@ -233,25 +233,27 @@ Additionally there should be 5 games already scheduled, and some output on the s
 
 10) Start a gladiator. 
    - There is a file on the main branch called generate_gladiator_package.py, this file was created to easy the difficulty of starting a gladiator. Normally one would have to download the server, and tar the server files and the files in the gladiator folder, this should do that for you you'll just need to pass in the parameter for where to find the MegaMinerAI repository that you'll want the server from. 
-    An example for MegaMinerAI11 is as such, 
-    - cd octo-robot
-    - ./bin/python masterblaster/generate_gladiator_package.py MegaMinerAI-11
-    for development work all that is then needed is to change the path for living_corders in the spinup_local_gladiator.py file
-    then ./bin/python masterblaster/spinup_local_gladiator.py
+   
+   An example for MegaMinerAI15 is as such, 
+      - cd octo-robot
+      - ./bin/python masterblaster/generate_gladiator_package.py MegaMinerAI-15
+   
+For development work all that is then needed is to change the path for living_corders in the spinup_local_gladiator.py file then 
+./bin/python masterblaster/spinup_local_gladiator.py
     This will create a replica of what a real gladiator would have. 
     then one can go into the living_corders directory and run the ./kick.sh file which will spinup a gladiator, which will then should begin runnning games. 
     
-    For actual running the arena its a bit more complicated. 
-    The folder that the generate_gladiator_package creates will have to be targed as a tgz
-    Afterwhich the tar file has to be placed into the gladiator folder which may or may not exist in the static folder.
-    Thus you should have static/gladiator/<tar_file>
-    Then you'll need to make sure that you have nginx all configured to use that folder as its static folder to serve files. 
-    Then you'll have to start the nginx process by 
+For actual running the arena its a bit more complicated. 
+The folder that the generate_gladiator_package creates will have to be targed as a tgz
+Afterwhich the tar file has to be placed into the gladiator folder which may or may not exist in the static folder.
+Thus you should have static/gladiator/<tar_file>
+Then you'll need to make sure that you have nginx all configured to use that folder as its static folder to serve files. 
+Then you'll have to start the nginx process by 
     - cd octo-robot
     - ./bin/gunicorn arena.arena_wsgi:application
-    After which the gladiators can be started, 
+After which the gladiators can be started, 
     - using ./bin/python masterblaster/spinup_arena_instance. 
-    These instructions have pretty much all assumed you are using the amazon ec2 instances, and have setup the proper permissions and have entered the correct keys and user names. 
+These instructions have pretty much all assumed you are using the amazon ec2 instances, and have setup the proper permissions and have entered the correct keys and user names. 
 
 
 11) Monitoring 
