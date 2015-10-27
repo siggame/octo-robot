@@ -26,7 +26,7 @@ https://help.github.com/articles/generating-ssh-keys/
 
 ```
 sudo apt-get install libpq-dev python-dev libyaml-dev postgresql postgresql-contrib
-sudo apt-get install python-pip libffi-dev
+sudo apt-get install python-pip libffi-dev python-beanstalkc
 pip install cffi
 ```
 
