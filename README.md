@@ -72,7 +72,7 @@ using `make develop` instead will setup the arena for using a sqlitedb, this can
 
 5) Database setup
 
-If in step 2 you ran `make develop` then skip this step and procede to step 4. 
+If in step 4 you ran `make develop` then skip this step and procede to step 6. 
 
 Next the arena's database will need to be setup. This is a somewhat intense task as it requires setting up a postgres database. 
 
