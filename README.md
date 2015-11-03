@@ -174,7 +174,7 @@ There are a few other parameters that can also be important depending on what yo
 
 ```
 new_config.beanstalk_host ('= "localhost"' for testing)
-new_config.client_prefix ('= "git@github.com/"' for testing)
+new_config.client_prefix ('= "git@github.com:"' for testing)
 new_config.api_url_template
 ```
 
