@@ -29,7 +29,7 @@ def main():
     
     for block in data:
         if block['team']['slug'] is not None:
-            print block['team']['slug'], block['tag']['name']
+            print block['team']['slug'], block['tag']['commit']
             update_local_repo(block)
 
 def update_local_repo(client):
@@ -48,7 +48,7 @@ def update_local_repo(client):
     subprocess.call(['git', 'pull'], cwd=client['team']['slug'],
                     stdout=file('%s-gitout.txt' % client['team']['slug'], 'a'),
                     stderr=subprocess.STDOUT)
-    subprocess.call(['git', 'checkout', client['tag']['name']],
+    subprocess.call(['git', 'checkout', client['tag']['commit']],
                     stdout=file('%s-gitout.txt' % client['team']['slug'], 'a'),
                     stderr=subprocess.STDOUT,
                     cwd=client['team']['slug'])
