@@ -98,7 +98,7 @@ For testing the file is instead called developement.py and should have all the r
 
 The other fields will have the information passed to the production.py file from a file named secret_settings.py. The secret_settings file should also be in the arena/settings folder. If the secret_settings folder is missing then run `./bin/production` and the secret_settings.py file should be generated. If you are doing testing the file might be called `./bin/development` instead
 
-After which open the secret_settings.py file in arena/settings folder and add in the postgres name, db the user and password. The postgres name should be equal to the database name that was used in the `createdb` command. You should now be good to go on generating the database schema.
+After which open the secret_settings.py file in arena/settings folder and add in the postgres name, db the user and password. The postgres name should be equal to the database name that was used in the `createdb` command. This change is not necessary when make develop is used in step 4, make develop doesn't use secret settings. You should now be good to go on generating the database schema.
 
 cd back to the base project directory, octo-robot
 
