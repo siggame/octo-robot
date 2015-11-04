@@ -12,7 +12,7 @@ def generate_package(megaminer_repo):
 
     gitrepo = 'git@github.com:siggame/%s' % megaminer_repo
     repo_dir = os.path.join(octo_robot_dir, game_name)
-    server_location = os.path.join(repo_dir, 'server')
+    server_location = os.path.join(repo_dir, 'Cerveau')
     gladiator_location = os.path.join(octo_robot_dir, 'gladiator')
     
     if not os.path.exists(repo_dir):
@@ -26,7 +26,7 @@ def generate_package(megaminer_repo):
         
 
     gladiator_p_folder = os.path.join(octo_robot_dir, 'gladiator_package')
-    gladiator_p_server = os.path.join(gladiator_p_folder, 'server')
+    gladiator_p_server = os.path.join(gladiator_p_folder, 'Cerveau')
         
     gladiator_files = os.listdir(gladiator_location)
 
