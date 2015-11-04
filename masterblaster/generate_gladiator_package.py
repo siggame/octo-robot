@@ -13,6 +13,14 @@ def generate_package(megaminer_repo):
     gitrepo = 'git@github.com:siggame/%s' % megaminer_repo
     repo_dir = os.path.join(octo_robot_dir, game_name)
     server_location = os.path.join(repo_dir, 'Cerveau')
+    #creer_location = os.path.join(repo_dir, 'Creer')
+    #dossier_location = os.path.join(repo_dir, 'Dossier')
+    #joueurCpp_location = os.path.join(repo_dir, 'Joueur.cpp')
+    #joueurCs_location = os.path.join(repo_dir, 'Joueur.cs')
+    #joueurJava_location = os.path.join(repo_dir, 'Joueur.java')
+    #joueurJs_location = os.path.join(repo_dir, 'Joueur.js')
+    #joueurLua_location = os.path.join(repo_dir, 'Joueur.lua')
+    #joueurPy_location = os.path.join(repo_dir, 'Joueur.py')
     gladiator_location = os.path.join(octo_robot_dir, 'gladiator')
     
     if not os.path.exists(repo_dir):
@@ -20,15 +28,15 @@ def generate_package(megaminer_repo):
         if git_clone_id != 0:
             print "error on clone exiting"
             return
-        subprocess.call(['npm', 'install'], cwd=repo_dir/Cerveau)
-        subprocess.call(['npm', 'install'], cwd=repo_dir/Creer)
-        subprocess.call(['npm', 'install'], cwd=repo_dir/Dossier)
-        subprocess.call(['npm', 'install'], cwd=repo_dir/Joueur.cpp)
-        subprocess.call(['npm', 'install'], cwd=repo_dir/Joueur.cs)
-        subprocess.call(['npm', 'install'], cwd=repo_dir/Joueur.java)
-        subprocess.call(['npm', 'install'], cwd=repo_dir/Joueur.js)
-        subprocess.call(['npm', 'install'], cwd=repo_dir/Joueur.lua)
-        subprocess.call(['npm', 'install'], cwd=repo_dir/Joueur.py)
+        subprocess.call(['npm', 'install'], cwd=server_location)
+        #subprocess.call(['npm', 'install'], cwd=creer_location)
+        #subprocess.call(['npm', 'install'], cwd=dossier_location)
+        #subprocess.call(['npm', 'install'], cwd=joueurCpp_location)
+        #subprocess.call(['npm', 'install'], cwd=joueurCs_location)
+        #subprocess.call(['npm', 'install'], cwd=joueurJava_location)
+        #subprocess.call(['npm', 'install'], cwd=joueurJs_location)
+        #subprocess.call(['npm', 'install'], cwd=joueurLua_location)
+        #subprocess.call(['npm', 'install'], cwd=joueurPy_location)
     else:
         subprocess.call(['git', 'pull'], cwd=repo_dir)
 
