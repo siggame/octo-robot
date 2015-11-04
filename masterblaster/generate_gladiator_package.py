@@ -20,6 +20,15 @@ def generate_package(megaminer_repo):
         if git_clone_id != 0:
             print "error on clone exiting"
             return
+        subprocess.call(['npm', 'install'], cwd=repo_dir/Cerveau)
+        subprocess.call(['npm', 'install'], cwd=repo_dir/Creer)
+        subprocess.call(['npm', 'install'], cwd=repo_dir/Dossier)
+        subprocess.call(['npm', 'install'], cwd=repo_dir/Joueur.cpp)
+        subprocess.call(['npm', 'install'], cwd=repo_dir/Joueur.cs)
+        subprocess.call(['npm', 'install'], cwd=repo_dir/Joueur.java)
+        subprocess.call(['npm', 'install'], cwd=repo_dir/Joueur.js)
+        subprocess.call(['npm', 'install'], cwd=repo_dir/Joueur.lua)
+        subprocess.call(['npm', 'install'], cwd=repo_dir/Joueur.py)
     else:
         subprocess.call(['git', 'pull'], cwd=repo_dir)
 
