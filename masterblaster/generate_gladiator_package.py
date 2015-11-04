@@ -16,7 +16,7 @@ def generate_package(megaminer_repo):
     gladiator_location = os.path.join(octo_robot_dir, 'gladiator')
     
     if not os.path.exists(repo_dir):
-        git_clone_id = subprocess.call(['git', 'clone', gitrepo, game_name], cwd=octo_robot_dir)
+        git_clone_id = subprocess.call(['git', 'clone', '--recursive', gitrepo, game_name], cwd=octo_robot_dir)
         if git_clone_id != 0:
             print "error on clone exiting"
             return
