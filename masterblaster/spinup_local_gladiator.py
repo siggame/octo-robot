@@ -55,7 +55,7 @@ export BEANSTALK_HOST='%s'
 export LIVING_CORDERS='%s'
 
 cd $SERVER_PATH
-node main.js > ../server-output.txt &
+node main.js --arena > ../server-output.txt &
 cd $LIVING_CORDERS
 
 mkdir 1
