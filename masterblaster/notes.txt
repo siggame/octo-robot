@@ -18,7 +18,7 @@ Arena -> Tournament Transition
  -set up the git puller doodad (client prefix)
  -have Wisely lock out competitor access to git repos
  -pull git repos
- -have Wisely re-enable cometitor access to git repos
+ -have Wisely re-enable competitor access to git repos
  -halt the instance
 3. Bake a tournament instance
 4. Drain the request tube
