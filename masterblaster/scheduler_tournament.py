@@ -28,7 +28,7 @@ def main():
     """
     Starts the main tournament managment loops. Creates a beanstalk
     connection and watches for signals from processes that they are
-    requeststing matches.
+    requesting matches.
     """
     global stalk
     stalk = beanstalkc.Connection()
