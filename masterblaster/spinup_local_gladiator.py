@@ -25,8 +25,8 @@ file_path = os.path.abspath(__file__)
 home_dir = os.path.dirname(file_path)
 octo_robot_dir = os.path.dirname(home_dir)
 
-living_corders = '/home/daniel/Documents/gladiators-pharaoh/' # this is identical to the gladiator's arena folder
-server_path = os.path.join(living_corders, 'server')
+living_corders = '/home/daniel17sep/Documents/gladiators-checkers/' # this is identical to the gladiator's arena folder
+server_path = os.path.join(living_corders, 'Cerveau')
 gladiator_pck = os.path.join(octo_robot_dir, 'gladiator_package')
 
 if not os.path.exists(gladiator_pck):
