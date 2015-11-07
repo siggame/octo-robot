@@ -173,7 +173,9 @@ def parse_gamelog(game_number):
     ''' Determine winner by parsing that last s-expression in the gamelog
         the gamelog is now compressed. '''
     server_path = os.environ['SERVER_PATH']
-    with gzip.open("%s/output/gamelogs/Checkers-%s.json.gz" % (server_path, game_number), 'rb') as f:
+    game_name = os.environ['GAME_NAME'].split('-')[2]
+    game_name = game_name[0].upper() + game_name[1:len(game_name)]
+    with gzip.open("%s/output/gamelogs/%s-%s.json.gz" % (server_path, game_name, game_number), 'rb') as f:
     	log = f.read()
     parsed = json.loads(log)
     winners = parsed['winners']
