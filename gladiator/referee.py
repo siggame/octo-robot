@@ -21,6 +21,8 @@ from bz2 import BZ2File
 import beanstalkc
 import boto
 
+cervan_game_name = os.environ['GAME_NAME'].split("-")[2]
+cervan_game_name = cervan_game_name[0].upper() + cervan_game_name[1:len(cervan_game_name)]
 
 def main(games_to_play=None):
     stalk = beanstalkc.Connection(host=os.environ['BEANSTALK_HOST'])
@@ -85,7 +87,7 @@ def looping(stalk):
     for cl in game['clients']:
         sleep(10)  # ensures ['clients'][0] plays as p0
         players.append(
-            subprocess.Popen(['bash', 'run', 'Checkers', '-r', game['number'], '-s', server_host],
+            subprocess.Popen(['bash', 'run', cervan_game_name, '-r', game['number'], '-s', server_host],
                              stdout=file('%s-stdout.txt' % cl['name'], 'w'),
                              stderr=file('%s-stderr.txt' % cl['name'], 'w'),
                              cwd=cl['name']))
@@ -103,8 +105,8 @@ def looping(stalk):
         sleep(5)
         p0_good = players[0].poll() is None
         p1_good = players[1].poll() is None
-        glog_done = os.access("%s/output/gamelogs/Checkers-%s.json.gz" %
-                              (server_path, game['number']), os.F_OK)
+        glog_done = os.access("%s/output/gamelogs/%s-%s.json.gz" %
+                              (server_path, cervan_game_name, game['number']), os.F_OK)
 
     for x in players:
       try:
@@ -229,7 +231,7 @@ def push_datablocks(game):
 def push_gamelog(game):
     '''Push gamelog to S3'''
     server_path = os.environ['SERVER_PATH']
-    gamelog_filename = "%s/output/gamelogs/Checkers-%s.json.gz" % (server_path, game['number'])
+    gamelog_filename = "%s/output/gamelogs/%s-%s.json.gz" % (server_path, cervan_game_name, game['number'])
     # salt exists to stop people from randomly probing for files
     salt = md5.md5(str(random.random())).hexdigest()[:5]
     remote = "%s-Checkers-%s.json.gz" % (game['number'], salt)
@@ -260,4 +262,4 @@ def update_local_repo(client):
 
 
 if __name__ == "__main__":
-    main(100)
+    main()

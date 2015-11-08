@@ -25,7 +25,7 @@ file_path = os.path.abspath(__file__)
 home_dir = os.path.dirname(file_path)
 octo_robot_dir = os.path.dirname(home_dir)
 
-living_corders = '/home/daniel17sep/Documents/gladiators-checkers/' # this is identical to the gladiator's arena folder
+living_corders = '/home/vagrant/Desktop/gladiators-checkers/' # this is identical to the gladiator's arena folder
 server_path = os.path.join(living_corders, 'Cerveau')
 gladiator_pck = os.path.join(octo_robot_dir, 'gladiator_package')
 
@@ -39,6 +39,8 @@ if os.path.exists(living_corders):
     print " found housing: %s remove tree" % living_corders
     shutil.rmtree(living_corders)
 
+
+print "Placing gladiator package at ", living_corders
 shutil.copytree(gladiator_pck, living_corders)
 
 writer = open(living_corders + 'kick.sh', 'w')
