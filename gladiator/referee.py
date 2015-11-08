@@ -26,14 +26,8 @@ def main(games_to_play=None):
     stalk = beanstalkc.Connection(host=os.environ['BEANSTALK_HOST'])
     stalk.watch('game-requests-%s' % os.environ['GAME_NAME'])  # input
     stalk.use('game-results-%s' % os.environ['GAME_NAME'])     # output
-    if games_to_play is None:
-        while True:
-            looping(stalk)
-    else:
-        games_played = 0
-        while games_played < games_to_play:
-            looping(stalk)
-            games_played += 1
+    while True:
+        looping(stalk)
 
 def looping(stalk):
     '''Get a game, process it, repeat'''
@@ -258,4 +252,4 @@ def update_local_repo(client):
 
 
 if __name__ == "__main__":
-    main(100)
+    main()
