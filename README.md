@@ -27,6 +27,7 @@ https://help.github.com/articles/generating-ssh-keys/
 ```
 sudo apt-get install libpq-dev python-dev libyaml-dev postgresql postgresql-contrib flex
 sudo apt-get install python-pip libffi-dev python-beanstalkc python-boto python-yaml
+sudo apt-get install lua5.1 luajit
 pip install cffi
 ```
 You will need to install Node.js version 4.1.2 or better (barring 5 or newer, which is yet untested with the arena).  You are free to check to see if apt-get has this version, but as of Nov. 2015 Ubuntu does not.  It will have to be installed manually from their website until Ubuntu updates.
