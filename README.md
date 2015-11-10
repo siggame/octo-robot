@@ -27,7 +27,6 @@ https://help.github.com/articles/generating-ssh-keys/
 ```
 sudo apt-get install libpq-dev python-dev libyaml-dev postgresql postgresql-contrib flex
 sudo apt-get install python-pip libffi-dev python-beanstalkc python-boto python-yaml
-sudo apt-get install lua5.1 luajit lua-socket
 pip install cffi
 ```
 You will need to install Node.js version 4.1.2 or better (barring 5 or newer, which is yet untested with the arena).  You are free to check to see if apt-get has this version, but as of Nov. 2015 Ubuntu does not.  It will have to be installed manually from their website until Ubuntu updates.
@@ -45,6 +44,36 @@ The webserver that is currently used is called nginx, make sure to install it wi
 ```
 sudo apt-get install nginx
 ```
+
+For the Lua client you will need:
+
+```
+sudo apt-get install lua5.1 luajit lua-socket
+```
+
+For the Java client you will need:
+
+-JRE7
+-Maven 3, which b/c Ubuntu's default version is old, is installed by:
+  
+  ```
+  sudo apt-get purge maven maven2 maven3
+  sudo add-apt-repository ppa:andrei-pozolotin/maven3
+  sudo apt-get update
+  sudo apt-get install maven3
+  ```
+
+For the C++ client you will need:
+
+```
+sudo apt-get install libboost-all-dev
+```
+
+For the C# client you need:
+
+Lastest version of Mono, but Ubuntu default is out of date, so:
+
+http://www.mono-project.com/docs/getting-started/install/linux/
 
 You need git so you can interface with GitHub
 
