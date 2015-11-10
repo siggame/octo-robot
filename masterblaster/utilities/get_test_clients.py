@@ -5,11 +5,16 @@ import json
 from masterblaster.utilities.webinteraction import update_clients_from_data_block
 
 def main(fork_list):
-    header_info = {"Authorization" : "token %s" % GITHUB_API_TOKEN}
+    header_info = {"Authorization" : "token %s" % "None"}
     base_api_uri = "https://api.github.com"
     test_clients = []
     for fork in fork_list:
         forks_url = requests.get("%s/repos/siggame/%s/forks" % (base_api_uri, fork), headers=header_info)
+        print forks_url.json()
+        if forks_url.json()["message"] == "Bad credentials":
+            print "Error I require a valid GITHUB_API_TOKEN"
+            print "In order to make a GITHUB_API_TOKEN go here https://github.com/blog/1509-personal-api-tokens"
+            return 
         data = forks_url.json()
         for i in data:
             print "Adding client", i["owner"]["login"]
