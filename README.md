@@ -66,7 +66,7 @@ For the Java client you will need:
 For the C++ client you will need:
 
 ```
-sudo apt-get install libboost-all-dev
+sudo apt-get install libboost-all-dev cmake
 ```
 
 For the C# client you need:
