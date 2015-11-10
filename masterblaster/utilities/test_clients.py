@@ -12,8 +12,9 @@ def main(fork_lang_list):
         forks_url = requests.get("%s/repos/siggame/%s/forks" % (base_api_uri, fork), headers=header_info)
         data = forks_url.json()
         for i in data:
+            print "Adding client", i["full_name"]
             master_hash = requests.get("%s/repos/%s/commits/master" % (base_api_uri, i["full_name"]), headers=header_info)
-            test_clients.append(construct_client_block("master", master_hash.json()["sha"], i["ssh_url"], i["full_name"], lang))
+            test_clients.append(construct_client_block("master", master_hash.json()["sha"], i["ssh_url"], i["login"], lang))
 
     print 'Test client'
     for i in test_clients:
@@ -29,6 +30,7 @@ def construct_client_block(tag_name, tag_commit, repo_path, team_slug, language)
             "team" : {"slug" : team_slug, "eligible_to_win" : "true"}, # todo add in non eligible teams, maybe randomize it? 
             "language" : language
            }
+
 
 if __name__ == "__main__":
     fork_list = [("Joueur.py-MegaMinerAI-Dev", "python"), ("Joueur.lua-MegaMinerAI-Dev", "lua"),
