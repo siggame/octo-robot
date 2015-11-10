@@ -28,14 +28,8 @@ def main(games_to_play=None):
     stalk = beanstalkc.Connection(host=os.environ['BEANSTALK_HOST'])
     stalk.watch('game-requests-%s' % os.environ['GAME_NAME'])  # input
     stalk.use('game-results-%s' % os.environ['GAME_NAME'])     # output
-    if games_to_play is None:
-        while True:
-            looping(stalk)
-    else:
-        games_played = 0
-        while games_played < games_to_play:
-            looping(stalk)
-            games_played += 1
+    while True:
+        looping(stalk)
 
 def looping(stalk):
     '''Get a game, process it, repeat'''
@@ -175,10 +169,8 @@ def parse_gamelog(game_number):
     ''' Determine winner by parsing that last s-expression in the gamelog
         the gamelog is now compressed. '''
     server_path = os.environ['SERVER_PATH']
-    game_name = os.environ['GAME_NAME'].split('-')[2]
-    game_name = game_name[0].upper() + game_name[1:len(game_name)]
     with gzip.open("%s/output/gamelogs/%s-%s.json.gz" % (server_path, game_name, game_number), 'rb') as f:
-    	log = f.read()
+        log = f.read()
     parsed = json.loads(log)
     winners = parsed['winners']
     losers = parsed['losers']
@@ -234,7 +226,7 @@ def push_gamelog(game):
     gamelog_filename = "%s/output/gamelogs/%s-%s.json.gz" % (server_path, game_name, game['number'])
     # salt exists to stop people from randomly probing for files
     salt = md5.md5(str(random.random())).hexdigest()[:5]
-    remote = "%s-Checkers-%s.json.gz" % (game['number'], salt)
+    remote = "%s-Anarchy-%s.json.gz" % (game['number'], salt)
     game['gamelog_url'] = push_file(gamelog_filename, remote)
     os.remove(gamelog_filename)
 
