@@ -29,6 +29,9 @@ def update_clients(api_url=None):
         print data
         return
 
+    update_clients_from_data_block(data)
+
+def update_clients_from_data_block(data):
     # list of clients that are found on the webserver
     updated_clients = []
     
@@ -54,7 +57,7 @@ def update_clients(api_url=None):
         for i in missing_clients:
             i.missing = True
             i.save()
-
+            
 def makeClient(block):
     '''Make a client object from the provided API data block'''
     client = Client.objects.create()
