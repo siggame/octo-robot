@@ -36,7 +36,7 @@
 	"model" : "thunderdome.arenaconfig",
 	"pk" : 4,
 	"fields" : {
-	    "active" : "True",
+	    "active" : "False",
 	    "client_prefix" : "ssh://webserver@megaminerai.com",
 	    "beanstalk_host" : "arena.megaminerai.com",
 	    "config_name" : "megaminerai-14-plants-live",
@@ -65,6 +65,18 @@
 	    "beanstalk_host" : "arena.megaminerai.com",
 	    "config_name" : "live_pharaoh",
 	    "game_name" : "megaminerai-15-pharaoh",
+	    "req_queue_length" : 5
+	}
+    },
+    {
+	"model" : "thunderdome.arenaconfig",
+	"pk" : 7,
+	"fields" : {
+	    "active" : "True",
+	    "client_prefix" : "git@github.com:",
+	    "beanstalk_host" : "localhost",
+	    "config_name" : "new_server_checkers_testing",
+	    "game_name" : "megaminerai-05-checkers",
 	    "req_queue_length" : 5
 	}
     }

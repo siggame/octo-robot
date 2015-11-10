@@ -21,6 +21,8 @@ from bz2 import BZ2File
 import beanstalkc
 import boto
 
+game_name = os.environ['GAME_NAME'].split("-")[2]
+game_name = game_name[0].upper() + game_name[1:len(game_name)]
 
 def main(games_to_play=None):
     stalk = beanstalkc.Connection(host=os.environ['BEANSTALK_HOST'])
@@ -79,7 +81,7 @@ def looping(stalk):
     for cl in game['clients']:
         sleep(10)  # ensures ['clients'][0] plays as p0
         players.append(
-            subprocess.Popen(['bash', 'run', 'Anarchy', '-r', game['number'], '-s', server_host],
+            subprocess.Popen(['bash', 'run', game_name, '-r', game['number'], '-s', server_host],
                              stdout=file('%s-stdout.txt' % cl['name'], 'w'),
                              stderr=file('%s-stderr.txt' % cl['name'], 'w'),
                              cwd=cl['name']))
@@ -97,8 +99,8 @@ def looping(stalk):
         sleep(5)
         p0_good = players[0].poll() is None
         p1_good = players[1].poll() is None
-        glog_done = os.access("%s/output/gamelogs/Anarchy-%s.json.gz" %
-                              (server_path, game['number']), os.F_OK)
+        glog_done = os.access("%s/output/gamelogs/%s-%s.json.gz" %
+                              (server_path, game_name, game['number']), os.F_OK)
 
     for x in players:
       try:
@@ -167,8 +169,8 @@ def parse_gamelog(game_number):
     ''' Determine winner by parsing that last s-expression in the gamelog
         the gamelog is now compressed. '''
     server_path = os.environ['SERVER_PATH']
-    with gzip.open("%s/output/gamelogs/Anarchy-%s.json.gz" % (server_path, game_number), 'rb') as f:
-    	log = f.read()
+    with gzip.open("%s/output/gamelogs/%s-%s.json.gz" % (server_path, game_name, game_number), 'rb') as f:
+        log = f.read()
     parsed = json.loads(log)
     winners = parsed['winners']
     losers = parsed['losers']
@@ -221,7 +223,7 @@ def push_datablocks(game):
 def push_gamelog(game):
     '''Push gamelog to S3'''
     server_path = os.environ['SERVER_PATH']
-    gamelog_filename = "%s/output/gamelogs/Anarchy-%s.json.gz" % (server_path, game['number'])
+    gamelog_filename = "%s/output/gamelogs/%s-%s.json.gz" % (server_path, game_name, game['number'])
     # salt exists to stop people from randomly probing for files
     salt = md5.md5(str(random.random())).hexdigest()[:5]
     remote = "%s-Anarchy-%s.json.gz" % (game['number'], salt)

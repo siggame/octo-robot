@@ -1,4 +1,3 @@
-
 import arena.settings.defaults as default_settings
 from arena.settings.secret_settings import POSTGRES_NAME, POSTGRES_USER, POSTGRES_PASSWORD
 from arena.settings.defaults import *
