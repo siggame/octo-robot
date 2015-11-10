@@ -53,8 +53,9 @@ sudo apt-get install lua5.1 luajit lua-socket
 
 For the Java client you will need:
 
--JRE7
--Maven 3, which b/c Ubuntu's default version is old, is installed by:
+  -JRE7 (easiest way to get it is through the Software Center)
+  
+  -Maven 3, which b/c Ubuntu's default version is old, is installed by:
   
   ```
   sudo apt-get purge maven maven2 maven3
