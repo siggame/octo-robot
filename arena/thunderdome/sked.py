@@ -27,7 +27,7 @@ def sked(guy0, guy1, stalk, origin, priority=1000, ttr=180):
                                for p in (guy0, guy1)]}
 
     game.stats = json.dumps(payload)
-    stalk.put(game.stats, priority=priority, ttr=trr)
+    stalk.put(game.stats, priority=priority, ttr=ttr)
     game.save()
     print 'scheduled', game, guy0, payload['clients'][0]['tag'], guy1, payload['clients'][1]['tag']
     payload.update({'reporter':origin})
