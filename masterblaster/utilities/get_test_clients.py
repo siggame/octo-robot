@@ -10,6 +10,7 @@ def main(fork_list, random_count=4):
     header_info = {"Authorization" : "token %s" % GITHUB_API_TOKEN}
     base_api_uri = "https://api.github.com"
     test_clients = []
+    game_name = "MegaMinerAI-16-Anarchy"
     for fork in fork_list:
         forks_url = requests.get("%s/repos/siggame/%s/forks" % (base_api_uri, fork), headers=header_info)
         if "message" in forks_url.json():
@@ -19,19 +20,36 @@ def main(fork_list, random_count=4):
                 return
         data = forks_url.json()
         for i in data:
-            print "Getting client", i["owner"]["login"]
             master_hash = requests.get("%s/repos/%s/commits/master" % (base_api_uri, i["full_name"]), headers=header_info)
-            test_clients.append(construct_client_block("master", master_hash.json()["sha"], i["ssh_url"],
+            test_clients.append(construct_client_block("master", master_hash.json()["sha"], i["full_name"] + ".git",
                                                        i["owner"]["login"], i["language"].lower()))
-    
+            
+        base_repo_uri = "%s/repos/siggame/%s" % (base_api_uri, fork)
+        base_repo_request = requests.get(base_repo_uri, headers=header_info)
+        base_repo_json = base_repo_request.json()
+        shellai_uri = "%s/repos/siggame/%s/commits/%s-ShellAI" % (base_api_uri, fork, game_name)
+        shellai_hash = requests.get(shellai_uri, headers=header_info)
+        add_shell_ai = True
+        if "message" in shellai_hash.json().keys():
+            if shellai_hash.json()["message"] == "Not Found":
+                print "Error no shell ai for", fork
+                add_shell_ai = False
+
+        if add_shell_ai:
+            test_clients.append(construct_client_block("%s-ShellAI" % (game_name),
+                                                       shellai_hash.json()["sha"],
+                                                       base_repo_json["full_name"] + ".git",
+                                                       base_repo_json["owner"]["login"] + "_" + base_repo_json["language"],
+                                                       base_repo_json["language"]))
+
     print "Generating", random_count, "random clients"
     for i in range(random_count):
         test_clients.append(construct_random_client(test_clients[random.randint(0,len(test_clients)-1)]))
+        
+    # the shell ai branches
 
     for i in test_clients:
         print "Adding team", i["team"]["slug"]
-        
-    
 
     update_clients_from_data_block(test_clients) # remember if the commit hash doesn't change then the client will not be unembargoed
 
