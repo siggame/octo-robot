@@ -7,23 +7,29 @@ import re
 from masterblaster.utilities.webinteraction import update_clients_from_data_block
 
 def main(fork_list, random_count=4):
+    # since we will be dealing with private repos, we will use the token form of authentication
+    # so use the github_api_token variable stored in the secret_settings file
     header_info = {"Authorization" : "token %s" % GITHUB_API_TOKEN}
     base_api_uri = "https://api.github.com"
     test_clients = []
     game_name = "MegaMinerAI-16-Anarchy"
-    for fork in fork_list:
+    for fork in fork_list: 
+        # for each repo in fork_list preform an http get, on the forks of the repo specified passing in our header auth info
         forks_url = requests.get("%s/repos/siggame/%s/forks" % (base_api_uri, fork), headers=header_info)
-        if "message" in forks_url.json():
+        if "message" in forks_url.json().keys(): # if message is in keys check to see if we got a bad credentials 
             if forks_url.json()["message"] == "Bad credentials":
                 print "Error I require a valid GITHUB_API_TOKEN"
                 print "In order to make a GITHUB_API_TOKEN go here https://github.com/blog/1509-personal-api-tokens"
                 return
+
         data = forks_url.json()
-        for i in data:
+        for i in data: # for each repo that is a fork of the base repo, pull out the commit on the master branch
             master_hash = requests.get("%s/repos/%s/commits/master" % (base_api_uri, i["full_name"]), headers=header_info)
+            # make an ai block and append it to the test_clients list
             test_clients.append(construct_client_block("master", master_hash.json()["sha"], i["full_name"] + ".git",
                                                        i["owner"]["login"], i["language"].lower()))
             
+        # pull out the shell ai for each repo. 
         base_repo_uri = "%s/repos/siggame/%s" % (base_api_uri, fork)
         base_repo_request = requests.get(base_repo_uri, headers=header_info)
         base_repo_json = base_repo_request.json()
@@ -43,7 +49,7 @@ def main(fork_list, random_count=4):
                                                        base_repo_json["language"]))
 
     print "Generating", random_count, "random clients"
-    for i in range(random_count):
+    for i in range(random_count): # for random_count pick a random ai and make a copy of it
         test_clients.append(construct_random_client(test_clients[random.randint(0,len(test_clients)-1)]))
         
     # the shell ai branches
@@ -51,6 +57,7 @@ def main(fork_list, random_count=4):
     for i in test_clients:
         print "Adding team", i["team"]["slug"]
 
+    # add in all the ais into the database
     update_clients_from_data_block(test_clients) # remember if the commit hash doesn't change then the client will not be unembargoed
 
 
@@ -77,4 +84,5 @@ def construct_random_client(client_block):
 if __name__ == "__main__":
     fork_list = ["Joueur.py-MegaMinerAI-Dev", "Joueur.lua-MegaMinerAI-Dev", "Joueur.js-MegaMinerAI-Dev",
                  "Joueur.java-MegaMinerAI-Dev", "Joueur.cpp-MegaMinerAI-Dev", "Joueur.cs-MegaMinerAI-Dev"]
+    # fork list is a list of all the base repos, that will have forks, that we will consider to be ais.
     main(fork_list, 0)
