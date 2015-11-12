@@ -45,6 +45,12 @@ The webserver that is currently used is called nginx, make sure to install it wi
 sudo apt-get install nginx
 ```
 
+For the Javascript client you will need:
+
+```
+sudo apt-get install npm
+```
+
 For the Lua client you will need:
 
 ```
