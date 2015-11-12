@@ -60,17 +60,8 @@ sudo apt-get install lua5.1 luajit lua-socket
 For the Java client you will need:
 
 ```
-sudo apt-get install openjdk-7-jre
+sudo apt-get install openjdk-7-jre maven
 ```
-  
-  -Maven 3, which b/c Ubuntu's default version is old, is installed by:
-  
-  ```
-  sudo apt-get purge maven maven2 maven3
-  sudo add-apt-repository ppa:andrei-pozolotin/maven3
-  sudo apt-get update
-  sudo apt-get install maven3
-  ```
 
 For the C++ client you will need:
 
