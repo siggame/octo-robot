@@ -7,7 +7,7 @@ import shutil
 def start_server(current_server=None):
     if not current_server:
         print "Starting server"
-        return subprocess.Popen(['python', 'main.py'], cwd=os.environ['SERVER_PATH'])
+        return subprocess.Popen(['node', 'main.js', '--arena'], cwd=os.environ['SERVER_PATH'])
     else:
         print "Restarting server"
         current_server.kill()
@@ -28,7 +28,7 @@ def start_referee(ref_id):
                             cwd="%d" % ref_id)
 
 def main():
-    ref_count = 2
+    ref_count = 1
     server_p = start_server()
     referees = [start_referee(i) for i in range(1, ref_count+1)]
     while True:
