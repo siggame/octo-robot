@@ -1,3 +1,7 @@
+#Octo-Robot
+
+![{octo-robot}](http://i.imgur.com/fXvKgah.jpg)
+
 
 How to run the arena (Ubuntu 15.10)
 
