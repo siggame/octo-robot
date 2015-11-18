@@ -101,7 +101,7 @@ def get_next_game_url_to_visualize(request):
     try:
         next_game = Game.objects.get(pk=next_gid)
     except Game.DoesNotExist:
-        return HttpResponse("game id %d does not exist" % next_gid)
+        return HttpResponse("game id %s does not exist" % str(next_gid))
     next_game.set_visualized()
     return HttpResponse(next_game.gamelog_url)
 

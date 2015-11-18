@@ -24,6 +24,7 @@ urlpatterns = patterns(
     url(r'^inject$', 'inject'),
     url(r'^get_next_game$', 'get_next_game_url_to_visualize'),
 
+    
     url(r'^settings$', 'settings'),
 
     url(r'^clients$', 'display_clients'),
