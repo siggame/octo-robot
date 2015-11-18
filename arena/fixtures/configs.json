@@ -72,13 +72,36 @@
 	"model" : "thunderdome.arenaconfig",
 	"pk" : 7,
 	"fields" : {
-	    "active" : "True",
+	    "active" : "False",
 	    "client_prefix" : "git@github.com:",
 	    "beanstalk_host" : "localhost",
 	    "config_name" : "new_server_checkers_testing",
 	    "game_name" : "megaminerai-05-checkers",
 	    "req_queue_length" : 5
 	}
+    },
+    {
+	"model" : "thunderdome.arenaconfig",
+	"pk" : 8,
+	"fields" : {
+	    "active" : "False",
+	    "client_prefix" : "git@github.com:",
+	    "beanstalk_host" : "localhost",
+	    "config_name" : "pre_mmai16_testing",
+	    "game_name" : "megaminerai-16-anarchy",
+	    "req_queue_length" : 5
+	}
+    },
+    {
+	"model" : "thunderdome.arenaconfig",
+	"pk" : 9,
+	"fields" : {
+	    "active" : "True",
+	    "client_prefix" : "ssh://webserver@megaminerai.com",
+	    "beanstalk_host" : "arena.megaminerai.com",
+	    "config_name" : "mmai16-anarchy",
+	    "game_name" : "megaminerai-16-anarchy",
+	    "req_queue_length" : 5
+	}
     }
 ]
-
