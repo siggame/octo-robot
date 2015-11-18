@@ -9,10 +9,11 @@ from math import log, ceil
 # My Imports
 #import bootstrap
 from thunderdome.models import Client, Match
-from seeder import seed_tournament
+from seeder import seed_tournament, seed
 
-tournament = 2014232 
+tournament = 2233216
 ### seed doods
+# seed()
 seed_tournament()
 
 try:
@@ -54,6 +55,7 @@ def build_triple_elim():
         m.save()
 
     eligible_count = Client.objects.filter(embargoed=False).filter(eligible=True).filter(missing=False).count()
+    # eligible_count = Client.objects.filter(embargoed=False).filter(missing=False).count()
     exp2 = int(ceil(log(eligible_count, 2)))
     bracket_size = pow2(exp2)
     print eligible_count
