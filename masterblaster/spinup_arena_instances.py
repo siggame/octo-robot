@@ -15,7 +15,7 @@ export S3_PREFIX='%s'
 export GAME_NAME='%s'
 export CLIENT_PREFIX='%s'
 export SERVER_HOST='localhost'
-export SERVER_PATH='/home/gladiator/arena/server'
+export SERVER_PATH='/home/gladiator/arena/Cerveau'
 export BEANSTALK_HOST='%s'
 
 rm -rf /home/gladiator/arena
@@ -26,39 +26,14 @@ cd /home/gladiator/arena
 wget http://arena.megaminerai.com/gladiator/gladiator_package.tgz
 tar -xf gladiator_package.tgz
 
-python gladiator.py
+#python gladiator.py
 
-# cd server
-# python main.py -arena > ../server-output.txt &
-# cd ..
-
-# mkdir 1
-# ln referee.py 1/referee.py
-# ln prep_for_bake.py 1/prep_for_bake.py
-# cd 1
-# ./referee.py $SERVER_PATH &
-# cd ..
-
-# mkdir 2
-# ln referee.py 2/referee.py
-# ln prep_for_bake.py 2/prep_for_bake.py
-# cd 2
-# ./referee.py $SERVER_PATH &
-# cd ..
-
-#mkdir 3
-#ln referee.py 3/referee.py
-#ln prep_for_bake.py 3/prep_for_bake.py
-#cd 3
-#./referee.py $SERVER_PATH &
-#cd ..
-
-#mkdir 4
-#ln referee.py 4/referee.py
-#ln prep_for_bake.py 4/prep_for_bake.py
-#cd 4
-#./referee.py $SERVER_PATH &
-#cd ..
+mkdir 1
+ln referee.py 1/referee.py
+ln prep_for_bake.py 1/prep_for_bake.py
+cd 1
+python referee.py &
+cd ..
 
 EOF
 """ % (access_cred, secret_cred, s3_prefix, game_name, client_prefix, beanstalk_host)
@@ -76,7 +51,7 @@ gladiator_image = conn.get_image(arena_ami)
 reservation = gladiator_image.run(min_count=count, max_count=count,
                                   user_data=user_data,
                                   instance_type='c3.large',
-                                  key_name='AREAN_MND_KEY2',
-                                  security_groups=['launch-wizard-1'])
+                                  key_name='mmai-16-glad-key',
+                                  security_groups=['Arena Gladiator']) 
 
 print user_data
