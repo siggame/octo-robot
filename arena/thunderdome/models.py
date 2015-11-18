@@ -100,7 +100,7 @@ class Game(models.Model):
         ordering = ['-completed', '-id']
 
     def set_visualized(self):
-        visualized = datetime.datetime.now()
+        visualized = datetime.now()
         self.save()
     
     def schedule(self):
@@ -111,8 +111,9 @@ class Game(models.Model):
         return self.force_schedule()
 
     def update_calc_rating(self):
-        from masterblaster.utilities.kmeans import assign_calc_rating
-        assign_calc_rating(self)
+        # from masterblaster.utilities.kmeans import assign_calc_rating
+        # assign_calc_rating(self)
+        pass
 
     def set_calc_rating(self, rating):
         data = json.loads(self.stats)
@@ -219,7 +220,7 @@ class Match(models.Model):
 
     def get_representative_game(self):
         if self.games.all():
-            winners_games = self.games.filter(winner=self.winner)
+            winners_games = self.games.filter(winner=self.winner).filter(status="Complete")
             max_rating = -1 * float('inf')
             game = None
             for i in winners_games:
