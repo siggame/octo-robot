@@ -95,6 +95,7 @@ def looping(stalk):
     p1_good = True
     glog_done = False
     while p0_good and p1_good and not glog_done:
+        print "Monitoring client1 %s client2 %s and gamelog %s" % (str(p0_good), str(p1_good), str(glog_done))
         job.touch()
         sleep(5)
         p0_good = players[0].poll() is None
@@ -112,6 +113,14 @@ def looping(stalk):
       except OSError as e:
         print "it didn't dieeee!!!", e
         pass
+
+    sleep(5)
+    glog_done = os.access("%s/output/gamelogs/%s-%s.json.gz" %
+                          (server_path, game_name, game['number']), os.F_OK)
+
+
+    print "Final client status"
+    print "client1 %s client2 %s and gamelog %s" % (str(p0_good), str(p1_good), str(glog_done))
 
     print "pushing data blocks...", game['number']
     push_datablocks(game)
@@ -192,7 +201,7 @@ def parse_gamelog(game_number):
 
 def push_file(local_filename, remote_filename):
     ''' Push this thing to s3 '''
-    bucket_name = "%s-%s" % (os.environ['S3_PREFIX'], os.environ['GAME_NAME'])
+    bucket_name = "%s" % (os.environ['S3_PREFIX'])
     access_cred = os.environ['ACCESS_CRED']
     secret_cred = os.environ['SECRET_CRED']
     if access_cred == 'None' or secret_cred == 'None':
@@ -212,7 +221,7 @@ def push_datablocks(game):
         in_name = "%s-data.zip" % client['name']
         with zipfile.ZipFile(in_name, 'w', zipfile.ZIP_DEFLATED) as z:
             for suffix in ['stdout', 'stderr', 'makeout', 'gitout']:
-#            for suffix in ['makeout', 'gitout']:
+#            for suffix in ['makeout', 'gitout']: # this should be removed after competition
                 z.write('%s-%s.txt' % (client['name'], suffix))
         salt = md5.md5(str(random.random())).hexdigest()[:5]
         remote = "%s-%s-%s-data.zip" % (game['number'], salt, client['name'])
@@ -227,8 +236,17 @@ def push_gamelog(game):
     # salt exists to stop people from randomly probing for files
     salt = md5.md5(str(random.random())).hexdigest()[:5]
     remote = "%s-Anarchy-%s.json.gz" % (game['number'], salt)
+    local_json = "%s/output/gamelogs/%s-%s.json" % (server_path, game_name, game['number'])
+    with gzip.open("%s/output/gamelogs/%s-%s.json.gz" % (server_path, game_name, game['number']), 'rb') as f:
+        log = f.read()
+        local_json_data = open(local_json, 'w')
+        local_json_data.write(log)
+        local_json_data.close()
+    remote_json = "%s-Anarchy-%s.json" % (game['number'], salt)
     game['gamelog_url'] = push_file(gamelog_filename, remote)
+    push_file(local_json, remote_json)
     os.remove(gamelog_filename)
+    os.remove(local_json)
 
 
 def update_local_repo(client):
@@ -237,6 +255,8 @@ def update_local_repo(client):
     subprocess.call(['rm', '-rf', client['name']],
                     stdout=file('/dev/null'),
                     stderr=subprocess.STDOUT)
+    print "git clone %s%s client: %s" % (base_path, client['repo'], client['name'])
+
     subprocess.call(['git', 'clone',
                      '%s%s' % (base_path, client['repo']), client['name']],
                     stdout=file('%s-gitout.txt' % client['name'], 'w'),

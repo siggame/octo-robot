@@ -12,11 +12,11 @@ import requests
 game_name = os.environ["GAME_NAME"]
 
 WEB_USER = 'arena'
-WEB_PASS = 'savesituationzooreceive'
+WEB_PASS = ""
 
 def main():
     api_url = "http://megaminerai.com/api/repo/tags/%s" % game_name
-    r = requests.get(api_url, auth=(WEB_USER, WEB_PASS))
+    r = requests.get(api_url, auth=(WEB_USER, WEB_PASS), verify=False)
     try:
         data = json.loads(r.text)
     except ValueError:
