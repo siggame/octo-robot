@@ -6,13 +6,23 @@ from thunderdome.config import api_url_template, game_name
 from thunderdome.config import WEBSITE_USER_NAME, WEBSITE_ARENA_PASSWORD
 from thunderdome.models import Client
 
-requests.packages.urllib3.disable_warnings()
+# requests.packages.urllib3.disable_warnings()
+
+def test_api(custom_game_name):
+    api_url = api_url_template + custom_game_name
+    print "Get on", api_url
+    r = requests.get(api_url, auth=(WEBSITE_USER_NAME, WEBSITE_ARENA_PASSWORD), verify=False)
+    
+    print r.status_code
+    print r.text
+    print r.json()
+        
 
 def update_clients(api_url=None):
     '''update the database with the current clients, based on game_name'''
     if api_url is None:
         api_url = api_url_template + game_name
-        r = requests.get(api_url, auth=(WEBSITE_USER_NAME, WEBSITE_ARENA_PASSWORD))
+        r = requests.get(api_url, auth=(WEBSITE_USER_NAME, WEBSITE_ARENA_PASSWORD), verify=False)
     else:
         print "Attempting to get cliens from", api_url
         r = requests.get(api_url)
@@ -20,6 +30,10 @@ def update_clients(api_url=None):
     try:
         data = json.loads(r.text) # TODO: change this to r.json()
     except ValueError:
+        print WEBSITE_USER_NAME
+        print WEBSITE_ARENA_PASSWORD
+        print api_url
+        print r.text
         print "couldn't parse text to json"
         return
     

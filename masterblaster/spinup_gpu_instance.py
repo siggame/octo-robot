@@ -13,7 +13,7 @@ export S3_PREFIX='%s'
 export GAME_NAME='%s'
 export CLIENT_PREFIX='ssh://webserver@megaminerai.com'
 export SERVER_HOST='localhost'
-export SERVER_PATH='/home/gladiator/arena/server'
+export SERVER_PATH='/home/gladiator/arena/Cerveau'
 export BEANSTALK_HOST='%s'
 
 rm -rf /home/gladiator/arena

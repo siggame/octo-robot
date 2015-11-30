@@ -4,7 +4,7 @@ from copy import deepcopy
 import random
 import jsonschema
 import json
-from masterblaster.utilities.kmeans import generate_clusters
+# from masterblaster.utilities.kmeans import generate_clusters
 
 
 loop = 0
@@ -52,13 +52,13 @@ schema = {
 global_dict = {}
 
 def main():
-    tournament_id = 20149907
+    tournament_id = 2233216
     championship = Match.objects.get(root=True, tournament=tournament_id)
 
-    print "Running kmeans"
-    generate_clusters(10)
+    #print "Running kmeans"
+    # generate_clusters(10)
 
-    print "Updating bracket'
+    #print "Updating bracket"
     update_bracket(championship)
     print json.dumps(global_dict, indent=1)
 
