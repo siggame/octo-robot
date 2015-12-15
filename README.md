@@ -33,7 +33,6 @@ sudo apt-get install libpq-dev python-dev libyaml-dev postgresql postgresql-cont
 sudo apt-get install python-pip libffi-dev python-beanstalkc python-boto python-yaml
 pip install cffi
 ```
-You will need to install Node.js version 4.1.2 or better (barring 5 or newer, which is yet untested with the arena).  You are free to check to see if apt-get has this version, but as of Nov. 2015 Ubuntu does not.  It will have to be installed manually from their website until Ubuntu updates.
 
 The arena uses buildout to download and install all the necessary python packages and libraries, but there are a few that can not be downloaded through buildout since they require some c header.
 
@@ -51,6 +50,12 @@ sudo apt-get install nginx
 
 For the Javascript client you will need:
 
+Node.js:
+
+```
+curl -sL https://deb.nodesource.com/setup_4.x | sudo -E bash -
+sudo apt-get install -y nodejs
+```
 ```
 sudo apt-get install npm
 ```
