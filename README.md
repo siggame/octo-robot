@@ -31,7 +31,7 @@ https://help.github.com/articles/generating-ssh-keys/
 ```
 sudo apt-get install libpq-dev python-dev libyaml-dev postgresql postgresql-contrib flex
 sudo apt-get install python-pip libffi-dev python-beanstalkc python-boto python-yaml
-pip install cffi
+sudo pip install cffi
 ```
 
 The arena uses buildout to download and install all the necessary python packages and libraries, but there are a few that can not be downloaded through buildout since they require some c header.
