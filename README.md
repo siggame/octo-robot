@@ -146,7 +146,8 @@ cd back to the base project directory, octo-robot
 ```
 ./bin/production sql thunderdome
 ./bin/production sql k_storage
-./bin/production syncdb
+./bin/production migrate
+python bin/production createsuperuser
 ```
 
 You should get a prompt asking for information about setting up a test user.
