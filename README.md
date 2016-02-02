@@ -31,9 +31,8 @@ https://help.github.com/articles/generating-ssh-keys/
 ```
 sudo apt-get install libpq-dev python-dev libyaml-dev postgresql postgresql-contrib flex
 sudo apt-get install python-pip libffi-dev python-beanstalkc python-boto python-yaml
-pip install cffi
+sudo pip install cffi
 ```
-You will need to install Node.js version 4.1.2 or better (barring 5 or newer, which is yet untested with the arena).  You are free to check to see if apt-get has this version, but as of Nov. 2015 Ubuntu does not.  It will have to be installed manually from their website until Ubuntu updates.
 
 The arena uses buildout to download and install all the necessary python packages and libraries, but there are a few that can not be downloaded through buildout since they require some c header.
 
@@ -51,8 +50,11 @@ sudo apt-get install nginx
 
 For the Javascript client you will need:
 
+Node.js:
+
 ```
-sudo apt-get install npm
+curl -sL https://deb.nodesource.com/setup_4.x | sudo -E bash -
+sudo apt-get install -y nodejs
 ```
 
 For the Lua client you will need:
@@ -77,7 +79,13 @@ For the C# client you need:
 
 Lastest version of Mono, but Ubuntu default is out of date, so:
 
-http://www.mono-project.com/docs/getting-started/install/linux/
+```
+sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF
+echo "deb http://download.mono-project.com/repo/debian wheezy main" | sudo tee /etc/apt/sources.list.d/mono-xamarin.list
+sudo apt-get update
+echo "deb http://download.mono-project.com/repo/debian wheezy-apache24-compat main" | sudo tee -a /etc/apt/sources.list.d/mono-xamarin.list
+sudo apt-get install mono-devel mono-complete referenceassemblies-pcl ca-certificates-mono
+```
 
 You need git so you can interface with GitHub
 
@@ -138,7 +146,8 @@ cd back to the base project directory, octo-robot
 ```
 ./bin/production sql thunderdome
 ./bin/production sql k_storage
-./bin/production syncdb
+./bin/production migrate
+python bin/production createsuperuser
 ```
 
 You should get a prompt asking for information about setting up a test user.
