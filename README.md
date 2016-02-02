@@ -131,7 +131,7 @@ You'll be prompted for a password for a new role. Do record or make note of the 
 exit
 ```
 
-6) Database Initilization (django 1.7) 
+6) Database Initilization (django 1.8)
 
 In the folder arena/settings is a file named production.py, this file will need to have the database information provided above.
 For production you'll need to edit the "ENGINE" field to 'django.db.backends.postgresql_psycopg2' where as for testing, you'll need to change "ENGINE" to be 'django.db.backends.sqlite3'. 
@@ -144,8 +144,6 @@ After which open the secret_settings.py file in arena/settings folder and add in
 cd back to the base project directory, octo-robot
 
 ```
-./bin/production sql thunderdome
-./bin/production sql k_storage
 ./bin/production migrate
 python bin/production createsuperuser
 ```
@@ -155,6 +153,8 @@ Fill all that information in.
 should be like user name, email and password its all for the admin account of the django website. 
 
 These steps are for running the database the very first time. If changes to the models in the thunderdome or k_storage app, you'll have to run the `migrate` appname command. These command will change depending on the django version
+
+I highly suggest reading the django tutorial where it goes through making a small application for doing polls/questions. Just note that where they use python manage.py you'll use either ./bin/development or ./bin/production depending on which you are doing. 
 
 
 8) Configure the Arena
