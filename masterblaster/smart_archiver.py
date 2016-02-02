@@ -23,6 +23,10 @@ from thunderdome.config import game_name
 from thunderdome.models import Client, Game, GameData, Referee
 from thunderdome.models import WinRatePrediction
 
+
+import django
+django.setup()
+
 #from datatizer import add_gamelog_data
 
 #from thunderdome.loggly_logging import log
