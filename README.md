@@ -29,8 +29,10 @@ https://help.github.com/articles/generating-ssh-keys/
 2) Install all necessary libraries
 
 ```
-sudo apt-get install libpq-dev python-dev libyaml-dev postgresql postgresql-contrib flex
-sudo apt-get install python-pip libffi-dev python-beanstalkc python-boto python-yaml
+sudo apt-get install libpq-dev python-dev libyaml-dev 
+sudo apt-get install postgresql postgresql-contrib flex
+sudo apt-get install python-pip libffi-dev python-beanstalkc 
+sudo apt-get install python-boto python-yaml libcurl4-openssl-dev
 sudo pip install cffi
 ```
 
