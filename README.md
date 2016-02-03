@@ -157,7 +157,7 @@ These steps are for running the database the very first time. If changes to the 
 I highly suggest reading the django tutorial where it goes through making a small application for doing polls/questions. Just note that where they use python manage.py you'll use either ./bin/development or ./bin/production depending on which you are doing. 
 
 
-8) Configure the Arena
+7) Configure the Arena
 
 Now that the database is up and the schema is set the arena will need some clients. This is currently the hardest part of setting up a test arena, as the website that provides clients to the arena is usually down during non MegaMinerAI times. Most of the production stuff should be setup as the default is to reach out the website and look for clients. This is all done based on the name of the game. The arena has some config settings that define what game it should be playing, what game clients to look for etc. These are stored in models / fixtures ArenaConfig.
 
@@ -169,7 +169,7 @@ There are some past configs that are available for the purpose of running old ga
 
 The selected config is denoted by which one is "active" check the database looking for which config is "active" if its not the one your look for it, switch that one to be the active one. (TODO: fill the details)
 
-9) Checking out the website.
+8) Checking out the website.
 
 Production, o god this is complicated and requires setting up nginx and blah blah
 
@@ -182,7 +182,7 @@ After installing nginx a config file will have to be made to let nginx know what
 
 Testing
 
-Procced to the root directory, octo-robot, and run the command `./bin/development runserver` This will set it up on 127.0.0.1:8000. I am running this in a vm so I choose to run it like `./bin/development runserver 0.0.0.0:80000` then I can access the website via my host machine. 
+Procced to the root directory, octo-robot, and run the command `./bin/development runserver` This will set it up on 127.0.0.1:8000. I am running this in a vm so I choose to run it like `./bin/development runserver 0.0.0.0:8000` then I can access the website via my host machine. 
 
 Then go to the website 127.0.0.1:8000/admin.
 This is the base url of the admin site that django provides. Here you'll need to enter the username and password that was provided in step 5. Then type go to 127.0.0.1:8000/mies/thunderdome, the site itself is very minimal. Click on the Settings button on the top left, above Scoreboard. On here you should see a Currently Active Settings, Select a config and an Available settings display.
@@ -237,14 +237,14 @@ new_config.save()
 ```
 
 
-10) Get some test clients
+9) Get some test clients
    - now that the database is up the arena will need some clients
    - I have created a fake clients file that will add in some clients for fake testing purposes, 
    - this file can be located at https://gist.githubusercontent.com/brandonphelps/ca2b437f4fd66d55dd0d/raw/4b54187821cb25628faea625bcee647400405f17/gistfile1.txt
    - all that needs to be down now is to run `./bin/python masterblaster/utilities/update_clients_from_gist.py `and pass the url as parameter. 
    
 
-10) Get some real clients
+9) Get some real clients
    - If setting up for an actual arena run, the arena will get the information from the webserver instead of a test file. 
    - this is done as a multistep process. 
     a) First obtain a user name and password from the webserver and enter them into the secret settings file. 
@@ -252,20 +252,20 @@ new_config.save()
        - replace game_name with the game name type, this would be obtained from the webserver team, 
        - same with client_prefix and api_url_template
 
-11) Start the beanstalkc
+10) Start the beanstalkc
    - cd octo-robot/var/parts/beanstalkd/
    - make
    - ./beanstalkd & 
    This will start the beanstalkc deamon process that will do all the message passing between the different processes, this will start the process in the background and shouldn't involve anything else. If there is some error message like port is already binded or something then you'll need to figure out which program is the port specified then procceed to stop it then restart the beanstalkd process. 
 
-12) Start the scheduler 
+11) Start the scheduler 
    - cd octo-robot
    - ./bin/python masterblaster/scheduler_arena.py (For testing)
    - ./bin/python masterblaster/scheduler_window_swiss.py (For real)
    
 Afterwhich the scheduler will use a whole terminal so create a new one
 
-13) Start the archiver
+12) Start the archiver
    - cd octo-robot
    - ./bin/python masterblaster/smart_archiver.py
 
@@ -273,7 +273,7 @@ create another terminal
 At this point the entire headnode should be setup, and all that is left is to create the gladiators to start playing the games. 
 Additionally there should be 5 games already scheduled, and some output on the scheduler indicating this. 
 
-14) Start a gladiator. 
+13) Start a gladiator. 
    - There is a file on the main branch called generate_gladiator_package.py, this file was created to easy the difficulty of starting a gladiator. Normally one would have to download the server, and tar the server files and the files in the gladiator folder, this should do that for you you'll just need to pass in the parameter for where to find the MegaMinerAI repository that you'll want the server from. 
    
    An example for MegaMinerAI15 is as such, 
@@ -304,5 +304,5 @@ After which the gladiators can be started,
 These instructions have pretty much all assumed you are using the amazon ec2 instances, and have setup the proper permissions and have entered the correct keys and user names. 
 
 
-15) Monitoring 
+14) Monitoring 
    - At this point he arena should be running and you'll just have to do monitoring. 
