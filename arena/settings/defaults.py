@@ -112,7 +112,6 @@ INSTALLED_APPS = (
     'thunderdome',
     'k_storage',
     'gunicorn',
-    'south',
     'django_nose',
 )
 

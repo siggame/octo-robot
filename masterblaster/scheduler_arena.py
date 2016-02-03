@@ -20,6 +20,9 @@ from utilities import webinteraction as wi
 import threading
 import time
 
+import django
+django.setup()
+
 def t_clients():
     while True:
         print "Updating Clients"
