@@ -3,7 +3,7 @@
 ![{octo-robot}](http://i.imgur.com/fXvKgah.jpg)
 
 
-How to run the arena (Ubuntu 15.10)
+How to run the arena (Ubuntu 14.04 - 15.10)
 
 These will be very specific instructions on how to setup the arena for an actual tournament. There might be some slight differences when running this as a "test" arena, but those are typically for either convenience or pertain to other parts that are not functional before MegaminerAI starts. For testing and development, replace 'production' with 'development' in all commands.
 
