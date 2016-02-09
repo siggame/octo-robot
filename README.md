@@ -242,7 +242,7 @@ new_config.save()
 9) Get some test clients
    - now that the database is up the arena will need some clients
    - I have created a fake clients file that will add in some clients for fake testing purposes, 
-   - this file can be located at https://gist.githubusercontent.com/brandonphelps/ca2b437f4fd66d55dd0d/raw/4b54187821cb25628faea625bcee647400405f17/gistfile1.txt
+   - this file can be located at https://gist.githubusercontent.com/Daniel17sep/712e187938b1dd8c658c/raw/824a8e0295016e0205baa2c28264a1686baf836b/Gist_for_readme.txt
    - all that needs to be down now is to run `./bin/python masterblaster/utilities/update_clients_from_gist.py `and pass the url as parameter. 
    
 
