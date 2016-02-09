@@ -255,21 +255,31 @@ new_config.save()
        - same with client_prefix and api_url_template
 
 10) Start the beanstalkc
-   - cd octo-robot/var/parts/beanstalkd/
-   - make
-   - ./beanstalkd & 
+
+```
+cd octo-robot/var/parts/beanstalkd/
+make
+./beanstalkd
+```
+
    This will start the beanstalkc deamon process that will do all the message passing between the different processes, this will start the process in the background and shouldn't involve anything else. If there is some error message like port is already binded or something then you'll need to figure out which program is the port specified then procceed to stop it then restart the beanstalkd process. 
 
 11) Start the scheduler 
-   - cd octo-robot
-   - ./bin/python masterblaster/scheduler_arena.py (For testing)
-   - ./bin/python masterblaster/scheduler_window_swiss.py (For real)
-   
+
+```
+cd octo-robot
+./bin/python masterblaster/scheduler_arena.py (For testing)
+./bin/python masterblaster/scheduler_window_swiss.py (For real)
+```
+
 Afterwhich the scheduler will use a whole terminal so create a new one
 
 12) Start the archiver
-   - cd octo-robot
-   - ./bin/python masterblaster/smart_archiver.py
+
+```
+cd octo-robot
+./bin/python masterblaster/smart_archiver.py
+```
 
 create another terminal 
 At this point the entire headnode should be setup, and all that is left is to create the gladiators to start playing the games. 
@@ -277,19 +287,24 @@ Additionally there should be 5 games already scheduled, and some output on the s
 
 13) Start a gladiator. 
    - There is a file on the main branch called generate_gladiator_package.py, this file was created to easy the difficulty of starting a gladiator. Normally one would have to download the server, and tar the server files and the files in the gladiator folder, this should do that for you you'll just need to pass in the parameter for where to find the MegaMinerAI repository that you'll want the server from. 
-   
-   An example for MegaMinerAI15 is as such, 
-      - cd octo-robot
-      - ./bin/python masterblaster/generate_gladiator_package.py MegaMinerAI-15
+
+```
+cd octo-robot
+./bin/python masterblaster/generate_gladiator_package.py Cerveau
+```
    
 For development work all that is then needed is to change the path for living_corders in the spinup_local_gladiator.py file then 
 
+```
 ./bin/python masterblaster/spinup_local_gladiator.py
-    
+```
+
 This will create a replica of what a real gladiator would have. 
 then one can go into the living_corders directory and 
 
+```
 bash ./kick.sh
+```
 
 which will spinup a gladiator, which will then should begin runnning games. 
     
