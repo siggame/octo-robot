@@ -255,15 +255,37 @@ def update_local_repo(client):
     subprocess.call(['rm', '-rf', client['name']],
                     stdout=file('/dev/null'),
                     stderr=subprocess.STDOUT)
-    print "git clone %s%s client: %s" % (base_path, client['repo'], client['name'])
-
-    subprocess.call(['git', 'clone',
-                     '%s%s' % (base_path, client['repo']), client['name']],
+    
+    numFailed = 0
+    while numFailed < 10000:        #try to clone 10000 times
+        try:
+            print "git clone %s%s client: %s" % (base_path, client['repo'], client['name'])
+            subprocess.call(['git', 'clone',
+                    '%s%s' % (base_path, client['repo']), client['name']],
                     stdout=file('%s-gitout.txt' % client['name'], 'w'),
                     stderr=subprocess.STDOUT)
-    subprocess.call(['git', 'checkout', 'master'], cwd=client['name'],
+            
+
+            subprocess.call(['git', 'checkout', 'master'], cwd=client['name'],
                     stdout=file('%s-gitout.txt' % client['name'], 'a'),
                     stderr=subprocess.STDOUT)
+            print "Clone successful!"
+            break
+        except OSError:
+            numFailed += 1      #keep track of how many times 
+            print "Clone failed, retrying"
+    #if numFailed == 10000:
+        #Insert code to handle permanent clone failure here
+        #------------------------------------------------------
+        #
+        #
+        #
+        #
+        #
+        #
+        #
+        #
+        #------------------------------------------------------
     subprocess.call(['git', 'pull'], cwd=client['name'],
                     stdout=file('%s-gitout.txt' % client['name'], 'a'),
                     stderr=subprocess.STDOUT)
@@ -271,6 +293,7 @@ def update_local_repo(client):
                     stdout=file('%s-gitout.txt' % client['name'], 'a'),
                     stderr=subprocess.STDOUT,
                     cwd=client['name'])
+    print "Checking out ", client['tag']
 
 
 if __name__ == "__main__":
