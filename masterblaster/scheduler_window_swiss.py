@@ -16,6 +16,9 @@ from utilities.webinteraction import update_clients
 from collections import defaultdict, deque
 from math import log
 
+import django
+django.setup()
+
 uncompleted_games = []
 score_window = defaultdict(deque)
 
@@ -90,7 +93,7 @@ def schedule_a_game(stalk):
     # Shuffle player order and schedule the game
     players = [least_recent, partner]
     random.shuffle(players)
-    uncompleted_games.append(sked(players[0], players[1], stalk, "Window Swiss Scheduler"))
+    uncompleted_games.append(sked(players[0], players[1], stalk, "Window Swiss Scheduler", ttr=300))
 
 if __name__ == "__main__":
     main()
