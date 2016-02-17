@@ -25,7 +25,7 @@ test_t = os.environ['GAME_NAME'].split("-")
 
 if len(test_t) == 1:
     game_name = test_t[0]
-else if len(test_t) == 3:
+elif len(test_t) == 3:
     game_name = test_t[2]
 else:
     print "Not sure which game to play"
