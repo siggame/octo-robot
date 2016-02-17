@@ -21,8 +21,20 @@ from bz2 import BZ2File
 import beanstalkc
 import boto
 
-game_name = os.environ['GAME_NAME'].split("-")[2]
+test_t = os.environ['GAME_NAME'].split("-")
+
+if len(test_t) == 1:
+    game_name = test_t[1]
+else if len(test_t) == 2:
+    game_name = test_t[2]
+else:
+    print "Not sure which game to play"
 game_name = game_name[0].upper() + game_name[1:len(game_name)]
+
+print "Playing with game: ", game_name
+
+
+
 
 def main(games_to_play=None):
     stalk = beanstalkc.Connection(host=os.environ['BEANSTALK_HOST'])
