@@ -23,12 +23,13 @@ import boto
 
 test_t = os.environ['GAME_NAME'].split("-")
 
-if len(test_t) == 1:
-    game_name = test_t[1]
-elif len(test_t) == 2:
+if len(test_t) == 2:
+    game_name = test_t[0]
+elif len(test_t) == 3:
     game_name = test_t[2]
 else:
     print "Not sure which game to play"
+    game_name = test_t
 game_name = game_name[0].upper() + game_name[1:len(game_name)]
 
 print "Playing with game: ", game_name
@@ -247,18 +248,18 @@ def push_gamelog(game):
     gamelog_filename = "%s/output/gamelogs/%s-%s.json.gz" % (server_path, game_name, game['number'])
     # salt exists to stop people from randomly probing for files
     salt = md5.md5(str(random.random())).hexdigest()[:5]
-    remote = "%s-Anarchy-%s.json.gz" % (game['number'], salt)
-    local_json = "%s/output/gamelogs/%s-%s.json" % (server_path, game_name, game['number'])
-    with gzip.open("%s/output/gamelogs/%s-%s.json.gz" % (server_path, game_name, game['number']), 'rb') as f:
-        log = f.read()
-        local_json_data = open(local_json, 'w')
-        local_json_data.write(log)
-        local_json_data.close()
-    remote_json = "%s-Anarchy-%s.json" % (game['number'], salt)
+    remote = "%s-%s-%s.json.gz" % (game['number'], game_name, salt)
+    #local_json = "%s/output/gamelogs/%s-%s.json" % (server_path, game_name, game['number'])
+    #with gzip.open("%s/output/gamelogs/%s-%s.json.gz" % (server_path, game_name, game['number']), 'rb') as f:
+       #log = f.read()
+       #local_json_data = open(local_json, 'w')
+       #local_json_data.write(log)
+       #local_json_data.close()
+    #remote_json = "%s-Anarchy-%s.json" % (game['number'], salt)
     game['gamelog_url'] = push_file(gamelog_filename, remote)
-    push_file(local_json, remote_json)
+    #push_file(local_json, remote_json)
     os.remove(gamelog_filename)
-    os.remove(local_json)
+    #os.remove(local_json)
 
 
 def update_local_repo(client):
@@ -286,6 +287,7 @@ def update_local_repo(client):
         except OSError:
             numFailed += 1      #keep track of how many times 
             print "Clone failed, retrying"
+            sleep(0.01)         #Wait 10ms before attempting to clone again
     #if numFailed == 10000:
         #Insert code to handle permanent clone failure here
         #------------------------------------------------------
