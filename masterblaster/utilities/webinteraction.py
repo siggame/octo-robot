@@ -16,7 +16,6 @@ def test_api(custom_game_name):
     print r.status_code
     print r.text
     print r.json()
-        
 
 def update_clients(api_url=None):
     '''update the database with the current clients, based on game_name'''
