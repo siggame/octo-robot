@@ -147,7 +147,7 @@ cd back to the base project directory, octo-robot
 
 ```
 ./bin/production migrate
-python bin/production createsuperuser
+./bin/production createsuperuser
 ```
 
 You should get a prompt asking for information about setting up a test user.
