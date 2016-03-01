@@ -287,9 +287,9 @@ def update_local_repo(client):
             numFailed += 1      #keep track of how many times 
             print "Clone failed, retrying"
             if numFailed <= 15:
-	        sleep(0.01)         #Wait 10ms before attempting to clone again
-	    elif numFailed > 15:
-	        sleep(.5)
+                sleep(0.01)         #Wait 10ms before attempting to clone again
+            elif numFailed > 15:
+                sleep(.5)
     #if numFailed == 10000:
         #Insert code to handle permanent clone failure here
         #------------------------------------------------------
