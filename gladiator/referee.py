@@ -212,7 +212,7 @@ def parse_gamelog(game_number):
     return None
 
 
-def push_file(local_filename, remote_filename):
+def push_file(local_filename, remote_filename, is_glog):
     ''' Push this thing to s3 '''
     bucket_name = "%s" % (os.environ['S3_PREFIX'])
     access_cred = os.environ['ACCESS_CRED']
@@ -223,7 +223,10 @@ def push_file(local_filename, remote_filename):
     b = c.get_bucket(bucket_name)
     k = boto.s3.key.Key(b)
     k.key = 'logs/%s/%s' % (os.environ['GAME_NAME'], remote_filename)
-    k.set_contents_from_filename(local_filename, {'Content-Type': 'application/x-gzip', 'Content-Encoding': 'gzip'}, policy='public-read')
+    if is_glog:
+        k.set_contents_from_filename(local_filename, {'Content-Type': 'application/x-gzip', 'Content-Encoding': 'gzip'}, policy='public-read')
+    else:
+        k.set_contents_from_filename(local_filename)
     return "http://%s.s3.amazonaws.com/%s" % (bucket_name, k.key)
 
 
@@ -237,7 +240,7 @@ def push_datablocks(game):
                 z.write('%s-%s.txt' % (client['name'], suffix))
         salt = md5.md5(str(random.random())).hexdigest()[:5]
         remote = "%s-%s-%s-data.zip" % (game['number'], salt, client['name'])
-        client['output_url'] = push_file(in_name, remote)
+        client['output_url'] = push_file(in_name, remote, False)
         os.remove(in_name)
 
 
@@ -255,7 +258,7 @@ def push_gamelog(game):
        #local_json_data.write(log)
        #local_json_data.close()
     #remote_json = "%s-Anarchy-%s.json" % (game['number'], salt)
-    game['gamelog_url'] = push_file(gamelog_filename, remote)
+    game['gamelog_url'] = push_file(gamelog_filename, remote, True)
     #push_file(local_json, remote_json)
     os.remove(gamelog_filename)
     #os.remove(local_json)
