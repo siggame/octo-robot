@@ -135,8 +135,6 @@ def looping(stalk):
     print "Final client status"
     print "client1 %s client2 %s and gamelog %s" % (str(p0_good), str(p1_good), str(glog_done))
 
-    print "pushing data blocks...", game['number']
-    push_datablocks(game)
 
     if not glog_done:  # no glog, game did not terminate correctly
         print "game %s early termination, broken client" % game['number']
@@ -167,6 +165,8 @@ def looping(stalk):
         print game['winner']['name'], "beat", game['loser']['name']
 
     # clean up
+    print "pushing data blocks...", game['number']
+    push_datablocks(game)
     print "pushing gamelog..."
     push_gamelog(game)
     game['status'] = "Complete"
