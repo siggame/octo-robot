@@ -47,13 +47,23 @@ def update_window(max_size):
         if game_data.status == "Complete":
             uncompleted_games.remove(g)
             
-            # Update the score windows for both teams, giving the winner a 1
-            score_window[game_data.winner.name].append(1)
-            print "Winner: ", game_data.winner.name, score_window[game_data.winner.name]
-            shrink(game_data.winner.name, max_size)
-            score_window[game_data.loser.name].append(0)
-            print "Loser: ", game_data.loser.name, score_window[game_data.loser.name]
-            shrink(game_data.loser.name, max_size)
+            if game_data.tied == True:
+                print "Game tied!"
+                clients = list(game_data.clients.all())
+                score_window[clients[0].name].append(0.5)
+                print "Player 1: ", clients[0].name, score_window[clients[0].name]
+                shrink(clients[0].name, max_size)
+                score_window[clients[1].name].append(0.5)
+                print "Player 2: ", clients[1].name, score_window[clients[1].name]
+                shrink(clients[1].name, max_size)
+            else:
+                # Update the score windows for both teams, giving the winner a 1
+                score_window[game_data.winner.name].append(1)
+                print "Winner: ", game_data.winner.name, score_window[game_data.winner.name]
+                shrink(game_data.winner.name, max_size)
+                score_window[game_data.loser.name].append(0)
+                print "Loser: ", game_data.loser.name, score_window[game_data.loser.name]
+                shrink(game_data.loser.name, max_size)
 
         elif game_data.status == "Failed":
             uncompleted_games.remove(g)

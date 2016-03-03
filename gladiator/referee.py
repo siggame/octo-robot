@@ -83,6 +83,7 @@ def looping(stalk):
         print "failing the game, someone didn't compile"
         game['status'] = "Failed"
         game['completed'] = str(datetime.now())
+        game['tied'] = False
         push_datablocks(game)
         stalk.put(json.dumps(game))
         job.delete()
@@ -140,6 +141,7 @@ def looping(stalk):
         print "game %s early termination, broken client" % game['number']
         game['status'] = "Failed"
         game['completed'] = str(datetime.now())
+        game['tied'] = False
         if not p0_good:
             game['clients'][0]['broken'] = True
         if not p1_good:
@@ -156,6 +158,7 @@ def looping(stalk):
         print game['clients'][0]['name'], "and", \
             game['clients'][1]['name'], "tied!"
     else:
+        game['tied'] = False
         if winner == '0':
             game['winner'] = game['clients'][0]
             game['loser'] = game['clients'][1]
