@@ -4,10 +4,12 @@
 
 # Standard Imports
 import re
+import requests
 import json
 import gzip
 import subprocess
 import os
+import time
 import signal
 import random
 import socket
@@ -81,12 +83,7 @@ def looping(stalk):
     # ties are ok, but really annoying
     if not all([x['compiled'] for x in game['clients']]):
         print "failing the game, someone didn't compile"
-        game['status'] = "Failed"
-        game['completed'] = str(datetime.now())
-        game['tied'] = False
-        push_datablocks(game)
-        stalk.put(json.dumps(game))
-        job.delete()
+        fail_game(game, job, stalk)
         return
 
     # start the clients
@@ -99,7 +96,28 @@ def looping(stalk):
                              stdout=file('%s-stdout.txt' % cl['name'], 'w'),
                              stderr=file('%s-stderr.txt' % cl['name'], 'w'),
                              cwd=cl['name']))
-
+    
+    # make sure both clients have connected
+    game_server_ip        = os.environ['SERVER_HOST']
+    game_server_status    = requests.get('http://%s:3080/status/%s/%s' % (game_server_ip, game_name, game['number'])
+    start_time            = int(round(time.time() * 1000))
+    current_time          = start_time
+    MAX_TIME              = 10000           # in milliseconds
+    
+    # block while at least one client is not connected
+    while (((game_server_status['status'] == "empty") or (game_server_status['status'] == "open")) and
+          (current_time - start_time <= MAX_TIME)):
+        sleep(0.05)       # wait a bit for the clients to connect
+        current_time = int(round(time.time() * 1000))
+    
+    # check if we timed out waiting for clients to connect
+    if current_time - start_time > MAX_TIME:
+        print "Failing the game, only %d clients connected" % (len(game_server_status['clients']))
+        for player in players:
+            player.kill()
+        fail_game(game, job, stalk)
+        return
+    
     # game is running. watch for gamelog
     print "running...", game['number']
     server_path = os.environ['SERVER_PATH']
@@ -108,6 +126,7 @@ def looping(stalk):
     p0_good = True
     p1_good = True
     glog_done = False
+    
     while p0_good and p1_good and not glog_done:
         print "Monitoring client1 %s client2 %s and gamelog %s" % (str(p0_good), str(p1_good), str(glog_done))
         job.touch()
@@ -189,6 +208,13 @@ def compile_client(client):
                            stdout=file("%s-makeout.txt" % client['name'], "w"),
                            stderr=subprocess.STDOUT)
 
+def fail_game(game, job, stalk):
+    game['status'] = "Failed"
+    game['complete'] = str(datetime.now())
+    game['tied'] = False
+    push_datablocks(game)
+    stalk.put(json.dumps(game))
+    job.delete()
 
 def parse_gamelog(game_number):
     ''' Determine winner by parsing that last s-expression in the gamelog
