@@ -91,15 +91,19 @@ def looping(stalk):
     players = list()
     for cl in game['clients']:
         sleep(10)  # ensures ['clients'][0] plays as p0
+        print("Connecting client: ", len(players))
+
         players.append(
             subprocess.Popen(['bash', 'run', game_name, '-r', game['number'], '-s', server_host],
                              stdout=file('%s-stdout.txt' % cl['name'], 'w'),
                              stderr=file('%s-stderr.txt' % cl['name'], 'w'),
                              cwd=cl['name']))
+        break
+
     
     # make sure both clients have connected
     game_server_ip        = os.environ['SERVER_HOST']
-    game_server_status    = requests.get('http://%s:3080/status/%s/%s' % (game_server_ip, game_name, game['number'])
+    game_server_status    = requests.get('http://%s:3080/status/%s/%s' % (game_server_ip, game_name, game['number'])).json()
     start_time            = int(round(time.time() * 1000))
     current_time          = start_time
     MAX_TIME              = 10000           # in milliseconds
@@ -107,8 +111,12 @@ def looping(stalk):
     # block while at least one client is not connected
     while (((game_server_status['status'] == "empty") or (game_server_status['status'] == "open")) and
           (current_time - start_time <= MAX_TIME)):
-        sleep(0.05)       # wait a bit for the clients to connect
+        sleep(0.5)        # wait a bit for the clients to connect
+        print "Current time", current_time
         current_time = int(round(time.time() * 1000))
+        if game_server_status['status'] == "open":
+            print len(game_server_status['clients'])
+        game_server_status    = requests.get('http://%s:3080/status/%s/%s' % (game_server_ip, game_name, game['number'])).json()
     
     # check if we timed out waiting for clients to connect
     if current_time - start_time > MAX_TIME:
