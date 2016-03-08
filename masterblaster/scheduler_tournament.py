@@ -20,6 +20,9 @@ import beanstalkc
 from thunderdome.config import game_name
 from thunderdome.models import Game, GameData, Match
 
+import django
+django.setup()
+
 stalk = None
 
 
