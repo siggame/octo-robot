@@ -83,6 +83,7 @@ def looping(stalk):
         print "failing the game, someone didn't compile"
         game['status'] = "Failed"
         game['completed'] = str(datetime.now())
+        game['tied'] = False
         push_datablocks(game)
         stalk.put(json.dumps(game))
         job.delete()
@@ -135,13 +136,12 @@ def looping(stalk):
     print "Final client status"
     print "client1 %s client2 %s and gamelog %s" % (str(p0_good), str(p1_good), str(glog_done))
 
-    print "pushing data blocks...", game['number']
-    push_datablocks(game)
 
     if not glog_done:  # no glog, game did not terminate correctly
         print "game %s early termination, broken client" % game['number']
         game['status'] = "Failed"
         game['completed'] = str(datetime.now())
+        game['tied'] = False
         if not p0_good:
             game['clients'][0]['broken'] = True
         if not p1_good:
@@ -158,6 +158,7 @@ def looping(stalk):
         print game['clients'][0]['name'], "and", \
             game['clients'][1]['name'], "tied!"
     else:
+        game['tied'] = False
         if winner == '0':
             game['winner'] = game['clients'][0]
             game['loser'] = game['clients'][1]
@@ -167,6 +168,8 @@ def looping(stalk):
         print game['winner']['name'], "beat", game['loser']['name']
 
     # clean up
+    print "pushing data blocks...", game['number']
+    push_datablocks(game)
     print "pushing gamelog..."
     push_gamelog(game)
     game['status'] = "Complete"
@@ -212,7 +215,7 @@ def parse_gamelog(game_number):
     return None
 
 
-def push_file(local_filename, remote_filename):
+def push_file(local_filename, remote_filename, is_glog):
     ''' Push this thing to s3 '''
     bucket_name = "%s" % (os.environ['S3_PREFIX'])
     access_cred = os.environ['ACCESS_CRED']
@@ -223,7 +226,10 @@ def push_file(local_filename, remote_filename):
     b = c.get_bucket(bucket_name)
     k = boto.s3.key.Key(b)
     k.key = 'logs/%s/%s' % (os.environ['GAME_NAME'], remote_filename)
-    k.set_contents_from_filename(local_filename, {'Content-Type': 'application/x-gzip', 'Content-Encoding': 'gzip'}, policy='public-read')
+    if is_glog:
+        k.set_contents_from_filename(local_filename, {'Content-Type': 'application/x-gzip', 'Content-Encoding': 'gzip'}, policy='public-read')
+    else:
+        k.set_contents_from_filename(local_filename)
     return "http://%s.s3.amazonaws.com/%s" % (bucket_name, k.key)
 
 
@@ -237,7 +243,7 @@ def push_datablocks(game):
                 z.write('%s-%s.txt' % (client['name'], suffix))
         salt = md5.md5(str(random.random())).hexdigest()[:5]
         remote = "%s-%s-%s-data.zip" % (game['number'], salt, client['name'])
-        client['output_url'] = push_file(in_name, remote)
+        client['output_url'] = push_file(in_name, remote, False)
         os.remove(in_name)
 
 
@@ -255,7 +261,7 @@ def push_gamelog(game):
        #local_json_data.write(log)
        #local_json_data.close()
     #remote_json = "%s-Anarchy-%s.json" % (game['number'], salt)
-    game['gamelog_url'] = push_file(gamelog_filename, remote)
+    game['gamelog_url'] = push_file(gamelog_filename, remote, True)
     #push_file(local_json, remote_json)
     os.remove(gamelog_filename)
     #os.remove(local_json)
@@ -286,7 +292,10 @@ def update_local_repo(client):
         except OSError:
             numFailed += 1      #keep track of how many times 
             print "Clone failed, retrying"
-            sleep(0.01)         #Wait 10ms before attempting to clone again
+            if numFailed <= 15:
+                sleep(0.01)         #Wait 10ms before attempting to clone again
+            elif numFailed > 15:
+                sleep(.5)
     #if numFailed == 10000:
         #Insert code to handle permanent clone failure here
         #------------------------------------------------------
