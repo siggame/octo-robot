@@ -262,7 +262,7 @@ def maintain_match(match):
             game.status = "Scheduled"
             game.save()
             stalk.put(game.stats, ttr=300)
-            print "Scheduled", player_order[0].name, "vs", player_order[1].name
+            print "Scheduled", game, player_order[0].name, "vs", player_order[1].name
         else:
             player_order = list(game.clients.all())
             print "Got", player_order[0].name, "vs", player_order[1].name, "from pool"
