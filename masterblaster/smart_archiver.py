@@ -5,7 +5,9 @@
 
 # Standard Imports
 import time
+import urllib
 import math
+import gzip
 import os
 import urllib2
 from copy import copy
@@ -80,6 +82,9 @@ def main():
                 game.completed = request['completed']
                 #process_game_stats(game)
             #Recompute the scoreboard and throughput
+            game.tied = request['tied']
+            if game.tied:
+                print "Game", request['number'], "tied!"
             handle_completion(request, game)
         game.save()
         job.delete()
@@ -113,13 +118,10 @@ def process_game_stats(game):
     global clusters
     if game.status == "Complete":
         data = json.loads(game.stats)
-        gamelogurl = data['gamelog_url']
-        try:
-            j = urllib2.urlopen(gamelogurl)
-        except:
-            print "error when fetching gamelog at ", gamelogurl
-        game_log = BZ2Decompressor().decompress(j.read())
-        j.close()
+        gamelogurl = game.gamelog_url
+        with gzip.open(urllib.urlretrieve(gamelogurl), 'rb') as j:
+            game_log = j.read()
+
         game_stats = gamelog_regepars.get_stats(game_log)
         print 'GAME STATS ', game_stats
         data['rating_stats'] = game_stats
@@ -261,6 +263,7 @@ def handle_completion(request, game):
     if 'winner' in request and 'loser' in request:
         assign_elo(game.winner, game.loser)
         adjust_win_rate(game.winner, game.loser)
+
 
     #add_gamelog_data(game)
 

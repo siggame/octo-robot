@@ -94,6 +94,7 @@ class Game(models.Model):
     completed = models.DateTimeField(null=True)
     claimed = models.BooleanField(default=True)
     tournament = models.BooleanField(default=False)
+    tied = models.BooleanField(default=False)
     stats = models.TextField(default='') # holds extra stuff via JSON
 
     class Meta():
