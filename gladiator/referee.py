@@ -103,7 +103,8 @@ def looping(stalk):
     
     # make sure both clients have connected
     game_server_ip        = os.environ['SERVER_HOST']
-    game_server_status    = requests.get('http://%s:3080/status/%s/%s' % (game_server_ip, game_name, game['number'])).json()
+    game_server_status    = requests.get('http://%s:3080/status/%s/%s' %
+                            (game_server_ip, game_name, game['number'])).json()
     start_time            = int(round(time.time() * 1000))
     current_time          = start_time
     MAX_TIME              = 10000           # in milliseconds
@@ -112,11 +113,11 @@ def looping(stalk):
     while (((game_server_status['status'] == "empty") or (game_server_status['status'] == "open")) and
           (current_time - start_time <= MAX_TIME)):
         sleep(0.5)        # wait a bit for the clients to connect
-        print "Current time", current_time
         current_time = int(round(time.time() * 1000))
         if game_server_status['status'] == "open":
             print len(game_server_status['clients'])
-        game_server_status    = requests.get('http://%s:3080/status/%s/%s' % (game_server_ip, game_name, game['number'])).json()
+        game_server_status = requests.get('http://%s:3080/status/%s/%s' %
+                             (game_server_ip, game_name, game['number'])).json()
     
     # check if we timed out waiting for clients to connect
     if current_time - start_time > MAX_TIME:
@@ -131,6 +132,7 @@ def looping(stalk):
     server_path = os.environ['SERVER_PATH']
     game['status'] = "Running"
     stalk.put(json.dumps(game))
+    """
     p0_good = True
     p1_good = True
     glog_done = False
@@ -143,6 +145,22 @@ def looping(stalk):
         p1_good = players[1].poll() is None
         glog_done = os.access("%s/output/gamelogs/%s-%s.json.gz" %
                               (server_path, game_name, game['number']), os.F_OK)
+    """
+    
+    # wait until the game is over
+    game_server_status = requests.get('http://%s:3080/status/%s/%s' %
+                         (game_server_ip, game_name, game['number'])).json()
+    
+    while game_server_status['status'] != 'over':
+        sleep(1)
+        game_server_status = requests.get('http://%s:3080/status/%s/%s' %
+                             (game_server_ip, game_name, game['number'])).json()
+	
+    # get the status of everything
+    p0_good = players[0].poll() is None
+    p1_good = players[1].poll() is None
+       
+    
 
     for x in players:
       try:
