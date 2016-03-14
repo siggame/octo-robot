@@ -10,6 +10,8 @@ from thunderdome.models import Client
 from thunderdome.sked import sked
 from masterblaster.utilities.webinteraction import update_clients
 
+import django
+django.setup()
 
 def validateSched(stalk):
     print "updating clients"
