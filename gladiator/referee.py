@@ -92,14 +92,18 @@ def looping(stalk):
     # start the clients
     server_host = os.environ['SERVER_HOST']
     players = list()
-    for cl in game['clients']:
-        sleep(10)  # ensures ['clients'][0] plays as p0
+    for i, cl in enumerate(game['clients']):
         players.append(
-            subprocess.Popen(['bash', 'run', game_name, '-r', game['number'], '-s', server_host],
+            subprocess.Popen(['bash',
+                                'run', game_name,
+                                '-r', game['number'],
+                                '-s', server_host,
+                                '-i', str(i),
+                                '-n', cl['name']
+                             ], 
                              stdout=file('%s-stdout.txt' % cl['name'], 'w'),
                              stderr=file('%s-stderr.txt' % cl['name'], 'w'),
                              cwd=cl['name']))
-
     # game is running. watch for gamelog
     print "running...", game['number']
     server_path = os.environ['SERVER_PATH']
