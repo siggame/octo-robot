@@ -96,6 +96,8 @@ class Game(models.Model):
     tournament = models.BooleanField(default=False)
     tied = models.BooleanField(default=False)
     stats = models.TextField(default='') # holds extra stuff via JSON
+    win_reason = models.CharField(max_length=1024, default='Unknown reason') #Reason the winner won
+    lose_reason = models.CharField(max_length=1024, default='Unknown reason') #Reason the loser lost
 
     class Meta():
         ordering = ['-completed', '-id']

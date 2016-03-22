@@ -83,6 +83,9 @@ def main():
                 #process_game_stats(game)
             #Recompute the scoreboard and throughput
             game.tied = request['tied']
+            game.win_reason = request['win_reason']
+            game.lose_reason = request['lose_reason']
+            print game.win_reason
             if game.tied:
                 print "Game", request['number'], "tied!"
             handle_completion(request, game)
