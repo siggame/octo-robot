@@ -163,6 +163,7 @@ def looping(stalk):
 
     # figure out who won by reading the gamelog
     print "determining winner..."
+    winner = []
     winner = parse_gamelog(game['number'])
     if winner[0] == '2':
         game['tied'] = True
