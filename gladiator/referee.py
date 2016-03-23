@@ -221,12 +221,12 @@ def parse_gamelog(game_number):
         if realWinner is None:
             realWinner = winner['index']
         else:
-            data.append(2)
+            data.append('2')
             data.append(winner['reason'])
             return data # there was more than one winner, so it's a tie
 
     if len(losers) == 2:
-        data.append(2)
+        data.append('2')
         data.append(losers[0]['reason'])
         return data # again, a tie
     
