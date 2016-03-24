@@ -42,6 +42,22 @@ def make_bye():
 
 
 def build_triple_elim():
+    try:
+      whoEli = sys.argv[1]
+    except:
+      print "Why no parameters? :("
+      print "Who is eligible? 'eligible' or 'all'?"
+      return
+
+    if whoEli == "eligible":
+      eligible_count = Client.objects.filter(embargoed=False).filter(eligible=True).filter(missing=False).count()
+    elif whoEli == "all":
+      eligible_count = Client.objects.filter(embargoed=False).filter(missing=False).count()
+    else:
+      print whoEli, "is not valid :("
+      print "Who is eligible? 'eligible' or 'all'?"
+      return
+
     match_map = dict()
 
     def make_match(my_ID, mother_type, father_type, mother_ID, father_ID):
@@ -54,8 +70,7 @@ def build_triple_elim():
         m.tournament = tournament
         m.save()
 
-    eligible_count = Client.objects.filter(embargoed=False).filter(eligible=True).filter(missing=False).count()
-    # eligible_count = Client.objects.filter(embargoed=False).filter(missing=False).count()
+
     exp2 = int(ceil(log(eligible_count, 2)))
     bracket_size = pow2(exp2)
     print eligible_count
