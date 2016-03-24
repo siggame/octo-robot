@@ -85,9 +85,16 @@ def main():
             game.tied = request['tied']
             game.win_reason = request['win_reason']
             game.lose_reason = request['lose_reason']
-            print game.win_reason
             if game.tied:
-                print "Game", request['number'], "tied!"
+                count = 0
+                for guy in request['clients']:
+                    if count > 0:
+                        print "vs.",
+                    print guy['name'],
+                    count += 1
+                print ":", game.win_reason
+            else:
+                print request['winner']['name'], "beat", request['loser']['name'], "because", game.win_reason
             handle_completion(request, game)
         game.save()
         job.delete()
