@@ -328,12 +328,13 @@ def assign_elo(winner, loser):
 
 def adjust_win_rate(w, l, alpha=0.15):
     win_p, w_created = WinRatePrediction.objects.get_or_create(winner=w, loser=l)
-    old = copy(win_p)
+    old_win = copy(win_p)
     lose_p, l_created = WinRatePrediction.objects.get_or_create(winner=l, loser=w)
+    old_lose = copy(lose_p)
     win_p.prediction += alpha * (1 - win_p.prediction)
     lose_p.prediction -= alpha * lose_p.prediction
-    #old, win_p.prediction
-    print "Prediction Updated:", w.name, old.prediction, "to", win_p.prediction
+    print "Prediction Updated:", w.name, old_win.prediction, "to", win_p.prediction
+    print "Prediction Updated:", l.name, old_lose.prediction, "to", lose_p.prediction
     win_p.save()
     lose_p.save()
 
