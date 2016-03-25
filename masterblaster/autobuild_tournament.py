@@ -11,7 +11,11 @@ from math import log, ceil
 from thunderdome.models import Client, Match
 from seeder import seed_tournament, seed
 
-tournament = 2233216
+# Other imports
+import argparse
+
+
+tournament = 2233217
 ### seed doods
 # seed()
 seed_tournament()
@@ -42,20 +46,18 @@ def make_bye():
 
 
 def build_triple_elim():
-    try:
-      whoEli = sys.argv[1]
-    except:
-      print "Why no parameters? :("
-      print "Who is eligible? 'eligible' or 'all'?"
-      return
+    
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--eligible", help="Build a tournament with eligible clients only")
+    parser.add_argument("--everyone", help="Build a tournament with all clients")
+    args = parser.parse_args()
 
-    if whoEli == "eligible":
+    if args.eligible:
       eligible_count = Client.objects.filter(embargoed=False).filter(eligible=True).filter(missing=False).count()
-    elif whoEli == "all":
+    elif args.everyone:
       eligible_count = Client.objects.filter(embargoed=False).filter(missing=False).count()
     else:
-      print whoEli, "is not valid :("
-      print "Who is eligible? 'eligible' or 'all'?"
+      print "Dude, what you doin'?  Use --help next time!"
       return
 
     match_map = dict()
