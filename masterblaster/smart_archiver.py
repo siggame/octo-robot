@@ -85,7 +85,7 @@ def main():
             game.tied = request['tied']
             game.win_reason = request['win_reason']
             game.lose_reason = request['lose_reason']
-            if game.tied:
+            if game.tied or game.status == 'Failed':
                 count = 0
                 for guy in request['clients']:
                     if count > 0:
