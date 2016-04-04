@@ -15,7 +15,7 @@ from seeder import seed_tournament, seed
 import argparse
 
 
-tournament = 2233217
+tournament = 24567218
 ### seed doods
 # seed()
 seed_tournament()
@@ -48,8 +48,9 @@ def make_bye():
 def build_triple_elim():
     
     parser = argparse.ArgumentParser()
-    parser.add_argument("--eligible", help="Build a tournament with eligible clients only")
-    parser.add_argument("--everyone", help="Build a tournament with all clients")
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument("--eligible", help="Build a tournament with eligible clients only", action="store_true")
+    group.add_argument("--everyone", help="Build a tournament with all clients", action="store_true")
     args = parser.parse_args()
 
     if args.eligible:
@@ -58,6 +59,7 @@ def build_triple_elim():
       eligible_count = Client.objects.filter(embargoed=False).filter(missing=False).count()
     else:
       print "Dude, what you doin'?  Use --help next time!"
+      
       return
 
     match_map = dict()
