@@ -227,7 +227,7 @@ def push_file(local_filename, remote_filename, is_glog):
     k = boto.s3.key.Key(b)
     k.key = 'logs/%s/%s' % (os.environ['GAME_NAME'], remote_filename)
     if is_glog:
-        k.set_contents_from_filename(local_filename, {'Content-Type': 'application/x-gzip', 'Content-Encoding': 'gzip'}, policy='public-read')
+        k.set_contents_from_filename(local_filename, {'Content-Type': 'application/json; charset=utf-8', 'Content-Encoding': 'gzip'}, policy='public-read')
     else:
         k.set_contents_from_filename(local_filename, policy='public-read')
     return "http://%s.s3.amazonaws.com/%s" % (bucket_name, k.key)
