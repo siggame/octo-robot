@@ -266,7 +266,6 @@ def compute_scoreboard():
 def handle_completion(request, game):
     if 'winner' in request:
         game.winner = Client.objects.get(name=request['winner']['name'])
-        game.winner.score += 1.0
     if 'loser' in request:
         game.loser = Client.objects.get(name=request['loser']['name'])
 
@@ -303,8 +302,6 @@ def handle_completion(request, game):
             gd.output_url = clidict[gd.client.name]['output_url']
         except KeyError:
             pass
-        if 'tied' in request:
-            gd.client.score += 0.5
         gd.client.save()
         gd.save()
 

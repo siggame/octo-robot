@@ -73,7 +73,7 @@ def main():
     clientNum = 0
     parser = argparse.ArgumentParser(description='Swiss Chess scheduler')
     parser.add_argument('--h', action='store_true', help='Whether to include humans, mainly for the swiss tournament')
-    parser.add_argument('--i', action='store_false', help='Schedule rounds iteratively, reseting after a winner has been found')
+    parser.add_argument('--i', action='store_true', help='Schedule rounds iteratively, reseting after a winner has been found')
     parser.add_argument('--r', type=int, default=-1, help="Number of rounds to run, if iterative this is ignored")
     args = parser.parse_args()
     print args
@@ -81,11 +81,17 @@ def main():
     iterative_swiss = args.i
     CD.main()
     cli = Client.objects.all()
+    gam = Game.objects.all()
     for x in cli:
         if not include_humans and x.language == 'Human':
             clientNum -= 1
         clientNum += 1
-        x.score = 0
+        x.score = 0.0
+        x.save()
+    
+    for x in gam:
+        x.swissUsed = False
+        x.save()
 
     while clientNum > 1:
         clientNum = clientNum / 2
@@ -106,13 +112,14 @@ def main():
     while current_round <= max_rounds:
         # stats = stalk.stats_tube(req_tube)
         if not uncompleted_games:
+            print "Current Round:", current_round
             if current_round > 0 and hasAWinner(create_score_brackets()):
                 if iterative_swiss:
                     current_round = 0
             schedule_volley(stalk, current_round)
         else:
             score_games()
-        time.sleep(5)
+        time.sleep(1)
     stalk.close()           
     
 def hasAWinner(brackScores):
@@ -372,11 +379,9 @@ def setup_group(group, score_brackets, sched_dir):
                 if compatible_players(group[pos], j):
                     group[group.index(j)], group[(len(group)/2) + pos] = group[(len(group)/2) + pos], j
                     break
-                time.sleep(10)
             else:
                 print "no compatible players found in this group"
                 exit()
-            time.sleep(10)
         pos += 1
     
     # color checking and setting
@@ -435,34 +440,43 @@ def schedule_group(group, bracket_type, stalk):
         # first player is white
 
         # if a game is already computed, score the game instead of schedule
-        # this should only happen for AI vs AI games
         score_game = False
         game_to_score = None
         for g in games:
-            if g.status == 'Completed':
+            if g.status == 'Complete' and not g.swissUsed:
                 current_game = Game.objects.get(pk=g.pk)
                 game_clients = list(current_game.clients.all())
                 if game_clients[0].name == i.name and game_clients[1].name == j.name:
                     score_game = True
-                    print "Playing an AI vs AI game"
+                    print "Found game already played, using that"
                     print game_clients[0].name, "vs", game_clients[1].name
                     if g.tied:
                         print "Tie!"
                         for c in game_clients:
                             if c.name == i.name:
+                                print sys.stdout.write(c.name)
+                                print "'s score goes from", c.score, "to",
                                 c.score += 0.5
+                                print c.score
                             if c.name == j.name:
+                                print sys.stdout.write(c.name)
+                                print "'s score goes from", c.score, "to",
                                 c.score += 0.5
+                                print c.score
+
                     else:
                         for c in game_clients:
                             if c.name == g.winner.name:
-                                print c.name, "won"
+                                print c.name, "won, their score goes from", c.score, "to",
                                 c.score += 1
+                                print c.score
                             if c.name != g.winner.name:
-                                print c.name, "lost"
+                                print c.name, "lost, their score goes from", c.score, "to",
                                 c.score -= 1
+                                print c.score
 
-                break
+                    g.swissUsed = True
+                    break
 
         if not score_game:
             uncompleted_games.append(sked(c1, c2, stalk, "Swiss sked").pk)
@@ -485,8 +499,8 @@ def score_games():
                 game_clis = list(gameC.clients.all())
             except:
                 pass
-            if gameC.winner is None:
-                print "Winner is none must be a tie"
+            if gameC.tied:
+                print "Tie!"
                 game_clients = Game.objects.get(pk=g)
                 #c_iterator = game_clients.clients.iterator()
                 #c1 = c_iterator.next()
@@ -494,29 +508,42 @@ def score_games():
                 
                 for i in game_clients.clients.iterator():
                     for c in game_clis:
+                        print sys.stdout.write(c.name)
+                        print "'s score goes from", c.score, "to",
                         c.score += 0.5
-                        print c.name, "Tied:", c.score
+                        print c.score
                         scores_file.write("%s\n" % c.name)
                         scores_file.flush()
             else:
                 for c in game_clis:
                     if c.name == gameC.winner.name:
+                        print c.name, "is the winner of game", g, "and their score goes from", c.score, "to"
                         c.score += 1
-                        print c.name, "is winner of", g, c.score
+                        print c.score
                         scores_file.write("%s\n" % c.name)
                         scores_file.flush()
                     else:
+                        print c.name, "is the loser of game", g, "and their score goes from", c.score, "to"
                         c.score -= 1
+                        print c.score
                         scores_file.write("%s\n" % c.name)
                         scores_file.flush()
+            gameC.swissUsed = True
+            gameC.save()
             uncompleted_games.remove(g)
         elif game_status(g) == "Failed":            
-            print "Game:", g, "Failed aborting automated swiss."
+            print "Game:", g, "Failed attempting restart."
             print "Printing out standing"
             update_standings()
             #exit() # exit the game after outputing the stats so a manual swiss can be created.
             # during competition just restart swiss
             uncompleted_games.remove(g)
+            for x in Game.objects.all():
+                x.swissUsed = False
+                x.save()
+            for x in Client.objects.all():
+                x.score = 0.0
+                x.save()
             current_round = 0
             
 def update_standings():

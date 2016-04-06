@@ -27,9 +27,7 @@ def main():
 
 
     for x in Game.objects.all():
-        if x.status == 'Complete' or x.status == 'Failed':
-            pass
-        else:
+        if x.status != 'Completed':
             x.status = 'Failed'
             x.save()
 
