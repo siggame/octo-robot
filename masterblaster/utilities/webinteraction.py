@@ -57,8 +57,9 @@ def update_clients_from_data_block(data):
             client = Client.objects.get(name=block['team']['slug'])        
             client.eligible = block['team']['eligible_to_win']
         if client.current_version != block['tag']['commit']:
-            client.embargoed = False # this is the only place embargoed can be broken
+            client.embargoed = False # this is the only place an embargo can be broken
             client.current_version = block['tag']['commit']
+            client.language = block['language']
 
         client.save()
         updated_clients.append(client)
@@ -77,12 +78,13 @@ def makeClient(block):
     client.name = block['team']['slug']
     client.current_version = block['tag']['commit']
     client.repo = block['repository']['path']    
-    client.stats = json.dumps({"language" : block['language']})
+    client.stats = ''
     client.embargoed = False
     client.eligible = block['team']['eligible_to_win']
     client.seed = 0
     client.missing = False
     client.game_name = game_name
+    client.language = block['language']
     client.save()
     return client
 

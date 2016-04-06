@@ -9,6 +9,9 @@ from thunderdome.sked import sked
 import time
 import json
 
+import django
+django.setup()
+
 def skedRoundRobin(group, numGames, stalk):
     result = list()
     for (guy, otherguy) in combinations(group, 2):
