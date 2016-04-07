@@ -122,10 +122,11 @@ def generate_speculative_game(match):
                                          'tag'  : p.current_version})
         game.stats = json.dumps(payload_d)
         game.status = "Scheduled"
+        game.claimed = False
         game.save()
-        stalk.put(game.stats, ttr=300)
-        match.games.add(game)   # this line shouldn't exist?
-        print "Speculatively scheduled", p0.name, "vs", p1.name
+        stalk.put(game.stats, priority=2000, ttr=10000)
+        #match.games.add(game)   # this line shouldn't exist?
+        print "Speculatively scheduled", game, "with", p0.name, "vs", p1.name
 
 
 def maintain_bracket(match):
@@ -260,7 +261,7 @@ def maintain_match(match):
             game.stats = json.dumps(payload_d)
             game.status = "Scheduled"
             game.save()
-            stalk.put(game.stats, ttr=300)
+            stalk.put(game.stats, priority=1000, ttr=10000)
             print "Scheduled", game, player_order[0].name, "vs", player_order[1].name
         else:
             player_order = list(game.clients.all())
@@ -278,11 +279,13 @@ def get_game_from_pool(match):
     @param: The match to find games for.
     """
     for game in Game.objects.filter(claimed=False).order_by('id'):
-        gd = game.gamedata_set.all()
-        if gd[0].client == match.p0 and gd[1].client == match.p1:
-            return game
-        if gd[0].client == match.p1 and gd[1].client == match.p0:
-            return game
+        #gd = game.gamedata_set.all()
+        if game.status != "Failed":
+	  gd = list(game.clients.all())
+	  if gd[0].name == match.p0.name and gd[1].name == match.p1.name:
+	      return game
+	  if gd[0].name == match.p1.name and gd[1].name == match.p0.name:
+	      return game
     return None
 
 

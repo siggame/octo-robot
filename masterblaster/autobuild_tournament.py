@@ -15,7 +15,7 @@ from seeder import seed_tournament, seed
 import argparse
 
 
-tournament = 24564418
+tournament = 24356418
 ### seed doods
 # seed()
 seed_tournament()
