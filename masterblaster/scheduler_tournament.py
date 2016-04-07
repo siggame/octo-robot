@@ -45,8 +45,7 @@ def main():
         needy = [x for x in championships if x.winner is None]
         stats = stalk.stats_tube(req_tube)
         if stats['current-jobs-ready'] < 1:
-            pass
-            # generate_speculative_game(random.choice(needy))
+            generate_speculative_game(random.choice(needy))
     for g in Game.objects.filter(claimed=False):
         g.claimed = True
         g.save()
@@ -125,7 +124,7 @@ def generate_speculative_game(match):
         game.status = "Scheduled"
         game.save()
         stalk.put(game.stats, ttr=300)
-        #match.games.add(game)   # this line shouldn't exist?
+        match.games.add(game)   # this line shouldn't exist?
         print "Speculatively scheduled", p0.name, "vs", p1.name
 
 
