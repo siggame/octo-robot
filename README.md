@@ -26,7 +26,7 @@ This link should tell you everything you need to do:
 
 https://help.github.com/articles/generating-ssh-keys/
 
-2) Install all necessary libraries
+2) Install all necessary libraries. Install all of these on the head node and the gladiators.
 
 ```
 sudo apt-get install libpq-dev python-dev libyaml-dev 
@@ -159,7 +159,7 @@ cd back to the base project directory, octo-robot
 
 ```
 ./bin/production migrate
-python bin/production createsuperuser
+./bin/production createsuperuser
 ```
 
 You should get a prompt asking for information about setting up a test user.
