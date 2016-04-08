@@ -59,18 +59,6 @@ curl -sL https://deb.nodesource.com/setup_4.x | sudo -E bash -
 sudo apt-get install -y nodejs
 ```
 
-Check to see if npm is installed with:
-
-```
-npm -v
-```
-
-If it's not:
-
-```
-sudo apt-get install npm
-```
-
 For the Lua client you will need:
 
 ```
