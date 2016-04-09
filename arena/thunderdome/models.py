@@ -18,7 +18,8 @@ from django.db.models import Max
 class Client(models.Model):
     name = models.CharField(max_length=200)
     current_version = models.CharField(max_length=100, default='', null=True)
-    embargoed = models.BooleanField(default=False) # failed to compile
+    embargoed = models.BooleanField(default=False) # broke
+    embargo_reason = models.CharField(max_length=255, default='See arena team for details')
     eligible = models.BooleanField(default=False) # not able to compete for prizes
     repo = models.CharField(max_length=200, default='')
     seed = models.IntegerField(default=0)

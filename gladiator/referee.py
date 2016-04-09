@@ -137,10 +137,6 @@ def looping(stalk):
         print "it didn't dieeee!!!", e
         pass
 
-    sleep(5)
-    glog_done = os.access("%s/output/gamelogs/%s-%s.json.gz" %
-                          (server_path, game_name, game['number']), os.F_OK)
-
 
     print "Final client status"
     print "client1 %s client2 %s and gamelog %s" % (str(p0_good), str(p1_good), str(glog_done))

@@ -1,9 +1,14 @@
 #
 # MS&T SIG-Game 
-# Author: Brandon Phelps
+# Author: Brandon Phelps, Daniel Bolef
 
 # Chess swiss scheduler built for Dr. Tauritz chess AI competition and tournament. 
 
+
+#TO DO:
+#Confirm winner output functions
+#Fix match ups
+#Handle ties
 import random
 import urllib
 import json
@@ -121,6 +126,26 @@ def main():
             score_games()
         time.sleep(1)
     stalk.close()           
+    tied = False
+    winner_score = 0
+    win_file = open('wins.csv', 'w')
+    for x in cli:
+        line = (x.name, x.score, '\n')
+        l = str(line)
+        win_file.write(l)
+        if x.score > winner_score:
+            winner = x.name
+            winner_score = x.score
+            tied = False
+        elif x.score == winner_score:
+            tied = True
+    if tied:
+        print "There was a tie. Ties are bad."
+    else:
+        print "And the winner is,", winner, "!!!!!!!!!"
+    
+    scores_file.close()
+    win_file.close()
     
 def hasAWinner(brackScores):
     if not brackScores.keys():
@@ -457,11 +482,13 @@ def schedule_group(group, bracket_type, stalk):
                                 print sys.stdout.write(c.name)
                                 print "'s score goes from", c.score, "to",
                                 c.score += 0.5
+                                c.save()
                                 print c.score
                             if c.name == j.name:
                                 print sys.stdout.write(c.name)
                                 print "'s score goes from", c.score, "to",
                                 c.score += 0.5
+                                c.save()
                                 print c.score
 
                     else:
@@ -469,11 +496,13 @@ def schedule_group(group, bracket_type, stalk):
                             if c.name == g.winner.name:
                                 print c.name, "won, their score goes from", c.score, "to",
                                 c.score += 1
+                                c.save()
                                 print c.score
-                            if c.name != g.winner.name:
-                                print c.name, "lost, their score goes from", c.score, "to",
-                                c.score -= 1
-                                print c.score
+                            #if c.name != g.winner.name:
+                                #print c.name, "lost, their score goes from", c.score, "to",
+                                #c.score -= 1
+                                #c.save()
+                                #print c.score
 
                     g.swissUsed = True
                     break
@@ -511,6 +540,7 @@ def score_games():
                         print sys.stdout.write(c.name)
                         print "'s score goes from", c.score, "to",
                         c.score += 0.5
+                        c.save()
                         print c.score
                         scores_file.write("%s\n" % c.name)
                         scores_file.flush()
@@ -519,15 +549,17 @@ def score_games():
                     if c.name == gameC.winner.name:
                         print c.name, "is the winner of game", g, "and their score goes from", c.score, "to"
                         c.score += 1
+                        c.save()
                         print c.score
                         scores_file.write("%s\n" % c.name)
                         scores_file.flush()
-                    else:
-                        print c.name, "is the loser of game", g, "and their score goes from", c.score, "to"
-                        c.score -= 1
-                        print c.score
-                        scores_file.write("%s\n" % c.name)
-                        scores_file.flush()
+                    #else:
+                        #print c.name, "is the loser of game", g, "and their score goes from", c.score, "to"
+                        #c.score -= 1
+                        #c.save()
+                        #print c.score
+                        #scores_file.write("%s\n" % c.name)
+                        #scores_file.flush()
             gameC.swissUsed = True
             gameC.save()
             uncompleted_games.remove(g)
