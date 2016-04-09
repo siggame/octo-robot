@@ -3,6 +3,7 @@
 from thunderdome.config import arena_ami, access_cred, secret_cred, \
     s3_prefix, beanstalk_host, game_name, client_prefix
 
+import argparse
 import sys
 
 parser = argparse.ArgumentParser()
@@ -14,7 +15,7 @@ args = parser.parse_args()
 
 count = args.gladnum
 numRefs = args.refnum
-instanceType = instype
+instanceType = args.instype
 
 user_data = \
 """#!/bin/bash
