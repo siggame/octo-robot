@@ -295,7 +295,11 @@ def handle_completion(request, game):
         gd.version = clidict[gd.client.name]['tag']
         if not gd.compiled or 'broken' in clidict[gd.client.name]:
             gd.client.embargoed = True
-            stats = json.loads(gd.client.stats)
+            try:
+                stats = json.loads(gd.client.stats)
+            except:
+                print "client.stats appears to be empty, unable to copy"
+                stats = {}
             stats['Egame'] = game.pk
             gd.client.stats = json.dumps(stats)
         try:
