@@ -5,21 +5,16 @@ from thunderdome.config import arena_ami, access_cred, secret_cred, \
 
 import sys
 
-if len(sys.argv) > 1:
-   count = int(sys.argv[1])
-else:
-   count = 1
-   
-if len(sys.argv) > 2:
-   numRefs = int(sys.argv[2])
-else:
-   numRefs = 1
-   
-if len(sys.argv) > 3:
-   instanceType = str(sys.argv[3])
-else:
-   instanceType = 'c3.large'
+parser = argparse.ArgumentParser()
+group = parser.add_mutually_exclusive_group(required=False)
+group.add_argument("--gladnum", default=0, type=int, help="How many gladiators you want to spin up. Default it 0")
+group.add_argument("--refnum", default=1, type=int, help="How many referees you want to spin up. Default is 1")
+group.add_argument("--instype", default='c4.large', help="What type of instance to spin up. Default is c4.large")
+args = parser.parse_args()
 
+count = args.gladnum
+numRefs = args.refnum
+instanceType = instype
 
 user_data = \
 """#!/bin/bash
@@ -51,7 +46,7 @@ import boto
 
 
 
-print "spinning up %i gladiators..." % count
+print "spinning up %i gladiators with %i referees each on %i instances..." % (count, numRefs, instanceType)
 conn = boto.connect_ec2(access_cred, secret_cred)
 gladiator_image = conn.get_image(arena_ami)
 reservation = gladiator_image.run(min_count=count, max_count=count,
