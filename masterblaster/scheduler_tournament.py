@@ -285,9 +285,9 @@ def get_game_from_pool(match):
     for game in Game.objects.filter(claimed=False).order_by('id'):
         #gd = game.gamedata_set.all()
         if game.status != "Failed":
-	  gd = list(game.clients.all())
-	  if gd[0].name == match.p0.name and gd[1].name == match.p1.name:
-	      return game
+	    gd = list(game.clients.all())
+	    if gd[0].name == match.p0.name and gd[1].name == match.p1.name:
+	        return game
 	  #Uncomment if you don't care about who's player 1
 	  #if gd[0].name == match.p1.name and gd[1].name == match.p0.name:
 	      #return game
