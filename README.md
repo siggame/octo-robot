@@ -285,7 +285,7 @@ At this point the entire headnode should be setup, and all that is left is to cr
 Additionally there should be several games already scheduled, and some output on the scheduler indicating this. 
 
 13) Start a gladiator. 
-   - There is a file called generate_gladiator_package.py, this file was created to easy the difficulty of starting a gladiator. Normally one would have to download the server, and tar the server files and the files in the gladiator folder, this should do that for you you'll just need to pass in the parameter for where to find the MegaMinerAI repository that you'll want the server from. This should always be `Cerveau` unless the gameserver is rewritten.
+   - There is a file called generate_gladiator_package.py, this file was created to easy the difficulty of starting a gladiator. Normally one would have to download the server, and tar the server files and the files in the gladiator folder, this should do that for you you'll just need to pass in the parameter for where to find the MegaMinerAI repository that you'll want the server from.
 
 ```
 cd octo-robot
