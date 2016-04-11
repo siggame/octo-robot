@@ -23,7 +23,7 @@ def sked(guy0, guy1, stalk, origin, priority=1000, ttr=180):
                'clients'    : [{'name' : p.name,
                                 'repo' : p.repo,
                                 'tag'  : p.current_version,
-                                'language': json.loads(p.stats)['language']}
+                                'language': p.language}
                                for p in (guy0, guy1)]}
 
     game.stats = json.dumps(payload)

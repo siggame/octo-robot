@@ -84,6 +84,8 @@ def looping(stalk):
         game['status'] = "Failed"
         game['completed'] = str(datetime.now())
         game['tied'] = False
+        game['win_reason'] = "Someone didn't compile"
+        game['lose_reason'] = "Someone didn't compile"
         push_datablocks(game)
         stalk.put(json.dumps(game))
         job.delete()
@@ -92,10 +94,18 @@ def looping(stalk):
     # start the clients
     server_host = os.environ['SERVER_HOST']
     players = list()
-    for cl in game['clients']:
-        sleep(10)  # ensures ['clients'][0] plays as p0
+    
+
+
+    for i, cl in enumerate(game['clients']):
         players.append(
-            subprocess.Popen(['bash', 'run', game_name, '-r', game['number'], '-s', server_host],
+            subprocess.Popen(['bash',
+                                'run', game_name,
+                                '-r', game['number'],
+                                '-s', server_host,
+                                '-i', str(i),
+                                '-n', cl['name']
+                             ], 
                              stdout=file('%s-stdout.txt' % cl['name'], 'w'),
                              stderr=file('%s-stderr.txt' % cl['name'], 'w'),
                              cwd=cl['name']))
@@ -120,17 +130,12 @@ def looping(stalk):
     for x in players:
       try:
         print "*************************************** die", x.pid
-        #os.killpg(x.pid, signal.SIGTERM)
-        subprocess.call(['kill', '-9', str(x.pid)], cwd=client['name'],
+        subprocess.call(['pkill', '-TERM', '-P', str(x.pid)], cwd=client['name'],
                     stdout=file("/dev/null", "w"),
                     stderr=subprocess.STDOUT)
       except OSError as e:
         print "it didn't dieeee!!!", e
         pass
-
-    sleep(5)
-    glog_done = os.access("%s/output/gamelogs/%s-%s.json.gz" %
-                          (server_path, game_name, game['number']), os.F_OK)
 
 
     print "Final client status"
@@ -142,6 +147,8 @@ def looping(stalk):
         game['status'] = "Failed"
         game['completed'] = str(datetime.now())
         game['tied'] = False
+        game['win_reason'] = "Something broke"
+        game['lose_reason'] = "Something broke"
         if not p0_good:
             game['clients'][0]['broken'] = True
         if not p1_good:
@@ -152,21 +159,26 @@ def looping(stalk):
 
     # figure out who won by reading the gamelog
     print "determining winner..."
+    winner = []
     winner = parse_gamelog(game['number'])
-    if winner == '2':
+    if winner[0] == '2':
         game['tied'] = True
+        game['win_reason'] = winner[1]
+        game['lose_reason'] = winner[1]
         print game['clients'][0]['name'], "and", \
             game['clients'][1]['name'], "tied!"
     else:
         game['tied'] = False
-        if winner == '0':
+        game['win_reason'] = winner[1]
+        game['lose_reason'] = winner[2]
+        if winner[0] == '0':
             game['winner'] = game['clients'][0]
             game['loser'] = game['clients'][1]
-        elif winner == '1':
+        elif winner[0] == '1':
             game['winner'] = game['clients'][1]
             game['loser'] = game['clients'][0]
         print game['winner']['name'], "beat", game['loser']['name']
-
+    
     # clean up
     print "pushing data blocks...", game['number']
     push_datablocks(game)
@@ -200,17 +212,25 @@ def parse_gamelog(game_number):
     winners = parsed['winners']
     losers = parsed['losers']
     realWinner = None
+    data = []
     for winner in winners:
         if realWinner is None:
             realWinner = winner['index']
         else:
-            return '2' # there was more than one winner, so it's a tie
+            data.append('2')
+            data.append(winner['reason'])
+            return data # there was more than one winner, so it's a tie
 
     if len(losers) == 2:
-        return '2' # again, a tie
+        data.append('2')
+        data.append(losers[0]['reason'])
+        return data # again, a tie
     
     if realWinner != None:
-        return str(realWinner)
+        data.append(str(realWinner))
+        data.append(winners[0]['reason'])
+        data.append(losers[0]['reason'])
+        return data
 
     return None
 
