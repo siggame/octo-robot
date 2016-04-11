@@ -479,14 +479,12 @@ def schedule_group(group, bracket_type, stalk):
                         print "Tie!"
                         for c in game_clients:
                             if c.name == i.name:
-                                print sys.stdout.write(c.name)
-                                print "'s score goes from", c.score, "to",
+                                print "%s's score goes from %d to" % (c.name, c.score),
                                 c.score += 0.5
                                 c.save()
                                 print c.score
                             if c.name == j.name:
-                                print sys.stdout.write(c.name)
-                                print "'s score goes from", c.score, "to",
+                                print "%s's score goes from %d to" % (c.name, c.score),
                                 c.score += 0.5
                                 c.save()
                                 print c.score
@@ -537,8 +535,7 @@ def score_games():
                 
                 for i in game_clients.clients.iterator():
                     for c in game_clis:
-                        print sys.stdout.write(c.name)
-                        print "'s score goes from", c.score, "to",
+                        print "%s's score goes from %d to" % (c.name, c.score),
                         c.score += 0.5
                         c.save()
                         print c.score
