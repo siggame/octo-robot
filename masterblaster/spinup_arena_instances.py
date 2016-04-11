@@ -4,7 +4,9 @@ from thunderdome.config import arena_ami, access_cred, secret_cred, \
     s3_prefix, beanstalk_host, game_name, client_prefix
 
 import argparse
+import boto
 import sys
+
 
 parser = argparse.ArgumentParser()
 group = parser.add_mutually_exclusive_group(required=False)
@@ -42,8 +44,6 @@ python gladiator.py '%s'
 
 EOF
 """ % (access_cred, secret_cred, s3_prefix, game_name, client_prefix, beanstalk_host, numRefs)
-
-import boto
 
 
 
