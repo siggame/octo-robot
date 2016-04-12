@@ -2,7 +2,7 @@
 from thunderdome.config import game_name
 import beanstalkc
 
-def main():
+def empty_tube():
     tube = 'game-requests-' + game_name
     c = beanstalkc.Connection()
     c.watch(tube)
@@ -12,4 +12,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    empty_tube()

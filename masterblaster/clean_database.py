@@ -1,13 +1,13 @@
 from thunderdome.models import Game
 from thunderdome.config import game_name
-import empty_tube
+from empty_tube import empty_tube
 import beanstalkc
 import time
 
 
 def main():
 
-    empty_tube.main()
+    empty_tube()
 
     p = dict()
     c = beanstalkc.Connection()
