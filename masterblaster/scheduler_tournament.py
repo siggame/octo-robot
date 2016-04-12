@@ -107,10 +107,8 @@ def generate_speculative_game(match):
     for match in needy_matches:
         p0 = random.choice(match.zeros)
         p1 = random.choice(match.ones)
-        if p0.name == 'bye' or p1.name == 'bye':
-            break
-	if p0.name == p1.name:
-	    break
+        if p0.name == 'bye' or p1.name == 'bye' or p0.name == p1.name:
+            continue
         game = Game.objects.create()
         GameData(game=game, client=p0).save()
         GameData(game=game, client=p1).save()
