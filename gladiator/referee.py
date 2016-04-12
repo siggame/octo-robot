@@ -84,8 +84,7 @@ def looping(stalk):
         game['status'] = "Failed"
         game['completed'] = str(datetime.now())
         game['tied'] = False
-        game['win_reason'] = "Someone didn't compile"
-        game['lose_reason'] = "Someone didn't compile"
+        game['tie_reason'] = "Someone didn't compile"
         push_datablocks(game)
         stalk.put(json.dumps(game))
         job.delete()
@@ -121,7 +120,7 @@ def looping(stalk):
     while p0_good and p1_good and not glog_done:
         print "Monitoring client1 %s client2 %s and gamelog %s" % (str(p0_good), str(p1_good), str(glog_done))
         job.touch()
-        sleep(5)
+        sleep(2)
         p0_good = players[0].poll() is None
         p1_good = players[1].poll() is None
         glog_done = os.access("%s/output/gamelogs/%s-%s.json.gz" %
@@ -137,6 +136,9 @@ def looping(stalk):
         print "it didn't dieeee!!!", e
         pass
 
+    sleep(5)
+    glog_done = os.access("%s/output/gamelogs/%s-%s.json.gz" %
+                              (server_path, game_name, game['number']), os.F_OK)
 
     print "Final client status"
     print "client1 %s client2 %s and gamelog %s" % (str(p0_good), str(p1_good), str(glog_done))
@@ -147,8 +149,7 @@ def looping(stalk):
         game['status'] = "Failed"
         game['completed'] = str(datetime.now())
         game['tied'] = False
-        game['win_reason'] = "Something broke"
-        game['lose_reason'] = "Something broke"
+        game['tie_reason'] = "Something broke"
         if not p0_good:
             game['clients'][0]['broken'] = True
         if not p1_good:
@@ -163,8 +164,7 @@ def looping(stalk):
     winner = parse_gamelog(game['number'])
     if winner[0] == '2':
         game['tied'] = True
-        game['win_reason'] = winner[1]
-        game['lose_reason'] = winner[1]
+        game['tie_reason'] = winner[1]
         print game['clients'][0]['name'], "and", \
             game['clients'][1]['name'], "tied!"
     else:
