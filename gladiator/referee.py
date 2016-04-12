@@ -70,7 +70,7 @@ def looping(stalk):
 
     # compile the clients
     game['status'] = "Building"
-    stalk.put(json.dumps(game))
+ ii   stalk.put(json.dumps(game))
     job.touch()
     for client in game['clients']:
         client['compiled'] = (compile_client(client) is 0)
