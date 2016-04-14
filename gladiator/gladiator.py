@@ -3,6 +3,7 @@ import subprocess
 import multiprocessing
 import time
 import shutil
+import sys
 
 def start_server(current_server=None):
     if not current_server:
@@ -28,7 +29,11 @@ def start_referee(ref_id):
                             cwd="%d" % ref_id)
 
 def main():
-    ref_count = 1
+    if len(sys.argv) > 1:
+       ref_count = int(sys.argv[1])
+    else:
+       ref_count = 1
+    time.sleep(10)
     server_p = start_server()
     referees = [start_referee(i) for i in range(1, ref_count+1)]
     while True: # Since there is no expectation for the referees to die, and that the server shouldn't be leaking memory

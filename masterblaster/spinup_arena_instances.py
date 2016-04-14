@@ -3,7 +3,21 @@
 from thunderdome.config import arena_ami, access_cred, secret_cred, \
     s3_prefix, beanstalk_host, game_name, client_prefix
 
+import argparse
+import boto
 import sys
+
+
+parser = argparse.ArgumentParser()
+group = parser.add_mutually_exclusive_group(required=False)
+group.add_argument("--gladnum", default=0, type=int, help="How many gladiators you want to spin up. Default it 0")
+group.add_argument("--refnum", default=1, type=int, help="How many referees you want to spin up. Default is 1")
+group.add_argument("--instype", default='c4.large', help="What type of instance to spin up. Default is c4.large")
+args = parser.parse_args()
+
+count = args.gladnum
+numRefs = args.refnum
+instanceType = args.instype
 
 user_data = \
 """#!/bin/bash
@@ -26,31 +40,19 @@ cd /home/gladiator/arena
 wget http://arena.megaminerai.com/gladiator/gladiator_package.tgz
 tar -xf gladiator_package.tgz
 
-#python gladiator.py
-
-mkdir 1
-ln referee.py 1/referee.py
-ln prep_for_bake.py 1/prep_for_bake.py
-cd 1
-python referee.py &
-cd ..
+python gladiator.py '%s'
 
 EOF
-""" % (access_cred, secret_cred, s3_prefix, game_name, client_prefix, beanstalk_host)
+""" % (access_cred, secret_cred, s3_prefix, game_name, client_prefix, beanstalk_host, numRefs)
 
-import boto
 
-if len(sys.argv) > 1:
-   count = int(sys.argv[1])
-else:
-   count = 1
 
-print "spinning up %i gladiators..." % count
+print "spinning up %i gladiators with %i referees each on %i instances..." % (count, numRefs, instanceType)
 conn = boto.connect_ec2(access_cred, secret_cred)
 gladiator_image = conn.get_image(arena_ami)
 reservation = gladiator_image.run(min_count=count, max_count=count,
                                   user_data=user_data,
-                                  instance_type='c3.large',
+                                  instance_type=instanceType,
                                   key_name='mmai-16-glad-key',
                                   security_groups=['Arena Gladiator']) 
 

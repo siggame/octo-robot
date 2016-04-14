@@ -26,7 +26,7 @@ This link should tell you everything you need to do:
 
 https://help.github.com/articles/generating-ssh-keys/
 
-2) Install all necessary libraries
+2) Install all necessary libraries. Install all of these on the head node and the gladiators.
 
 ```
 sudo apt-get install libpq-dev python-dev libyaml-dev 
@@ -225,7 +225,7 @@ new_config.api_url_template
 
 All of those are specific to what your setup looks like.
 
-The beanstalk_host refers what ip the beanstalkd process is running, (the beanstalkd will be explained later TODO add step number). Client prefix refers to the server location of where the git clients are stored. Typically they will be on the webserver, but for testing it most likely be github take a look at the testing_plants arena settings to get an idea for how the client prefix looks. I think currently its like git@github.com/ the api_url_template is specific to the production and has to do with updating the clients. 
+The beanstalk_host refers what ip the beanstalkd process is running, (the beanstalkd will be explained later TODO add step number). Client prefix refers to the server location of where the git clients are stored. Typically they will be on the webserver, but for testing it most likely be github take a look at the testing_plants arena settings to get an idea for how the client prefix looks. I think currently its like git@github.com: the api_url_template is specific to the production and has to do with updating the clients. 
 
 In production the game name will be specific to what ever the website team comes up with, hopefully you can show this to them and they'll know what you are asking for, I believe they call it the game name slug
 
@@ -242,7 +242,7 @@ new_config.save()
 9) Get some test clients
    - now that the database is up the arena will need some clients
    - I have created a fake clients file that will add in some clients for fake testing purposes, 
-   - this file can be located at https://gist.githubusercontent.com/Daniel17sep/712e187938b1dd8c658c/raw/824a8e0295016e0205baa2c28264a1686baf836b/Gist_for_readme.txt
+   - this file can be located at https://gist.githubusercontent.com/Daniel17sep/3b149607b25fa6d25411e35bb3d31cc8/raw/3ae6b1e1867cc077facd31eafa1ece3f22aa41af/Spiders_Test.txt
    - all that needs to be down now is to run `./bin/python masterblaster/utilities/update_clients_from_gist.py `and pass the url as parameter. 
    
 
@@ -281,12 +281,11 @@ cd octo-robot
 ./bin/python masterblaster/smart_archiver.py
 ```
 
-create another terminal 
 At this point the entire headnode should be setup, and all that is left is to create the gladiators to start playing the games. 
-Additionally there should be 5 games already scheduled, and some output on the scheduler indicating this. 
+Additionally there should be several games already scheduled, and some output on the scheduler indicating this. 
 
 13) Start a gladiator. 
-   - There is a file on the main branch called generate_gladiator_package.py, this file was created to easy the difficulty of starting a gladiator. Normally one would have to download the server, and tar the server files and the files in the gladiator folder, this should do that for you you'll just need to pass in the parameter for where to find the MegaMinerAI repository that you'll want the server from. 
+   - There is a file called generate_gladiator_package.py, this file was created to easy the difficulty of starting a gladiator. Normally one would have to download the server, and tar the server files and the files in the gladiator folder, this should do that for you you'll just need to pass in the parameter for where to find the MegaMinerAI repository that you'll want the server from.
 
 ```
 cd octo-robot
@@ -314,8 +313,11 @@ Afterwhich the tar file has to be placed into the gladiator folder which may or 
 Thus you should have static/gladiator/<tar_file>
 Then you'll need to make sure that you have nginx all configured to use that folder as its static folder to serve files. 
 Then you'll have to start the nginx process by 
+    
     - cd octo-robot
+    - MISSING STEP(S)
     - ./bin/gunicorn arena.arena_wsgi:application
+    
 After which the gladiators can be started, 
     - using ./bin/python masterblaster/spinup_arena_instance. 
 These instructions have pretty much all assumed you are using the amazon ec2 instances, and have setup the proper permissions and have entered the correct keys and user names. 
