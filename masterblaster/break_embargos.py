@@ -5,6 +5,7 @@ from thunderdome.models import Client
 def break_embargos():
   for client in Client.objects.all():
     client.embargoed = False
+    client.embargo_reason = ''
     client.save()
 
 if __name__ == "__main__":

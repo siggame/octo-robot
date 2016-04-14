@@ -58,6 +58,7 @@ def update_clients_from_data_block(data):
             client.eligible = block['team']['eligible_to_win']
         if client.current_version != block['tag']['commit']:
             client.embargoed = False # this is the only place an embargo can be broken
+            client.embargo_reason = ''
             client.current_version = block['tag']['commit']
             client.language = block['language']
 

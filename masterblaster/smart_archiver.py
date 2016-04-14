@@ -295,6 +295,10 @@ def handle_completion(request, game):
         gd.version = clidict[gd.client.name]['tag']
         if not gd.compiled or 'broken' in clidict[gd.client.name]:
             gd.client.embargoed = True
+            if not gd.compiled:
+	        gd.client.embargo_reason = "Your client didn't compile"
+            else:
+		gd.client.embargo_reason = "See Arena team member"
             try:
                 stats = json.loads(gd.client.stats)
             except:
