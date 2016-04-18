@@ -121,7 +121,7 @@ def generate_speculative_game(match):
         game.stats = json.dumps(payload_d)
         game.status = "Scheduled"
         game.save()
-        stalk.put(game.stats, ttr=300)
+        stalk.put(game.stats, ttr=400)
         #match.games.add(game)   # this line shouldn't exist?
         print "Speculatively scheduled", p0.name, "vs", p1.name
 
@@ -258,7 +258,7 @@ def maintain_match(match):
             game.stats = json.dumps(payload_d)
             game.status = "Scheduled"
             game.save()
-            stalk.put(game.stats, ttr=300)
+            stalk.put(game.stats, ttr=400)
             print "Scheduled", player_order[0].name, "vs", player_order[1].name
         else:
             player_order = list(game.clients.all())

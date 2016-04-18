@@ -83,8 +83,19 @@ def main():
                 #process_game_stats(game)
             #Recompute the scoreboard and throughput
             game.tied = request['tied']
-            if game.tied:
-                print "Game", request['number'], "tied!"
+            if game.tied or game.status == 'Failed':
+                count = 0
+                game.tie_reason = request['tie_reason']
+                for guy in request['clients']:
+                    if count > 0:
+                        print "vs.",
+                    print guy['name'],
+                    count += 1
+                print ":", game.tie_reason
+            else:
+		game.win_reason = request['win_reason']
+		game.lose_reason = request['lose_reason']
+                print request['winner']['name'], "beat", request['loser']['name'], "because", game.win_reason
             handle_completion(request, game)
         game.save()
         job.delete()
@@ -232,9 +243,7 @@ def compute_scoreboard():
         f = open(os.path.join(settings.STATIC_ROOT, 'scoreboard.js'), 'w')
         static = """
         function drawScoreboardTable() {
-
         %s
-
         var options = {
             title: 'Competitor Overview',
             allowHtml: true,
@@ -256,7 +265,6 @@ def compute_scoreboard():
 def handle_completion(request, game):
     if 'winner' in request:
         game.winner = Client.objects.get(name=request['winner']['name'])
-        game.winner.score += 1.0
     if 'loser' in request:
         game.loser = Client.objects.get(name=request['loser']['name'])
 
@@ -284,17 +292,29 @@ def handle_completion(request, game):
             gd.won = True
         gd.compiled = clidict[gd.client.name]['compiled']
         gd.version = clidict[gd.client.name]['tag']
-        if not gd.compiled or 'broken' in clidict[gd.client.name]:
+        if not gd.compiled:
             gd.client.embargoed = True
-            stats = json.loads(gd.client.stats)
+            #gd.client.embargo_reason = "Your client didn't compile"
+        if 'noconnect' in clidict[gd.client.name]:
+	    gd.client.embargoed = True
+            #gd.client.embargo_reason = "Your client didn't connect to the game"
+        if 'gamservdied' in clidict[gd.client.name]:
+	    gd.client.embargoed = True
+            #gd.client.embargo_reason = "Gameserver broke, please see an Arena Dev"
+        if 'discon' in clidict[gd.client.name]:
+	    gd.client.embargoed = True
+            #gd.client.embargo_reason = "Your client disconnected from the game unexpectedly"
+            try:
+                stats = json.loads(gd.client.stats)
+            except:
+                print "client.stats appears to be empty, unable to copy"
+                stats = {}
             stats['Egame'] = game.pk
             gd.client.stats = json.dumps(stats)
         try:
             gd.output_url = clidict[gd.client.name]['output_url']
         except KeyError:
             pass
-        if 'tied' in request:
-            gd.client.score += 0.5
         gd.client.save()
         gd.save()
 
@@ -318,12 +338,13 @@ def assign_elo(winner, loser):
 
 def adjust_win_rate(w, l, alpha=0.15):
     win_p, w_created = WinRatePrediction.objects.get_or_create(winner=w, loser=l)
-    old = copy(win_p)
+    old_win = copy(win_p)
     lose_p, l_created = WinRatePrediction.objects.get_or_create(winner=l, loser=w)
+    old_lose = copy(lose_p)
     win_p.prediction += alpha * (1 - win_p.prediction)
     lose_p.prediction -= alpha * lose_p.prediction
-    #old, win_p.prediction
-    print "Prediction Updated:", w.name, l.name, old.prediction, win_p.prediction
+    print "Prediction Updated:", w.name, old_win.prediction, "to", win_p.prediction
+    print "Prediction Updated:", l.name, old_lose.prediction, "to", lose_p.prediction
     win_p.save()
     lose_p.save()
 

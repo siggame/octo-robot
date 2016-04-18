@@ -18,7 +18,8 @@ from django.db.models import Max
 class Client(models.Model):
     name = models.CharField(max_length=200)
     current_version = models.CharField(max_length=100, default='', null=True)
-    embargoed = models.BooleanField(default=False) # failed to compile
+    embargoed = models.BooleanField(default=False) # broke
+    embargo_reason = models.CharField(max_length=255, default='See arena team for details')
     eligible = models.BooleanField(default=False) # not able to compete for prizes
     repo = models.CharField(max_length=200, default='')
     seed = models.IntegerField(default=0)
@@ -27,6 +28,7 @@ class Client(models.Model):
     stats = models.TextField(default='') # extra json field for stuff
     game_name = models.CharField(max_length=200, default='')
     missing = models.BooleanField(default=False)
+    language = models.CharField(max_length=50, default='')
 
     def inc_score(self, delta):
         # wishing for an atomic increment
@@ -96,6 +98,9 @@ class Game(models.Model):
     tournament = models.BooleanField(default=False)
     tied = models.BooleanField(default=False)
     stats = models.TextField(default='') # holds extra stuff via JSON
+    win_reason = models.CharField(max_length=1024, default='Unknown reason') #Reason the winner won
+    lose_reason = models.CharField(max_length=1024, default='Unknown reason') #Reason the loser lost
+    tie_reason = models.CharField(max_length=1024, default='Unknown reason') #Reason for a tie
 
     class Meta():
         ordering = ['-completed', '-id']
