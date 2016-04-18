@@ -25,13 +25,20 @@ def main():
             break
     c.close()
 
-
+    print "Cleaning database..."
     for x in Game.objects.all():
         if x.status == 'Complete' or x.status == 'Failed':
-            pass
+            if x.status == 'Failed' and x.tie_reason == '':
+                x.tie_reason = 'Unknown reason'
         else:
+            print "Game", x, "is marked", x.status, "so I'm marking it Failed"
+            if x.status == 'Scheduled':
+                x.tie_reason = 'Game canceled'
+            else:
+                x.tie_reason = 'Unknown reason'
             x.status = 'Failed'
             x.save()
+    print "Database cleanup complete!"
 
 if __name__ == "__main__":
     main()

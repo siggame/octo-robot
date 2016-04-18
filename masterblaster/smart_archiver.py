@@ -84,7 +84,10 @@ def main():
             #Recompute the scoreboard and throughput
             game.tied = request['tied']
             if game.tied or game.status == 'Failed':
-                game.tie_reason = request['tie_reason']
+                try:
+                    game.tie_reason = request['tie_reason']
+                except:
+                    print "Warning: Unable to read tie_reason for game", game
                 count = 0
                 for guy in request['clients']:
                     if count > 0:

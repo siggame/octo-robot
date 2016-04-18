@@ -164,20 +164,7 @@ def looping(stalk):
     server_path = os.environ['SERVER_PATH']
     game['status'] = "Running"
     stalk.put(json.dumps(game))
-    """
-    p0_good = True
-    p1_good = True
-    glog_done = False
-    
-    while p0_good and p1_good and not glog_done:
-        print "Monitoring client1 %s client2 %s and gamelog %s" % (str(p0_good), str(p1_good), str(glog_done))
-        job.touch()
-        sleep(2)
-        p0_good = players[0].poll() is None
-        p1_good = players[1].poll() is None
-        glog_done = os.access("%s/output/gamelogs/%s-%s.json.gz" %
-                              (server_path, game_name, game['number']), os.F_OK)
-    """
+
     
     # wait until the game is over
     game_server_status = requests.get('http://%s:3080/status/%s/%s' %
@@ -210,6 +197,7 @@ def looping(stalk):
     
     
     kill_clients(players)
+
 
 
     game_server_status = requests.get('http://%s:3080/status/%s/%s' %

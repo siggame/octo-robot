@@ -100,7 +100,7 @@ class Game(models.Model):
     stats = models.TextField(default='') # holds extra stuff via JSON
     win_reason = models.CharField(max_length=1024, default='Unknown reason') #Reason the winner won
     lose_reason = models.CharField(max_length=1024, default='Unknown reason') #Reason the loser lost
-    tie_reason = models.CharField(max_length=1024, default='Unknown reason') #Reason for a tie
+    tie_reason = models.CharField(max_length=1024, default='') #Reason for a tie
 
     class Meta():
         ordering = ['-completed', '-id']
