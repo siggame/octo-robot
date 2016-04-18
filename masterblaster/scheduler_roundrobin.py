@@ -5,6 +5,7 @@ import beanstalkc
 from thunderdome.config import game_name
 from thunderdome.models import Client
 from thunderdome.sked import sked
+from utilities.webinteraction import update_clients
 
 import time
 import json
@@ -35,12 +36,13 @@ def main():
     stalk = beanstalkc.Connection()
     req_tube = "game-requests-%s" % game_name
     stalk.use(req_tube)
+    update_clients()
     clients = list(Client.objects.filter(eligible=True).filter(embargoed=False).filter(missing=False))
     
     # remove humans
     for i in list(clients):
         stats = json.loads(i.stats)
-        if stats['language'] == 'Human':
+        if i.language == 'Human':
             clients.remove(i)
 
     results = skedRoundRobin(clients, 2, stalk)

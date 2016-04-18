@@ -6,7 +6,7 @@
 
 
 #TO DO:
-#Confirm winner output functions
+#Fix winner output functions
 #Fix match ups
 #Handle ties
 import random
@@ -95,7 +95,7 @@ def main():
         x.save()
     
     for x in gam:
-        x.swissUsed = False
+        x.claimed = False
         x.save()
 
     while clientNum > 1:
@@ -502,7 +502,7 @@ def schedule_group(group, bracket_type, stalk):
                                 #c.save()
                                 #print c.score
 
-                    g.swissUsed = True
+                    g.claimed = True
                     break
 
         if not score_game:
@@ -557,7 +557,7 @@ def score_games():
                         #print c.score
                         #scores_file.write("%s\n" % c.name)
                         #scores_file.flush()
-            gameC.swissUsed = True
+            gameC.claimed = True
             gameC.save()
             uncompleted_games.remove(g)
         elif game_status(g) == "Failed":            
@@ -568,7 +568,7 @@ def score_games():
             # during competition just restart swiss
             uncompleted_games.remove(g)
             for x in Game.objects.all():
-                x.swissUsed = False
+                x.claimed = False
                 x.save()
             for x in Client.objects.all():
                 x.score = 0.0
