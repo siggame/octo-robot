@@ -242,19 +242,19 @@ def looping(stalk):
     print "determining winner..."
     if ('won' in game_server_status['clients'][0] and 'won' in game_server_status['clients'][1]) or ('lost' in game_server_status['clients'][0] and 'lost' in game_server_status['clients'][1]):
         game['tied'] = True
-        game['tie_reason'] = game['clients'][0]['reason']
+        game['tie_reason'] = game_server_status['clients'][0]['reason']
         print game['clients'][0]['name'], "and", \
             game['clients'][1]['name'], "tied!"
     else:
         game['tied'] = False
         if 'won' in game_server_status['clients'][0]:
-            game['winner'] = game_server_status['clients'][0]
-            game['loser'] = game_server_status['clients'][1]
+            game['winner'] = game['clients'][0]
+            game['loser'] = game['clients'][1]
             game['win_reason'] = game_server_status['clients'][0]['reason']
             game['lose_reason'] = game_server_status['clients'][1]['reason']
         else:
-            game['winner'] = game_server_status['clients'][1]
-            game['loser'] = game_server_status['clients'][0]
+            game['winner'] = game['clients'][1]
+            game['loser'] = game['clients'][0]
             game['win_reason'] = game_server_status['clients'][1]['reason']
             game['lose_reason'] = game_server_status['clients'][0]['reason']
 	print game['winner']['name'], "beat", game['loser']['name']
