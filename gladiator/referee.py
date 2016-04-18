@@ -4,10 +4,12 @@
 
 # Standard Imports
 import re
+import requests
 import json
 import gzip
 import subprocess
 import os
+import time
 import signal
 import random
 import socket
@@ -15,11 +17,13 @@ import md5
 import zipfile
 from time import sleep
 from datetime import datetime
-from bz2 import BZ2File
+#Don't think this is needed anymore, uncomment if it does
+#from bz2 import BZ2File 
 
 # Non-Django 3rd Party Imports
 import beanstalkc
 import boto
+
 
 test_t = os.environ['GAME_NAME'].split("-")
 
@@ -48,14 +52,15 @@ def looping(stalk):
     '''Get a game, process it, repeat'''
     job = stalk.reserve()
     game = json.loads(job.body)
-    print "processing game", game['number']
+    print "Processing game", game['number']
 
     game['blaster_id'] = socket.gethostname()
     game['referee_id'] = os.getpid()
     game['started'] = str(datetime.now())
-
+    
     # get latest client code in arena mode.
     # tournament mode uses client code that is already in place
+    game['status'] = "Building"
     if 'tournament' not in game:
         for client in game['clients']:
             update_local_repo(client)
@@ -65,9 +70,8 @@ def looping(stalk):
         for suffix in ['stdout', 'stderr', 'makeout', 'gitout']:
             with file('%s-%s.txt' % (prefix, suffix), 'w') as f:
                 f.write('empty')
-
+      
     # compile the clients
-    game['status'] = "Building"
     stalk.put(json.dumps(game))
     job.touch()
     for client in game['clients']:
@@ -80,20 +84,19 @@ def looping(stalk):
     # tournament mode absolutely cannot have failed games.
     # ties are ok, but really annoying
     if not all([x['compiled'] for x in game['clients']]):
-        print "failing the game, someone didn't compile"
+        print "Failing the game, someone didn't compile"
         game['status'] = "Failed"
-        game['completed'] = str(datetime.now())
-        game['tied'] = False
-        game['tie_reason'] = "Someone didn't compile"
-        push_datablocks(game)
-        stalk.put(json.dumps(game))
-        job.delete()
+	game['completed'] = str(datetime.now())
+	game['tied'] = False
+	game['tie_reason'] = "One or both of the clients didn't compile"
+	push_datablocks(game)
+	stalk.put(json.dumps(game))
+	job.delete()
         return
 
     # start the clients
     server_host = os.environ['SERVER_HOST']
     players = list()
-    
 
 
     for i, cl in enumerate(game['clients']):
@@ -109,14 +112,63 @@ def looping(stalk):
                              stderr=file('%s-stderr.txt' % cl['name'], 'w'),
                              cwd=cl['name']))
 
+    
+    # make sure both clients have connected
+    game_server_ip        = os.environ['SERVER_HOST']
+    game_server_status    = requests.get('http://%s:3080/status/%s/%s' %
+                            (game_server_ip, game_name, game['number'])).json()
+    start_time            = int(round(time.time() * 1000))
+    current_time          = start_time
+    MAX_TIME              = 10000           # in milliseconds
+    
+    # block while at least one client is not connected
+    while len(game_server_status['clients']) < 2 and (current_time - start_time <= MAX_TIME):
+        sleep(.001)        # wait a bit for the clients to connect
+        current_time = int(round(time.time() * 1000))
+        
+        #Not sure if printing this is needed
+        #if game_server_status['status'] == "open":
+        #    print len(game_server_status['clients'])
+        
+        
+        game_server_status = requests.get('http://%s:3080/status/%s/%s' %
+                             (game_server_ip, game_name, game['number'])).json()
+
+    
+    # check if we timed out waiting for clients to connect
+    if current_time - start_time > MAX_TIME:
+        print "Failing the game, only %d clients connected" % (len(game_server_status['clients']))
+        kill_clients(players)
+	game['status'] = "Failed"
+	game['complete'] = str(datetime.now())
+	game['tied'] = False
+	if len(game_server_status['clients']) == 0:
+	    game['tie_reason'] = "Game failed to start, neither client connected."
+	    game['clients'][0]['noconnect'] = True
+	    game['clients'][1]['noconnect'] = True
+	elif len(game_server_status['clients']) == 1:
+	    for i, cl in enumerate(game['clients']):
+		if cl.name == game_server_status['clients'][0]['name']:
+		    pass
+		else:
+		    reason = ("Game failed to start,", cl.name, "didn't connect.")
+		    game['tie_reason'] = ' '.join(reason)
+		    game['clients'][i]['noconnect'] = True
+	push_datablocks(game)
+	stalk.put(json.dumps(game))
+	job.delete()
+        return
+    
     # game is running. watch for gamelog
-    print "running...", game['number']
+    print "Running...", game['number']
     server_path = os.environ['SERVER_PATH']
     game['status'] = "Running"
     stalk.put(json.dumps(game))
+    """
     p0_good = True
     p1_good = True
     glog_done = False
+    
     while p0_good and p1_good and not glog_done:
         print "Monitoring client1 %s client2 %s and gamelog %s" % (str(p0_good), str(p1_good), str(glog_done))
         job.touch()
@@ -125,60 +177,82 @@ def looping(stalk):
         p1_good = players[1].poll() is None
         glog_done = os.access("%s/output/gamelogs/%s-%s.json.gz" %
                               (server_path, game_name, game['number']), os.F_OK)
+    """
+    
+    # wait until the game is over
+    game_server_status = requests.get('http://%s:3080/status/%s/%s' %
+                         (game_server_ip, game_name, game['number'])).json()
+    start_time            = int(round(time.time() * 1000))
+    current_time          = start_time
+    MAX_TIME              = 2000000
+    
+    while game_server_status['status'] == 'running' and current_time - start_time <= MAX_TIME:
+        job.touch()
+        sleep(0.1)
+        current_time = int(round(time.time() * 1000))
+        game_server_status = requests.get('http://%s:3080/status/%s/%s' %
+                             (game_server_ip, game_name, game['number'])).json()
+	
+	
+    if current_time - start_time > MAX_TIME:
+	print "Failing game, took to long"
+	kill_clients(players)
+	game['clients'][0]['gamservdied'] = True
+	game['clients'][1]['gamservdied'] = True
+	game['status'] = "Failed"
+        game['completed'] = str(datetime.now())
+        game['tied'] = False
+	game['tie_reason'] = "The gameserver blew up." 
+	push_datablocks(game)
+	stalk.put(json.dumps(game))
+	job.delete()
+        return
+    
+    
+    kill_clients(players)
 
-    for x in players:
-      try:
-        print "*************************************** die", x.pid
-        subprocess.call(['pkill', '-TERM', '-P', str(x.pid)], cwd=client['name'],
-                    stdout=file("/dev/null", "w"),
-                    stderr=subprocess.STDOUT)
-      except OSError as e:
-        print "it didn't dieeee!!!", e
-        pass
 
-    sleep(5)
-    glog_done = os.access("%s/output/gamelogs/%s-%s.json.gz" %
-                              (server_path, game_name, game['number']), os.F_OK)
-
-    print "Final client status"
-    print "client1 %s client2 %s and gamelog %s" % (str(p0_good), str(p1_good), str(glog_done))
-
-
-    if not glog_done:  # no glog, game did not terminate correctly
+    game_server_status = requests.get('http://%s:3080/status/%s/%s' %
+                             (game_server_ip, game_name, game['number'])).json()
+    if 'disconnected' in game_server_status['clients'][0] or 'disconnected' in game_server_status['clients'][1]:  # game did not terminate correctly
         print "game %s early termination, broken client" % game['number']
         game['status'] = "Failed"
         game['completed'] = str(datetime.now())
         game['tied'] = False
-        game['tie_reason'] = "Something broke"
-        if not p0_good:
-            game['clients'][0]['broken'] = True
-        if not p1_good:
-            game['clients'][1]['broken'] = True
+        if 'disconnected' in game_server_status['clients'][0]:
+            game['clients'][0]['discon'] = True
+            reason = ("Early termination because", game_server_status['clients'][0]['name'], "disconnected unexpectedly.")
+            game['tie_reason'] = ' '.join(reason)
+        if 'disconnected' in game_server_status['clients'][1]:
+            game['clients'][1]['discon'] = True
+            reason = ("Early termination because", game_server_status['clients'][1]['name'], "disconnected unexpectedly.")
+            game['tie_reason'] = ' '.join(reason)
+        push_datablocks(game)
         stalk.put(json.dumps(game))
         job.delete()
         return
 
-    # figure out who won by reading the gamelog
+    # figure out who won
     print "determining winner..."
-    winner = []
-    winner = parse_gamelog(game['number'])
-    if winner[0] == '2':
+    if ('won' in game_server_status['clients'][0] and 'won' in game_server_status['clients'][1]) or ('lost' in game_server_status['clients'][0] and 'lost' in game_server_status['clients'][1]):
         game['tied'] = True
-        game['tie_reason'] = winner[1]
+        game['tie_reason'] = game['clients'][0]['reason']
         print game['clients'][0]['name'], "and", \
             game['clients'][1]['name'], "tied!"
     else:
         game['tied'] = False
-        game['win_reason'] = winner[1]
-        game['lose_reason'] = winner[2]
-        if winner[0] == '0':
+        if 'won' in game_server_status['clients'][0]:
             game['winner'] = game['clients'][0]
             game['loser'] = game['clients'][1]
-        elif winner[0] == '1':
+            game['win_reason'] = game['clients'][0]['reason']
+            game['lose_reason'] = game['clients'][1]['reason']
+        else:
             game['winner'] = game['clients'][1]
             game['loser'] = game['clients'][0]
-        print game['winner']['name'], "beat", game['loser']['name']
-    
+            game['win_reason'] = game['clients'][1]['reason']
+            game['lose_reason'] = game['clients'][0]['reason']
+	print game['winner']['name'], "beat", game['loser']['name']
+
     # clean up
     print "pushing data blocks...", game['number']
     push_datablocks(game)
@@ -189,50 +263,28 @@ def looping(stalk):
     stalk.put(json.dumps(game))
     job.delete()
     print "%s done %s" % (game['number'], str(datetime.now()))
+    return
+
+
+def kill_clients(players):
+    for x in players:
+	try:
+	    print "*************************************** die", x.pid
+	    subprocess.call(['kill', '-KILL', '-%s' % (str(x.pid))])
+	except OSError as e:
+	    print "it didn't dieeee!!!", e
+	    pass
 
 
 def compile_client(client):
     ''' Compile the client and return the code returned by make '''
     print 'Making %s/%s' % (os.getcwd(), client['name'])
-    subprocess.call(['make', 'clean'], cwd=client['name'],
-                    stdout=file("/dev/null", "w"),
-                    stderr=subprocess.STDOUT)
+    #subprocess.call(['make', 'clean'], cwd=client['name'],
+                    #stdout=file("/dev/null", "w"),
+                    #stderr=subprocess.STDOUT)
     return subprocess.call(['make'], cwd=client['name'],
                            stdout=file("%s-makeout.txt" % client['name'], "w"),
                            stderr=subprocess.STDOUT)
-
-
-def parse_gamelog(game_number):
-    ''' Determine winner by parsing that last s-expression in the gamelog
-        the gamelog is now compressed. '''
-    server_path = os.environ['SERVER_PATH']
-    with gzip.open("%s/output/gamelogs/%s-%s.json.gz" % (server_path, game_name, game_number), 'rb') as f:
-        log = f.read()
-    parsed = json.loads(log)
-    winners = parsed['winners']
-    losers = parsed['losers']
-    realWinner = None
-    data = []
-    for winner in winners:
-        if realWinner is None:
-            realWinner = winner['index']
-        else:
-            data.append('2')
-            data.append(winner['reason'])
-            return data # there was more than one winner, so it's a tie
-
-    if len(losers) == 2:
-        data.append('2')
-        data.append(losers[0]['reason'])
-        return data # again, a tie
-    
-    if realWinner != None:
-        data.append(str(realWinner))
-        data.append(winners[0]['reason'])
-        data.append(losers[0]['reason'])
-        return data
-
-    return None
 
 
 def push_file(local_filename, remote_filename, is_glog):
