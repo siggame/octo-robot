@@ -136,7 +136,7 @@ def looping(stalk):
         print "it didn't dieeee!!!", e
         pass
 
-    sleep(5)
+    sleep(0.5)
     glog_done = os.access("%s/output/gamelogs/%s-%s.json.gz" %
                               (server_path, game_name, game['number']), os.F_OK)
 
@@ -154,6 +154,7 @@ def looping(stalk):
             game['clients'][0]['broken'] = True
         if not p1_good:
             game['clients'][1]['broken'] = True
+        push_datablocks(game)
         stalk.put(json.dumps(game))
         job.delete()
         return
