@@ -11,7 +11,11 @@ from math import log, ceil
 from thunderdome.models import Client, Match
 from seeder import seed_tournament, seed
 
-tournament = 2233216
+# Other imports
+import argparse
+
+
+tournament = 34355400
 ### seed doods
 # seed()
 seed_tournament()
@@ -41,7 +45,16 @@ def make_bye():
         Client(name='bye').save()
 
 
-def build_triple_elim():
+def build_triple_elim(args):
+    
+    if args.eligible:
+      eligible_count = Client.objects.filter(embargoed=False).filter(eligible=True).filter(missing=False).count()
+    elif args.everyone:
+      eligible_count = Client.objects.filter(embargoed=False).filter(missing=False).count()
+    else:
+      #Whatevcr I'm dying now
+      return
+
     match_map = dict()
 
     def make_match(my_ID, mother_type, father_type, mother_ID, father_ID):
@@ -54,8 +67,7 @@ def build_triple_elim():
         m.tournament = tournament
         m.save()
 
-    eligible_count = Client.objects.filter(embargoed=False).filter(eligible=True).filter(missing=False).count()
-    # eligible_count = Client.objects.filter(embargoed=False).filter(missing=False).count()
+
     exp2 = int(ceil(log(eligible_count, 2)))
     bracket_size = pow2(exp2)
     print eligible_count
@@ -144,4 +156,11 @@ def build_triple_elim():
 
 
 if __name__ == "__main__":
-    build_triple_elim()
+    
+    parser = argparse.ArgumentParser()
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument("--eligible", help="Build a tournament with eligible clients only", action="store_true")
+    group.add_argument("--everyone", help="Build a tournament with all clients", action="store_true")
+    args = parser.parse_args()
+
+    build_triple_elim(args)

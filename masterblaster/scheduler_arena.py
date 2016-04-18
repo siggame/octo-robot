@@ -63,7 +63,7 @@ def schedule_a_game(stalk):
     partner = random.choice(clients)
     players = [worst_client, partner]
     random.shuffle(players)
-    sked(players[0], players[1], stalk, "Arena Scheduler", ttr=300)
+    sked(players[0], players[1], stalk, "Arena Scheduler", ttr=400)
 
 if __name__ == "__main__":
     main()

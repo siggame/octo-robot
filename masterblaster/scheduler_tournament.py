@@ -45,12 +45,14 @@ def main():
         needy = [x for x in championships if x.winner is None]
         stats = stalk.stats_tube(req_tube)
         if stats['current-jobs-ready'] < 1:
-            pass
-            # generate_speculative_game(random.choice(needy))
+	    try:
+		generate_speculative_game(random.choice(needy))
+	    except:
+		print "No needy matches to schedule speculative games for."
     for g in Game.objects.filter(claimed=False):
         g.claimed = True
         g.save()
-
+    finish()
 
 def generate_speculative_game(match):
     """
@@ -105,7 +107,7 @@ def generate_speculative_game(match):
     for match in needy_matches:
         p0 = random.choice(match.zeros)
         p1 = random.choice(match.ones)
-        if p0.name == 'bye' or p1.name == 'bye':
+        if p0.name == 'bye' or p1.name == 'bye' or p0.name == p1.name:
             continue
         game = Game.objects.create()
         GameData(game=game, client=p0).save()
@@ -123,10 +125,10 @@ def generate_speculative_game(match):
                                          'tag'  : p.current_version})
         game.stats = json.dumps(payload_d)
         game.status = "Scheduled"
+        game.claimed = False
         game.save()
-        stalk.put(game.stats, ttr=300)
-        #match.games.add(game)   # this line shouldn't exist?
-        print "Speculatively scheduled", p0.name, "vs", p1.name
+        stalk.put(game.stats, priority=2000, ttr=400)
+        print "Speculatively scheduled", game, "with", p0.name, "vs", p1.name
 
 
 def maintain_bracket(match):
@@ -261,8 +263,13 @@ def maintain_match(match):
             game.stats = json.dumps(payload_d)
             game.status = "Scheduled"
             game.save()
-            stalk.put(game.stats, ttr=300)
+<<<<<<< HEAD
+            stalk.put(game.stats, priority=1000, ttr=400)
             print "Scheduled", game, player_order[0].name, "vs", player_order[1].name
+=======
+            stalk.put(game.stats, ttr=400)
+            print "Scheduled", player_order[0].name, "vs", player_order[1].name
+>>>>>>> gameServerApi
         else:
             player_order = list(game.clients.all())
             print "Got", player_order[0].name, "vs", player_order[1].name, "from pool"
@@ -279,13 +286,34 @@ def get_game_from_pool(match):
     @param: The match to find games for.
     """
     for game in Game.objects.filter(claimed=False).order_by('id'):
-        gd = game.gamedata_set.all()
-        if gd[0].client == match.p0 and gd[1].client == match.p1:
-            return game
-        if gd[0].client == match.p1 and gd[1].client == match.p0:
-            return game
+        #gd = game.gamedata_set.all()
+        if game.status != "Failed":
+	    gd = list(game.clients.all())
+	    if gd[0].name == match.p0.name and gd[1].name == match.p1.name:
+	        return game
+	  #Uncomment if you don't care about who's player 1
+	  #if gd[0].name == match.p1.name and gd[1].name == match.p0.name:
+	      #return game
     return None
 
+def finish():
+    print "FFFFFFFFFFFFFFFFFFFF    IIIIIII    NNNNNNNNNN         NNNNNNN"
+    print "FFFFFFFFFFFFFFFFFFFF    IIIIIII    NNNNNNNNNNN        NNNNNNN"
+    print "FFFFFFFFFFFFFFFFFFFF    IIIIIII    NNNNNNNNNNNN       NNNNNNN"
+    print "FFFFFFF                 IIIIIII    NNNNNNNNNNNNN      NNNNNNN"
+    print "FFFFFFF                 IIIIIII    NNNNNNNNNNNNNN     NNNNNNN"
+    print "FFFFFFF                 IIIIIII    NNNNNNNNNNNNNNN    NNNNNNN"
+    print "FFFFFFFFFFFFF           IIIIIII    NNNNNNN NNNNNNNN   NNNNNNN"
+    print "FFFFFFFFFFFFF           IIIIIII    NNNNNNN  NNNNNNNN  NNNNNNN"
+    print "FFFFFFFFFFFFF           IIIIIII    NNNNNNN   NNNNNNNN NNNNNNN"
+    print "FFFFFFF                 IIIIIII    NNNNNNN    NNNNNNNNNNNNNNN"
+    print "FFFFFFF                 IIIIIII    NNNNNNN     NNNNNNNNNNNNNN"
+    print "FFFFFFF                 IIIIIII    NNNNNNN      NNNNNNNNNNNNN"
+    print "FFFFFFF                 IIIIIII    NNNNNNN       NNNNNNNNNNNN"
+    print "FFFFFFF                 IIIIIII    NNNNNNN        NNNNNNNNNNN"
+    print "FFFFFFF                 IIIIIII    NNNNNNN         NNNNNNNNNN"
+    
+    return
 
 if __name__ == "__main__":
     for g in Game.objects.filter(claimed=False):

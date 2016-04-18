@@ -246,9 +246,7 @@ def compute_scoreboard():
         f = open(os.path.join(settings.STATIC_ROOT, 'scoreboard.js'), 'w')
         static = """
         function drawScoreboardTable() {
-
         %s
-
         var options = {
             title: 'Competitor Overview',
             allowHtml: true,
@@ -297,8 +295,18 @@ def handle_completion(request, game):
             gd.won = True
         gd.compiled = clidict[gd.client.name]['compiled']
         gd.version = clidict[gd.client.name]['tag']
-        if not gd.compiled or 'broken' in clidict[gd.client.name]:
+        if not gd.compiled:
             gd.client.embargoed = True
+            #gd.client.embargo_reason = "Your client didn't compile"
+        if 'noconnect' in clidict[gd.client.name]:
+	    gd.client.embargoed = True
+            #gd.client.embargo_reason = "Your client didn't connect to the game"
+        if 'gamservdied' in clidict[gd.client.name]:
+	    gd.client.embargoed = True
+            #gd.client.embargo_reason = "Gameserver broke, please see an Arena Dev"
+        if 'discon' in clidict[gd.client.name]:
+	    gd.client.embargoed = True
+            #gd.client.embargo_reason = "Your client disconnected from the game unexpectedly"
             try:
                 stats = json.loads(gd.client.stats)
             except:
