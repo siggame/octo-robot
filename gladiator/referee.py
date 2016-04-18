@@ -148,11 +148,10 @@ def looping(stalk):
 	    game['clients'][1]['noconnect'] = True
 	elif len(game_server_status['clients']) == 1:
 	    for i, cl in enumerate(game['clients']):
-		if cl.name == game_server_status['clients'][0]['name']:
-		    pass
-		else:
-		    reason = ("Game failed to start,", cl.name, "didn't connect.")
-		    game['tie_reason'] = ' '.join(reason)
+		if cl['name'] != game_server_status['clients'][0]['name']:
+		    reason = ("Game failed to start,", cl['name'], "didn't connect.")
+		    print cl['name'], "didn't connect"
+                    game['tie_reason'] = ' '.join(reason)
 		    game['clients'][i]['noconnect'] = True
 	push_datablocks(game)
 	stalk.put(json.dumps(game))
@@ -202,16 +201,35 @@ def looping(stalk):
 
     game_server_status = requests.get('http://%s:3080/status/%s/%s' %
                              (game_server_ip, game_name, game['number'])).json()
-    if 'disconnected' in game_server_status['clients'][0] or 'disconnected' in game_server_status['clients'][1]:  # game did not terminate correctly
+
+    if 'disconnected' in game_server_status['clients'][0]:
+        if game_server_status['clients'][0]['disconnected']:
+            p0broke = True
+            print game_server_status['clients'][0]['name'], "disconnected"
+        else:
+            p0broke = False
+    else:
+        p0broke = False
+    if 'disconnected' in game_server_status['clients'][1]:
+        if game_server_status['clients'][1]['disconnected']:
+            p1broke = True
+            print game_server_status['clients'][0]['name'], "disconnected"
+        else:
+            p1broke = False
+    else:
+        p1broke = False
+
+
+    if p0broke or p1broke:
         print "game %s early termination, broken client" % game['number']
         game['status'] = "Failed"
         game['completed'] = str(datetime.now())
         game['tied'] = False
-        if 'disconnected' in game_server_status['clients'][0]:
+        if p0broke:
             game['clients'][0]['discon'] = True
             reason = ("Early termination because", game_server_status['clients'][0]['name'], "disconnected unexpectedly.")
             game['tie_reason'] = ' '.join(reason)
-        if 'disconnected' in game_server_status['clients'][1]:
+        if p1broke:
             game['clients'][1]['discon'] = True
             reason = ("Early termination because", game_server_status['clients'][1]['name'], "disconnected unexpectedly.")
             game['tie_reason'] = ' '.join(reason)
@@ -230,15 +248,15 @@ def looping(stalk):
     else:
         game['tied'] = False
         if 'won' in game_server_status['clients'][0]:
-            game['winner'] = game['clients'][0]
-            game['loser'] = game['clients'][1]
-            game['win_reason'] = game['clients'][0]['reason']
-            game['lose_reason'] = game['clients'][1]['reason']
+            game['winner'] = game_server_status['clients'][0]
+            game['loser'] = game_server_status['clients'][1]
+            game['win_reason'] = game_server_status['clients'][0]['reason']
+            game['lose_reason'] = game_server_status['clients'][1]['reason']
         else:
-            game['winner'] = game['clients'][1]
-            game['loser'] = game['clients'][0]
-            game['win_reason'] = game['clients'][1]['reason']
-            game['lose_reason'] = game['clients'][0]['reason']
+            game['winner'] = game_server_status['clients'][1]
+            game['loser'] = game_server_status['clients'][0]
+            game['win_reason'] = game_server_status['clients'][1]['reason']
+            game['lose_reason'] = game_server_status['clients'][0]['reason']
 	print game['winner']['name'], "beat", game['loser']['name']
 
     # clean up
@@ -258,7 +276,7 @@ def kill_clients(players):
     for x in players:
 	try:
 	    print "*************************************** die", x.pid
-	    subprocess.call(['kill', '-KILL', '-%s' % (str(x.pid))])
+	    subprocess.call(['kill', '-15', str(x.pid)])
 	except OSError as e:
 	    print "it didn't dieeee!!!", e
 	    pass

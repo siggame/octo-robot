@@ -307,13 +307,13 @@ def handle_completion(request, game):
         if 'discon' in clidict[gd.client.name]:
 	    gd.client.embargoed = True
             #gd.client.embargo_reason = "Your client disconnected from the game unexpectedly"
-            try:
-                stats = json.loads(gd.client.stats)
-            except:
-                print "client.stats appears to be empty, unable to copy"
-                stats = {}
-            stats['Egame'] = game.pk
-            gd.client.stats = json.dumps(stats)
+        try:
+            stats = json.loads(gd.client.stats)
+        except:
+            print "client.stats appears to be empty, unable to copy"
+            stats = {}
+        stats['Egame'] = game.pk
+        gd.client.stats = json.dumps(stats)
         try:
             gd.output_url = clidict[gd.client.name]['output_url']
         except KeyError:
