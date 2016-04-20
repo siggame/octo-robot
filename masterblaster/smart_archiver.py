@@ -297,16 +297,16 @@ def handle_completion(request, game):
         gd.version = clidict[gd.client.name]['tag']
         if not gd.compiled:
             gd.client.embargoed = True
-            #gd.client.embargo_reason = "Your client didn't compile"
+            gd.client.embargo_reason = "Your client didn't compile"
         if 'noconnect' in clidict[gd.client.name]:
 	    gd.client.embargoed = True
-            #gd.client.embargo_reason = "Your client didn't connect to the game"
+            gd.client.embargo_reason = "Your client didn't connect to the game"
         if 'gamservdied' in clidict[gd.client.name]:
 	    gd.client.embargoed = True
-            #gd.client.embargo_reason = "Gameserver broke, please see an Arena Dev"
+            gd.client.embargo_reason = "Gameserver broke, please see an Arena Dev"
         if 'discon' in clidict[gd.client.name]:
 	    gd.client.embargoed = True
-            #gd.client.embargo_reason = "Your client disconnected from the game unexpectedly"
+            gd.client.embargo_reason = "Your client disconnected from the game unexpectedly"
         try:
             stats = json.loads(gd.client.stats)
         except:
