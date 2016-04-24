@@ -26,8 +26,7 @@ def validateSched(stalk):
     clients = list(Client.objects.filter(eligible=True).filter(missing=False))
     # remove humans
     for i in list(clients):
-        stats = json.loads(i.stats)
-        if stats['language'] == 'Human':
+        if i.language == 'Human':
             clients.remove(i)
 
     random.shuffle(clients)

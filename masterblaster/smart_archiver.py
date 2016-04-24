@@ -310,9 +310,8 @@ def handle_completion(request, game):
         try:
             stats = json.loads(gd.client.stats)
         except:
-            print "client.stats appears to be empty, unable to copy"
             stats = {}
-        stats['Egame'] = game.pk
+        gd.client.last_game_played = game.pk
         gd.client.stats = json.dumps(stats)
         try:
             gd.output_url = clidict[gd.client.name]['output_url']

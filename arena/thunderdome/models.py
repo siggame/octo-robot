@@ -19,7 +19,6 @@ class Client(models.Model):
     name = models.CharField(max_length=200)
     current_version = models.CharField(max_length=100, default='', null=True)
     embargoed = models.BooleanField(default=False) # broke
-    embargo_reason = models.CharField(max_length=255, default='See arena team for details')
     eligible = models.BooleanField(default=False) # not able to compete for prizes
     repo = models.CharField(max_length=200, default='')
     seed = models.IntegerField(default=0)
@@ -29,6 +28,7 @@ class Client(models.Model):
     game_name = models.CharField(max_length=200, default='')
     missing = models.BooleanField(default=False)
     language = models.CharField(max_length=50, default='')
+    last_game_played = models.IntegerField(default=-1)
 
     def inc_score(self, delta):
         # wishing for an atomic increment

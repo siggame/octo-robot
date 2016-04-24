@@ -2,14 +2,12 @@
 # MS&T SIG-Game 
 # Author: Brandon Phelps, Daniel Bolef
 
-# Chess swiss scheduler built for Dr. Tauritz chess AI competition and tournament. 
+# Swiss Chess scheduler built for the CS5400 Chess AI tournament. 
 
 
 #TO DO:
 #Fix winner output functions
-#Fix match ups
 #Handle ties
-#Write Monrad Swiss
 #Add parameter for starting game
 import random
 import urllib
@@ -17,7 +15,7 @@ import json
 import time
 import pprint
 import math
-
+import csv
 import beanstalkc
 import gc
 import sys
@@ -33,26 +31,30 @@ from utilities import webinteraction as WI
 
 import scheduler_validating as SV
 import clean_database as CD
-
+from scheduler_tournament import finish
 from collections import defaultdict
 
 uncompleted_games = []
 competing_clients = []
 current_round = 0
-
-
+start_game = 0
+monrad = False
+dutch = False
 include_humans = False
+eligible = True
 max_rounds = 0
 scores_file = open('wins.txt', 'w')
 class Player():
-    def __init__(self, name, score=0, rating=0):
+    def __init__(self, name, score=0.0, rating=0):
         self.name = name
         self.score = score
         self.rank = 0
         self.rating = rating
         self.past_competitors = [] # is a list of other Players that have been versed by self in the past
-        self.past_colors = []
         self.color_pref = 0
+        self.pref_power = 0
+        self.buchholz = 0.0
+        self.sumrate = 0
         self.recieved_bye = False
         self.pairing_number = 0
         
@@ -77,19 +79,30 @@ def main():
     global include_humans
     global iterative_swiss
     global max_rounds
+    global start_game
+    global monrad
+    global dutch
     clientNum = 0
     parser = argparse.ArgumentParser(description='Swiss Chess scheduler')
     parser.add_argument('--h', action='store_true', help='Whether to include humans, mainly for the swiss tournament')
     parser.add_argument('--r', type=int, default=-1, help='Number of rounds to run')
     parser.add_argument('--g', type=int, default=1, help='Starting game number for pulling in precompleted games')
     swissType = parser.add_mutually_exclusive_group(required=True)
-    swissType.add_argument('--dutch' action='store_true', help='Run with Dutch Swiss (Currently broken)')
-    swissType.add_argument('--monrad' action='store_true', help='Run with Monrad Swiss')
+    swissType.add_argument('--dutch', action='store_true', help='Run with Dutch Swiss (Currently broken)')
+    swissType.add_argument('--monrad', action='store_true', help='Run with Monrad Swiss')
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument("--eligible", help="Build a tournament with eligible clients only", action="store_true")
+    group.add_argument("--everyone", help="Build a tournament with all clients", action="store_true")
     args = parser.parse_args()
     print args
     include_humans = args.h
+    eligible = args.eligible
+    start_game = args.g
+    monrad = args.monrad
+    dutch = args.dutch
     CD.main()
-    cli = Client.objects.all()
+    WI.update_clients()
+    cli = Client.objects.filter(embargoed=False).filter(missing=False)
     gam = Game.objects.all()
     for x in cli:
         if not include_humans and x.language == 'Human':
@@ -98,7 +111,8 @@ def main():
         x.score = 0.0
         x.save()
     
-    for x in gam:
+    #for x in Game.objects.all().order_by('-id')[:start_game]:
+    for x in Game.objects.all():
         x.claimed = False
         x.save()
 
@@ -125,32 +139,81 @@ def main():
             if args.dutch:
                 schedule_volley(stalk, current_round)
             elif args.monrad:
-                #call Monrad swiss here
+                if current_round == 0:
+                    competing_clients = monrad_setup(cli)
+                else:
+                    update_standings(competing_clients)
+                    monrad_schedule(competing_clients, stalk)
         else:
             score_games()
         time.sleep(1)
-    stalk.close()           
+    while uncompleted_games:
+        time.sleep(1)
+        score_games()
+    update_standings(competing_clients)
+    for x in competing_clients:
+        realClient = Client.objects.get(name=x.name)
+        x.score = realClient.score
+    competing_clients = sort_players(competing_clients)
+    competing_clients = calc_tie_break(competing_clients)
     tied = False
-    winner_score = 0
-    win_file = open('wins.csv', 'w')
-    for x in cli:
-        line = (x.name, x.score, '\n')
-        l = str(line)
-        win_file.write(l)
-        if x.score > winner_score:
-            winner = x.name
-            winner_score = x.score
-            tied = False
-        elif x.score == winner_score:
-            tied = True
-    if tied:
-        print "There was a tie. Ties are bad."
-    else:
-        print "And the winner is,", winner, "!!!!!!!!!"
-    
+    for x in competing_clients:
+        y = Client.objects.get(name=x.name)
+        xstats = json.loads(y.stats)
+        for c in competing_clients:
+            if x.name == c.name:
+                continue
+            z = Client.objects.get(name=c.name)
+            cstats = json.loads(z.stats)
+            if x.score == c.score and x.buchholz == c.buchholz and x.sumrate == c.sumrate and xstats['NumBlack'] == cstats['NumBlack']:
+                tied = True
+                print "There was a tie! Playing another round"
+    while tied:
+        print "Current Round:", current_round
+        if args.dutch:
+            schedule_volley(stalk, current_round, True)
+        elif args.monrad:
+            monrad_schedule(competing_clients, stalk, True)
+        while uncompleted_games:
+            time.sleep(1)
+            score_games()
+        update_standings(competing_clients)
+        for x in competing_clients:
+            realClient = Client.objects.get(name=x.name)
+            x.score = realClient.score
+        competing_clients = sort_players(competing_clients)
+        competing_clients = calc_tie_break(competing_clients)
+        tied = False
+        for x in competing_clients:
+            y = Client.objects.get(name=x.name)
+            xstats = json.loads(y.stats)
+            for c in competing_clients:
+                if x.name == c.name:
+                    continue
+                z = Client.objects.get(name=c.name)
+                cstats = json.loads(z.stats)
+                if x.score == c.score and x.buchholz == c.buchholz and x.sumrate == c.sumrate and xstats['NumBlack'] == cstats['NumBlack']:
+                    tied = True
+                    print "There was a tie! Playing another round!"
+
+    f = open('winner.txt', 'w')
+    for x in competing_clients:
+        f.write(x.name)
+        f.write(' ')
+        f.write(str(x.score))
+        f.write(' ')
+        f.write(str(x.buchholz))
+        f.write(' ')
+        f.write(str(x.sumrate))
+        c = Client.objects.get(name=x.name)
+        stats = json.loads(c.stats)
+        f.write(str(stats['NumBlack']))
+        f.write('\n')
+    f.close()
     scores_file.close()
-    win_file.close()
-    
+    stalk.close()
+    finish()
+
 def hasAWinner(brackScores):
     if not brackScores.keys():
         return False
@@ -420,32 +483,32 @@ def setup_group(group, score_brackets, sched_dir):
         # print t[0].name, ":", t[0].color_pref, "vs", t[1].name, ":", t[1].color_pref
         #if t[0].color_pref == 0 and t[1].color_pref == 0:
         #    random.shuffle(t) 
-        if t[0].color_pref == 0:
-            if t[1].color_pref > 0:
+        if t[0].pref_power == 0:
+            if t[1].pref_power > 0:
                 t[0], t[1] = t[1], t[0]
-        elif t[1].color_pref == 0:
-            if t[0].color_pref < 0:
+        elif t[1].pref_power == 0:
+            if t[0].pref_power < 0:
                 t[0], t[1] = t[1], t[0]
-        elif math.fabs(t[0].color_pref) == math.fabs(t[1].color_pref):
-            if t[0].color_pref < 0:
+        elif math.fabs(t[0].pref_power) == math.fabs(t[1].pref_power):
+            if t[0].pref_power < 0:
                 t[0], t[1] = t[1], t[0]
         else:
-            white = min(t, key =lambda x:x.color_pref) 
-            black = max(t, key=lambda x:x.color_pref) 
+            white = min(t, key =lambda x:x.pref_power) 
+            black = max(t, key=lambda x:x.pref_power) 
             # who ever has the higher magnitude color pref gets to pick the color they need
-            if math.fabs(white.color_pref) > math.fabs(black.color_pref):
-                if white.color_pref < 0:
+            if math.fabs(white.pref_power) > math.fabs(black.pref_power):
+                if white.pref_power < 0:
                     t = (black, white)
-                elif white.color_pref > 0:
+                elif white.pref_power > 0:
                     t = (white, black)
-            elif math.fabs(white.color_pref) < math.fabs(black.color_pref):
-                if black.color_pref < 0:
+            elif math.fabs(white.pref_power) < math.fabs(black.pref_power):
+                if black.pref_power < 0:
                     t = (white, black)
-                elif black.color_pref > 0:
+                elif black.pref_power > 0:
                     t = (black, white)
         
         group[pos], group[(len(group)/2) + pos] = t[0], t[1]
-        # print t[0].name, ":", t[0].color_pref, "vs", t[1].name, ":", t[1].color_pref
+        # print t[0].name, ":", t[0].pref_power, "vs", t[1].name, ":", t[1].pref_power
         pos += 1
 
 def schedule_group(group, bracket_type, stalk):
@@ -457,72 +520,22 @@ def schedule_group(group, bracket_type, stalk):
     except IndexError:
         print "group is empty"
 
-    games = Game.objects.all()
     
     # schedule down
     pos = 0
     while pos < len(group)/2:
         i = group[pos]
         j = group[(len(group)/2) + pos]
-        c1 = Client.objects.get(name=i.name)
-        c2 = Client.objects.get(name=j.name)
-        # first player is white
-
-        # if a game is already computed, score the game instead of schedule
-        score_game = False
-        game_to_score = None
-        for g in games:
-            if g.status == 'Complete' and not g.claimed:
-                current_game = Game.objects.get(pk=g.pk)
-                game_clients = list(current_game.clients.all())
-                if game_clients[0].name == i.name and game_clients[1].name == j.name:
-                    score_game = True
-                    print "Found game already played, using that"
-                    print game_clients[0].name, "vs", game_clients[1].name
-                    if g.tied:
-                        print "Tie!"
-                        for c in game_clients:
-                            if c.name == i.name:
-                                print "%s's score goes from %d to" % (c.name, c.score),
-                                c.score += 0.5
-                                c.save()
-                                print c.score
-                            if c.name == j.name:
-                                print "%s's score goes from %d to" % (c.name, c.score),
-                                c.score += 0.5
-                                c.save()
-                                print c.score
-
-                    else:
-                        for c in game_clients:
-                            if c.name == g.winner.name:
-                                print c.name, "won, their score goes from", c.score, "to",
-                                c.score += 1
-                                c.save()
-                                print c.score
-                            #if c.name != g.winner.name:
-                                #print c.name, "lost, their score goes from", c.score, "to",
-                                #c.score -= 1
-                                #c.save()
-                                #print c.score
-
-                    g.claimed = True
-                    break
-
-        if not score_game:
-            uncompleted_games.append(sked(c1, c2, stalk, "Swiss sked").pk)
-            i.color_pref -= 1
-            j.color_pref += 1
-            i.past_competitors.append(j)
-            j.past_competitors.append(i)
+        i,j = schedule_game(i, j, stalk)
         pos += 1
 
 
-def score_games(args):
+def score_games():
     '''go through the games and set the corresponding scores of each game'''
-    
     global competing_clients
     global current_round
+    global monrad
+    global dutch
     for g in list(uncompleted_games):
         if game_status(g) == "Complete":
             try:
@@ -538,7 +551,7 @@ def score_games(args):
                 
                 #for i in game_clients.clients.iterator():
                 for i, c in enumerate(game_clis):
-                    if args.monrad:
+                    if monrad:
                         stats = json.loads(c.stats)
                         if i == 0:
                             white = stats['NumWhite']
@@ -549,7 +562,7 @@ def score_games(args):
                             black += 1
                             stats['NumBlack'] = black
                         c.stats = json.dumps(stats)
-                    print "%s's score goes from %d to" % (c.name, c.score),
+                    print "%s's score goes from %s to" % (c.name, str(c.score)),
                     c.score += 0.5
                     c.save()
                     print c.score
@@ -557,7 +570,7 @@ def score_games(args):
                     scores_file.flush()
             else:
                 for i, c in enumerate(game_clis):
-                    if args.monrad:
+                    if monrad:
                         stats = json.loads(c.stats)
                         if i == 0:
                             white = stats['NumWhite']
@@ -570,7 +583,7 @@ def score_games(args):
                         c.stats = json.dumps(stats)
                     if c.name == gameC.winner.name:
                         print c.name, "is the winner of game", g, "and their score goes from", c.score, "to"
-                        c.score += 1
+                        c.score += 1.0
                         c.save()
                         print c.score
                         scores_file.write("%s\n" % c.name)
@@ -586,10 +599,8 @@ def score_games(args):
             gameC.save()
             uncompleted_games.remove(g)
         elif game_status(g) == "Failed":            
-            print "Game:", g, "Failed attempting restart."
-            print "Printing out standing"
-            update_standings()
-            #exit() # exit the game after outputing the stats so a manual swiss can be created.
+            print "Game:", g, "Failed, commiting suicide now."
+            exit() # exit the game.
             # during competition just restart swiss
             uncompleted_games.remove(g)
             for x in Game.objects.all():
@@ -600,10 +611,10 @@ def score_games(args):
                 x.save()
             current_round = 0
             
-def update_standings():
+def update_standings(competing_clients):
     f = open("scores.txt", 'w')
     for i in competing_clients:
-        print i.name, i.score
+        #print i.name, i.score
         f.write("%s %d" % (i.name, i.score))
     f.close()    
 
@@ -612,29 +623,178 @@ def print_scoreBrackets(brackets):
         for c in j:
             print c
 
-def sort_players(clients):
-    #Bubble sort
-    #MEGA BROKEN  Implement with Player class
-    for i in range(len(clients)):
-        for j in range(len(clients)-1-i):
-            if clients[j].score > clients[j+1].score:
-                clients[j], clients[j+1] = clients[j+1], clients[j]  # Swap!
-    return client
+def schedule_game(i, j, stalk):
+    global start_game
+    global monrad
+    global dutch
+    c1 = Client.objects.get(name=i.name)
+    c2 = Client.objects.get(name=j.name)
+    # first player is white
+
+    # if a game is already computed, score the game instead of schedule
+    games = Game.objects.all()#Game.objects.all().order_by('-id')[:start_game]
+    score_game = False
+    game_to_score = None
+    for g in games:
+        if g.status == 'Complete' and not g.claimed:
+            current_game = Game.objects.get(pk=g.pk)
+            game_clients = list(current_game.clients.all())
+            if game_clients[0].name == i.name and game_clients[1].name == j.name:
+                score_game = True
+                print "Found game already played, using that"
+                print game_clients[0].name, "vs", game_clients[1].name
+                if g.tied:
+                    print "Draw!"
+                    for i,c in enumerate(game_clients):
+                        print "%s's score goes from %s to" % (c.name, str(c.score)),
+                        c.score += 0.5
+                        c.save()
+                        print c.score
+                        if monrad:
+                            stats = json.loads(c.stats)
+                            if i == 0:
+                                white = stats['NumWhite']
+                                white += 1
+                                stats['NumWhite'] = white
+                            elif i == 1:
+                                black = stats['NumBlack']
+                                black += 1
+                                stats['NumBlack'] = black
+                            c.stats = json.dumps(stats)
+
+                else:
+                    for i,c in enumerate(game_clients):
+                        if c.name == g.winner.name:
+                            print c.name, "won, their score goes from", c.score, "to",
+                            c.score += 1.0
+                            c.save()
+                            print c.score
+                        if monrad:
+                            stats = json.loads(c.stats)
+                            if i == 0:
+                                white = stats['NumWhite']
+                                white += 1
+                                stats['NumWhite'] = white
+                            elif i == 1:
+                                black = stats['NumBlack']
+                                black += 1
+                                stats['NumBlack'] = black
+                            c.stats = json.dumps(stats)
+                        #if c.name != g.winner.name:
+                            #print c.name, "lost, their score goes from", c.score, "to",
+                            #c.score -= 1
+                            #c.save()
+                            #print c.score
+
+                g.claimed = True
+                break
+
+    if not score_game:
+        uncompleted_games.append(sked(c1, c2, stalk, "Swiss sked").pk)
+        i.pref_power -= 1
+        j.pref_power += 1
+        i.past_competitors.append(j)
+        j.past_competitors.append(i)
+    return i,j
+
+def sort_players(competing_clients):
+    competing_clients.sort(key=lambda x: x.score, reverse=True)
+    return competing_clients
                 
-def monrad_schedule(clients, stalk):
+def monrad_setup(clients):
     global current_round
-    sortedClients = sort_players(clients)
+    global eligible
+    global include_humans
+
+    if not eligible:
+        for i in list(clients):
+            if i.eligible == False:
+                clients.remove(i)
+    if not include_humans:
+        for i in list(clients):
+            if i.language == "Human":
+                clients.remove(i)
+
+    for i in clients:
+        print i.name
+
+    competing_clients = [Player(j.name, 0.0, j.rating) for j in clients]
     #Determine color preference
     #If round 0 erase client.stats and set up
-    if current_round == 0:
-        for x in clients:
-            x.stats = {}
-            stats = {}
-            stats['NumWhite'] = 0
-            stats['NumBlack'] = 0
-            x.stats = json.dumps(stats)
-            x.save()
+    for x in clients:
+        x.stats = {}
+        stats = {}
+        stats['NumWhite'] = 0
+        stats['NumBlack'] = 0
+        x.stats = json.dumps(stats)
+        x.save()
+    current_round += 1
+    return competing_clients
 
+
+def monrad_schedule(competing_clients, stalk, tie_breaker=False):
+    global current_round
+    for x in competing_clients:
+        realClient = Client.objects.get(name=x.name)
+        x.score = realClient.score
+    competing_clients = sort_players(competing_clients)
+    for x in competing_clients:
+        print x.name, x.score
+    for i, x in enumerate(competing_clients):
+        if i % 2 == 0:
+            y = x
+            odd = True
+            continue
+        else:
+            odd = False
+            if compatible_players(y, x) or tie_breaker:
+                y, x = recalc_colors(y, x)
+                if y.pref_power >= x.pref_power:
+                    print y.name, "gets color preference over", x.name
+                    if y.color_pref == 0:
+                        schedule_game(y, x, stalk)
+                    else:
+                        schedule_game(x, y, stalk)
+                else:
+                    print x.name, "gets color preference over", y.name
+                    if x.color_pref == 0:
+                        schedule_game(x, y, stalk)
+                    else:
+                        schedule_game(y, x, stalk)
+    if odd:
+        c = Client.objects.get(name=y.name)
+        c.score += 1
+        c.save()
+    current_round += 1
+    
+def recalc_colors(y, x):
+    c0 = Client.objects.get(name=y.name)
+    c1 = Client.objects.get(name=x.name)
+    stats0 = json.loads(c0.stats)
+    stats1 = json.loads(c1.stats)
+    prelim_pref_y = stats0['NumWhite'] - stats0['NumBlack']
+    prelim_pref_x = stats1['NumWhite'] - stats1['NumBlack']
+    print y.name, "has played", stats0['NumWhite'], "white games and", stats0['NumBlack'], "black games, and their preference power is", prelim_pref_y
+    print x.name, "has played", stats1['NumWhite'], "white games and", stats1['NumBlack'], "black games, and their preference power is", prelim_pref_x
+    if prelim_pref_y <= 0:
+        y.color_pref = 1
+    else:
+        y.color_pref = 0
+    if prelim_pref_x <= 0:
+        x.color_pref = 1
+    else:
+        x.color_pref = 0
+    y.pref_power = abs(prelim_pref_y)
+    x.pref_power = abs(prelim_pref_x)
+    return y, x
+
+def calc_tie_break(competing_clients):
+    for x in competing_clients:
+        for c in competing_clients:
+            if c in x.past_competitors:
+                x.buchholz += c.score
+                x.sumrate += c.rating
+    return competing_clients
 
 if __name__ == "__main__":
     main()

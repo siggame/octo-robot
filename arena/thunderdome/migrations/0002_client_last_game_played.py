@@ -7,13 +7,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('thunderdome', '0006_client_language'),
+        ('thunderdome', '0001_initial'),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='game',
-            name='swissUsed',
-            field=models.BooleanField(default=False),
+            model_name='client',
+            name='last_game_played',
+            field=models.IntegerField(default=-1),
         ),
     ]
