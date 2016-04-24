@@ -12,9 +12,24 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.AddField(
+            model_name='client',
+            name='embargo_reason',
+            field=models.CharField(default=b'', max_length=255),
+        ),
+        migrations.AddField(
+            model_name='client',
+            name='language',
+            field=models.CharField(default=b'', max_length=50),
+        ),
+        migrations.AddField(
             model_name='game',
             name='lose_reason',
             field=models.CharField(default=b'Unknown reason', max_length=1024),
+        ),
+        migrations.AddField(
+            model_name='game',
+            name='tie_reason',
+            field=models.CharField(default=b'', max_length=1024),
         ),
         migrations.AddField(
             model_name='game',

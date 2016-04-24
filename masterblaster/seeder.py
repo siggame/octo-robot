@@ -24,6 +24,7 @@ def seed():
         client.seed = i
         client.save()
 
+
 def seed_tournament():
     print "Seeding Tournament"
     for client in Client.objects.all():

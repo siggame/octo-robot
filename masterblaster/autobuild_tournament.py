@@ -15,10 +15,10 @@ from seeder import seed_tournament, seed
 import argparse
 
 
-tournament = 34355400
+tournament = 23745200
 ### seed doods
-# seed()
-seed_tournament()
+seed()
+#seed_tournament()
 
 try:
   Client.objects.get(name='bye')

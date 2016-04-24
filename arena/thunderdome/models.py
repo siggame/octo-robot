@@ -93,6 +93,7 @@ class Game(models.Model):
     p0out_url = models.CharField(max_length=200, default='') # unused
     p1out_url = models.CharField(max_length=200, default='') # unused
     visualized = models.DateTimeField(default=datetime(1970, 1, 1), null=True)
+    been_vised = models.BooleanField(default=False)
     completed = models.DateTimeField(null=True)
     claimed = models.BooleanField(default=True)
     tournament = models.BooleanField(default=False)
