@@ -24,6 +24,9 @@ buildout.cfg
 # Ignore SQLite3 files
 *.db
 
+# ingore migrations
+arena/thunderdome/migrations
+
 # Ignore other nose files
 .noseids
 
