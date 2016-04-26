@@ -29,6 +29,7 @@ class Client(models.Model):
     game_name = models.CharField(max_length=200, default='')
     missing = models.BooleanField(default=False)
     language = models.CharField(max_length=50, default='')
+    last_game_played = models.IntegerField(default=-1)
 
     def inc_score(self, delta):
         # wishing for an atomic increment

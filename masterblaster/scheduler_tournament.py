@@ -263,13 +263,8 @@ def maintain_match(match):
             game.stats = json.dumps(payload_d)
             game.status = "Scheduled"
             game.save()
-<<<<<<< HEAD
             stalk.put(game.stats, priority=1000, ttr=400)
             print "Scheduled", game, player_order[0].name, "vs", player_order[1].name
-=======
-            stalk.put(game.stats, ttr=400)
-            print "Scheduled", player_order[0].name, "vs", player_order[1].name
->>>>>>> gameServerApi
         else:
             player_order = list(game.clients.all())
             print "Got", player_order[0].name, "vs", player_order[1].name, "from pool"

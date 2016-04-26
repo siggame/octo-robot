@@ -16,9 +16,7 @@ import socket
 import md5
 import zipfile
 from time import sleep
-from datetime import datetime
-#Don't think this is needed anymore, uncomment if it does
-#from bz2 import BZ2File 
+from datetime import datetime 
 
 # Non-Django 3rd Party Imports
 import beanstalkc
@@ -97,20 +95,38 @@ def looping(stalk):
     # start the clients
     server_host = os.environ['SERVER_HOST']
     players = list()
-
-
+    humans_be_here = False
+    readin = subprocess.Popen(['hostname', '-i'], stdout=subprocess.PIPE)
+    external_ip = readin.stdout.read()
+    external_ip = external_ip.rstrip()
     for i, cl in enumerate(game['clients']):
-        players.append(
-            subprocess.Popen(['bash',
-                                'run', game_name,
-                                '-r', game['number'],
-                                '-s', server_host,
-                                '-i', str(i),
-                                '-n', cl['name']
-                             ], 
-                             stdout=file('%s-stdout.txt' % cl['name'], 'w'),
-                             stderr=file('%s-stderr.txt' % cl['name'], 'w'),
-                             cwd=cl['name']))
+        print "Client", cl['name'], "is a", cl['language'], "client"
+        if cl['language'] == 'Human':
+            humans_be_here = True
+            players.append(
+                subprocess.Popen(['bash',
+                                  'run', game_name,
+                                  '-r', game['number'],
+                                  '-s', external_ip,
+                                  '-i', str(i),
+                                  '-n', cl['name'],
+                                  '--chesser-master', 'r99acm.device.mst.edu:5454'
+                                 ],
+                                 stdout=file('%s-stdout.txt' % cl['name'], 'w'),
+                                 stderr=file('%s-stderr.txt' % cl['name'], 'w'),
+                                 cwd=cl['name']))
+        else:
+            players.append(
+                subprocess.Popen(['bash',
+                                  'run', game_name,
+                                  '-r', game['number'],
+                                  '-s', server_host,
+                                  '-i', str(i),
+                                  '-n', cl['name']
+                                 ],
+                                 stdout=file('%s-stdout.txt' % cl['name'], 'w'),
+                                 stderr=file('%s-stderr.txt' % cl['name'], 'w'),
+                                 cwd=cl['name']))
 
     
     # make sure both clients have connected
@@ -119,18 +135,18 @@ def looping(stalk):
                             (game_server_ip, game_name, game['number'])).json()
     start_time            = int(round(time.time() * 1000))
     current_time          = start_time
-    MAX_TIME              = 10000           # in milliseconds
-    
+    if not humans_be_here:
+        MAX_TIME          = 10000           # in milliseconds
+    else:
+        MAX_TIME          = 2000000
+
     # block while at least one client is not connected
     while len(game_server_status['clients']) < 2 and (current_time - start_time <= MAX_TIME):
-        sleep(.001)        # wait a bit for the clients to connect
+        if not humans_be_here:
+            sleep(.001)     # wait a bit for the clients to connect
+        else:
+            sleep(.1)
         current_time = int(round(time.time() * 1000))
-        
-        #Not sure if printing this is needed
-        #if game_server_status['status'] == "open":
-        #    print len(game_server_status['clients'])
-        
-        
         game_server_status = requests.get('http://%s:3080/status/%s/%s' %
                              (game_server_ip, game_name, game['number'])).json()
 
@@ -170,7 +186,7 @@ def looping(stalk):
                          (game_server_ip, game_name, game['number'])).json()
     start_time            = int(round(time.time() * 1000))
     current_time          = start_time
-    MAX_TIME              = 2000000
+    MAX_TIME              = 2500000
     
     while game_server_status['status'] == 'running' and current_time - start_time <= MAX_TIME:
         job.touch()
@@ -213,7 +229,7 @@ def looping(stalk):
     if 'disconnected' in game_server_status['clients'][1]:
         if game_server_status['clients'][1]['disconnected']:
             p1broke = True
-            print game_server_status['clients'][0]['name'], "disconnected"
+            print game_server_status['clients'][1]['name'], "disconnected"
         else:
             p1broke = False
     else:
@@ -315,7 +331,7 @@ def push_datablocks(game):
     ''' Make zip files containing client data and push them to s3 '''
     for client in game['clients']:
         in_name = "%s-data.zip" % client['name']
-        with zipfile.ZipFile(in_name, 'w', zipfile.ZIP_DEFLATED) as z:
+        with zipfile.ZipFile(in_name, 'w', zipfile.ZIP_DEFLATED, allowZip64 = True) as z:
             for suffix in ['stdout', 'stderr', 'makeout', 'gitout']:
 #            for suffix in ['makeout', 'gitout']: # this should be removed after competition
                 z.write('%s-%s.txt' % (client['name'], suffix))

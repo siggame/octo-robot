@@ -39,6 +39,7 @@ class Migration(migrations.Migration):
                 ('stats', models.TextField(default=b'')),
                 ('game_name', models.CharField(default=b'', max_length=200)),
                 ('missing', models.BooleanField(default=False)),
+                ('language', models.CharField(default=b'', max_length=50)),
             ],
         ),
         migrations.CreateModel(
@@ -54,7 +55,11 @@ class Migration(migrations.Migration):
                 ('completed', models.DateTimeField(null=True)),
                 ('claimed', models.BooleanField(default=True)),
                 ('tournament', models.BooleanField(default=False)),
+                ('tied', models.BooleanField(default=False)),
                 ('stats', models.TextField(default=b'')),
+                ('win_reason', models.CharField(default=b'Unknown reason', max_length=1024)),
+                ('lose_reason', models.CharField(default=b'Unknown reason', max_length=1024)),
+                ('tie_reason', models.CharField(default=b'', max_length=1024)),
             ],
             options={
                 'ordering': ['-completed', '-id'],
