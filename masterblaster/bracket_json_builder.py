@@ -55,7 +55,7 @@ schema = {
 global_dict = {}
 
 def main():
-    tournament_id = 23745200
+    tournament_id = 286445200
     championship = Match.objects.get(root=True, tournament=tournament_id)
 
     #print "Running kmeans"
