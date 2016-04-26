@@ -9,10 +9,9 @@ import sys
 
 
 parser = argparse.ArgumentParser()
-group = parser.add_mutually_exclusive_group(required=False)
-group.add_argument("--gladnum", default=0, type=int, help="How many gladiators you want to spin up. Default it 0")
-group.add_argument("--refnum", default=1, type=int, help="How many referees you want to spin up. Default is 1")
-group.add_argument("--instype", default='c4.large', help="What type of instance to spin up. Default is c4.large")
+parser.add_argument("--gladnum", default=0, type=int, help="How many gladiators you want to spin up. Default it 0")
+parser.add_argument("--refnum", default=1, type=int, help="How many referees you want to spin up. Default is 1")
+parser.add_argument("--instype", default='c4.large', help="What type of instance to spin up. Default is c4.large")
 args = parser.parse_args()
 
 count = args.gladnum
@@ -47,13 +46,14 @@ EOF
 
 
 
-print "spinning up %i gladiators with %i referees each on %i instances..." % (count, numRefs, instanceType)
+print "spinning up %i gladiators with %i referees each on %s instances..." % (count, numRefs, instanceType)
 conn = boto.connect_ec2(access_cred, secret_cred)
 gladiator_image = conn.get_image(arena_ami)
 reservation = gladiator_image.run(min_count=count, max_count=count,
                                   user_data=user_data,
                                   instance_type=instanceType,
-                                  key_name='mmai-16-glad-key',
-                                  security_groups=['Arena Gladiator']) 
+                                  key_name='arena_head',
+                                  security_group_ids=['sg-1fcebc66'],
+                                  subnet_id='subnet-de7cd0f5') 
 
 print user_data

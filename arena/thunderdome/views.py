@@ -92,18 +92,19 @@ def view_match(request, match_id):
     return render_to_response('thunderdome/view_match.html', {'match' : match})
 
 def get_next_game_url_to_visualize(request):
-    clients = Client.objects.exclude(name='bye').exclude(current_version='ShellAI')
-    worst_client = min(clients, key=lambda x: x.last_visualized())
-    next_gid = \
-        worst_client.games_played.all() \
-        .filter(status='Complete').aggregate(Max('pk'))['pk__max']
-
-    try:
-        next_game = Game.objects.get(pk=next_gid)
-    except Game.DoesNotExist:
-        return HttpResponse("game id %s does not exist" % str(next_gid))
-    next_game.set_visualized()
-    return HttpResponse(next_game.gamelog_url)
+    found = False
+    for x in Game.objects.all():
+        if x.been_vised == False and x.status == 'Complete':
+            next_game_url = x.gamelog_url
+            x.been_vised = True
+            found = True
+            break
+    if not found:
+        x = Game.objects.order_by('?').first()
+        while x.status != 'Complete':
+            x = Game.objects.order_by('?').first()
+        next_game_url = x.gamelog_url
+    return HttpResponse(next_game_url)
 
 def rate_game(request, game_id, rating):
     print 'rating game', game_id, 'with rating', rating

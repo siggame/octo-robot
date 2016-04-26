@@ -4,6 +4,9 @@ from copy import deepcopy
 import random
 import jsonschema
 import json
+
+import django
+django.setup()
 # from masterblaster.utilities.kmeans import generate_clusters
 
 
@@ -52,7 +55,7 @@ schema = {
 global_dict = {}
 
 def main():
-    tournament_id = 2233216
+    tournament_id = 286445200
     championship = Match.objects.get(root=True, tournament=tournament_id)
 
     #print "Running kmeans"

@@ -15,16 +15,7 @@ from seeder import seed_tournament, seed
 import argparse
 
 
-tournament = 34355400
-### seed doods
-# seed()
-seed_tournament()
-
-try:
-  Client.objects.get(name='bye')
-except:
-  Client.objects.create(name='bye', embargoed=True, eligible=False, missing=False)
-
+tournament = 286241200
 
 def seed_or_bye(n):
     try:
@@ -162,5 +153,16 @@ if __name__ == "__main__":
     group.add_argument("--eligible", help="Build a tournament with eligible clients only", action="store_true")
     group.add_argument("--everyone", help="Build a tournament with all clients", action="store_true")
     args = parser.parse_args()
+
+    if args.everyone:
+        seed()
+    elif args.eligible:
+        seed_tournament()
+
+    try:
+        Client.objects.get(name='bye')
+    except:
+        Client.objects.create(name='bye', embargoed=True, eligible=False, missing=False)
+
 
     build_triple_elim(args)

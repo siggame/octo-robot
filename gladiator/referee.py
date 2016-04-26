@@ -51,7 +51,7 @@ def looping(stalk):
     job = stalk.reserve()
     game = json.loads(job.body)
     print "Processing game", game['number']
-
+    
     game['blaster_id'] = socket.gethostname()
     game['referee_id'] = os.getpid()
     game['started'] = str(datetime.now())
@@ -59,9 +59,8 @@ def looping(stalk):
     # get latest client code in arena mode.
     # tournament mode uses client code that is already in place
     game['status'] = "Building"
-    if 'tournament' not in game:
-        for client in game['clients']:
-            update_local_repo(client)
+    for client in game['clients']:
+        update_local_repo(client)
 
     # make empty files for all the output files
     for prefix in [x['name'] for x in game['clients']]:
@@ -105,7 +104,7 @@ def looping(stalk):
             humans_be_here = True
             players.append(
                 subprocess.Popen(['bash',
-                                  'run', game_name,
+                                  'arenaRun', game_name,
                                   '-r', game['number'],
                                   '-s', external_ip,
                                   '-i', str(i),
@@ -118,7 +117,7 @@ def looping(stalk):
         else:
             players.append(
                 subprocess.Popen(['bash',
-                                  'run', game_name,
+                                  'arenaRun', game_name,
                                   '-r', game['number'],
                                   '-s', server_host,
                                   '-i', str(i),
@@ -250,6 +249,10 @@ def looping(stalk):
             reason = ("Early termination because", game_server_status['clients'][1]['name'], "disconnected unexpectedly.")
             game['tie_reason'] = ' '.join(reason)
         push_datablocks(game)
+        try:
+            push_gamelog(game)
+        except:
+            pass
         stalk.put(json.dumps(game))
         job.delete()
         return
@@ -321,7 +324,7 @@ def push_file(local_filename, remote_filename, is_glog):
     k = boto.s3.key.Key(b)
     k.key = 'logs/%s/%s' % (os.environ['GAME_NAME'], remote_filename)
     if is_glog:
-        k.set_contents_from_filename(local_filename, {'Content-Type': 'application/json; charset=utf-8', 'Content-Encoding': 'gzip'}, policy='public-read')
+        k.set_contents_from_filename(local_filename, {'Content-Type': 'application/json; charset=utf-8', 'Content-Encoding': 'gzip', 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'Origin,X-Requested-With,Content-Type,Accept'}, policy='public-read')
     else:
         k.set_contents_from_filename(local_filename, policy='public-read')
     return "http://%s.s3.amazonaws.com/%s" % (bucket_name, k.key)
