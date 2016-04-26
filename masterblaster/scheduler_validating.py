@@ -16,8 +16,8 @@ django.setup()
 def validateSched(stalk):
     print "updating clients"
     update_clients()
-    print "Breaking embargoes"
-    break_embargos.break_embargos()
+    #print "Breaking embargoes"
+    #break_embargos.break_embargos()
     print "Scheduling validation games"
     games = []
     stalk = beanstalkc.Connection()

@@ -229,7 +229,7 @@ def looping(stalk):
     if 'disconnected' in game_server_status['clients'][1]:
         if game_server_status['clients'][1]['disconnected']:
             p1broke = True
-            print game_server_status['clients'][0]['name'], "disconnected"
+            print game_server_status['clients'][1]['name'], "disconnected"
         else:
             p1broke = False
     else:
