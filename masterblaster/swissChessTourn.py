@@ -703,9 +703,9 @@ def schedule_game(i, j, stalk):
                                     i.num_black += 1
                             elif j.name == c.name:
                                 if k == 0:
-                                    i.num_white += 1
+                                    j.num_white += 1
                                 elif k == 1:
-                                    i.num_black += 1
+                                    j.num_black += 1
                         #if c.name != g.winner.name:
                             #print c.name, "lost, their score goes from", c.score, "to",
                             #c.score -= 1
