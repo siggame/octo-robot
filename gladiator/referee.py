@@ -216,7 +216,7 @@ def looping(stalk):
 
     game_server_status = requests.get('http://%s:3080/status/%s/%s' %
                              (game_server_ip, game_name, game['number'])).json()
-
+    """
     if 'disconnected' in game_server_status['clients'][0]:
         if game_server_status['clients'][0]['disconnected']:
             p0broke = True
@@ -256,7 +256,7 @@ def looping(stalk):
         stalk.put(json.dumps(game))
         job.delete()
         return
-
+    """
     # figure out who won
     print "determining winner..."
     if ('won' in game_server_status['clients'][0] and 'won' in game_server_status['clients'][1]) or ('lost' in game_server_status['clients'][0] and 'lost' in game_server_status['clients'][1]):
