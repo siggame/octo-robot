@@ -146,6 +146,7 @@ After which open the secret_settings.py file in arena/settings folder and add in
 cd back to the base project directory, octo-robot
 
 ```
+./bin/production makemigrations thunderdome
 ./bin/production migrate
 ./bin/production createsuperuser
 ```
