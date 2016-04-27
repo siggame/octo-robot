@@ -641,7 +641,7 @@ def update_standings(competing_clients):
     global current_round
     f = open("scores.txt", 'w')
     for i in competing_clients:
-        f.write("%s-%d-%d-%d-%d-%d-%d" % (i.name, i.score, i.buchholz, i.sumrate, i.num_black, i.num_white, current_round))
+        f.write("%s-%d-%d-%d-%d-%d-%d\n" % (i.name, i.score, i.buchholz, i.sumrate, i.num_black, i.num_white, current_round))
     f.close()    
 
 def print_scoreBrackets(brackets):
@@ -741,18 +741,19 @@ def monrad_setup(clients):
 
     competing_clients = [Player(j.name, 0.0, j.rating) for j in clients]
     if pullScores:
-        f.open('scores.txt', 'r')
+        f = open('scores.txt', 'r')
         filein = f.readline()
         scoresin = filein.split("\n")
         for x in scoresin:
             line = x.split("-")
             for i in competing_clients:
                 if line[0] == i.name:
-                    i.score = line[1]
-                    i.num_black = line[4]
-                    i.num_white = line[5]
-                    current_round = line[6]
+                    i.score = float(line[1])
+                    i.num_black = int(line[4])
+                    i.num_white = int(line[5])
+                    current_round = int(line[6])
         print "Setting round to", current_round
+        f.close()
     else:
         print "Setup complete, beginning round 1"
         current_round = 1
