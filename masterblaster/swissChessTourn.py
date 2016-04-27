@@ -201,8 +201,8 @@ def main():
                     print "There was a tie! Playing another round"
     do_another = True
     while do_another:
+        print 'Current rankings:'
         for x in competing_clients:
-            print 'Current rankings:'
             print x.name, x.score, x.buchholz, x.sumrate, x.num_black
         play_again = raw_input('Play another round?(y/n): ')
         if play_again == 'y':
