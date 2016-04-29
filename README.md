@@ -181,7 +181,7 @@ nginx is complicated and is not in the scope of explination of this document, th
 
 The main gist of nginx is that it is a process that should be running continuously that when someone types into the url of a web browser the webserver will process the requested link and return some data back.
 
-After installing nginx a config file will have to be made to let nginx know what/where you've located the website that it will need to serve. These files are typically stored in /etc/nginx/sites-available, but then require a system link to the folder /etc/nginx/site-enabled. 
+After installing nginx a config file will have to be made to let nginx know what/where you've located the website that it will need to serve. These files are typically stored in /etc/nginx/sites-available, but then require a system link to the folder /etc/nginx/site-enabled. See end of step 14 for more details.
 
 Testing
 
@@ -190,13 +190,11 @@ Procced to the root directory, octo-robot, and run the command `./bin/developmen
 Then go to the website 127.0.0.1:8000/admin.
 This is the base url of the admin site that django provides. Here you'll need to enter the username and password that was provided in step 5. Then type go to 127.0.0.1:8000/mies/thunderdome, the site itself is very minimal. Click on the Settings button on the top left, above Scoreboard. On here you should see a Currently Active Settings, Select a config and an Available settings display.
 
-(github issue 30)
-
-After issue 30 is resolved you'll be able click on new settings or something and add a new custom setting but in the mean time you'll have to create a new setting by hand. This will also be good pratice for interacting with the database using django's ORM.
+Create a new setting:
 
 To do this run
 ```
-./bin/development shell
+./bin/production shell
 ```
 
 This opens an interactive python shell with all the correct module imports and proper paths set.
@@ -223,13 +221,11 @@ new_config.client_prefix ('= "git@github.com:"' for testing)
 new_config.api_url_template
 ```
 
-
 All of those are specific to what your setup looks like.
 
 The beanstalk_host refers what ip the beanstalkd process is running, (the beanstalkd will be explained later TODO add step number). Client prefix refers to the server location of where the git clients are stored. Typically they will be on the webserver, but for testing it most likely be github take a look at the testing_plants arena settings to get an idea for how the client prefix looks. I think currently its like git@github.com: the api_url_template is specific to the production and has to do with updating the clients. 
 
 In production the game name will be specific to what ever the website team comes up with, hopefully you can show this to them and they'll know what you are asking for, I believe they call it the game name slug
-
 
 After you are happy with the configuration, you'll need to save the model.
 
@@ -239,14 +235,13 @@ To do this type in
 new_config.save()
 ```
 
-
 9) Get some test clients
-   - now that the database is up the arena will need some clients
-   - I have created a fake clients file that will add in some clients for fake testing purposes, 
-   - this file can be located at https://gist.githubusercontent.com/Daniel17sep/3b149607b25fa6d25411e35bb3d31cc8/raw/3ae6b1e1867cc077facd31eafa1ece3f22aa41af/Spiders_Test.txt
-   - all that needs to be down now is to run `./bin/python masterblaster/utilities/update_clients_from_gist.py `and pass the url as parameter. 
+   - Aow that the database is up the arena will need some clients
+   - There is a file with some fake Spiders clients for testing purposes, 
+   - This file can be located at https://gist.githubusercontent.com/Daniel17sep/3b149607b25fa6d25411e35bb3d31cc8/raw/3ae6b1e1867cc077facd31eafa1ece3f22aa41af/Spiders_Test.txt
+   - You can also make your own using whatever clients you like, just follow the format in test file
+   - All that needs to be down now is to run `./bin/python masterblaster/utilities/update_clients_from_gist.py `and pass the url as parameter. 
    
-
 9) Get some real clients
    - If setting up for an actual arena run, the arena will get the information from the webserver instead of a test file. 
    - this is done as a multistep process. 
@@ -270,7 +265,7 @@ make
 ```
 cd octo-robot
 ./bin/python masterblaster/scheduler_arena.py (For testing)
-./bin/python masterblaster/scheduler_window_swiss.py (For real)
+./bin/python masterblaster/scheduler_window_swiss.py (For realz)
 ```
 
 Afterwhich the scheduler will use a whole terminal so create a new one
@@ -311,18 +306,56 @@ which will spinup a gladiator, which will then should begin runnning games.
 For actual running the arena its a bit more complicated. 
 The folder that the generate_gladiator_package creates will have to be targed as a tgz
 Afterwhich the tar file has to be placed into the gladiator folder which may or may not exist in the static folder.
-Thus you should have static/gladiator/<tar_file>
+Thus you should have var/static/gladiator/<tar_file>
 Then you'll need to make sure that you have nginx all configured to use that folder as its static folder to serve files. 
 Then you'll have to start the nginx process by 
-    
-    - cd octo-robot
-    - MISSING STEP(S)
-    - ./bin/gunicorn arena.arena_wsgi:application
-    
+ 
+ - The file in /etc/nginx/sites-enabled (probably `arena` or something):
+      Should look something like this:
+         
+         # -*- mode: nginx -*-
+         
+         upstream gunicorn {
+           server localhost:8000 fail_timeout=0;
+         }
+         
+         server {
+           listen 80;
+           listen 8080;
+           server_name 50.17.162.7;
+           root /user/share/nginx/www;
+         
+           client_max_body_size 0;
+         
+           location /gladiator {
+             root /home/ubuntu/octo-robot/var/static;
+             autoindex on;
+             try_files $uri $uri/ 404;
+           }
+         
+           location @gunicorn {
+             client_max_body_size 0;
+             proxy_pass http://gunicorn;
+             proxy_redirect off;
+             proxy_read_timeout 5m;
+             proxy_set_header Host        $host;
+             proxy_set_header X-Real-IP   $remote_addr;
+             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+             add_header 'Access-Control-Allow-Origin' 'http://vis.megaminerai.com';
+           }
+         
+           location / {
+             try_files $uri @gunicorn;
+           }
+         }
+         
+ - cd octo-robot
+ - `sudo service nginx restart`
+ - `./bin/gunicorn --workers=<like 1.5 x number of cores on head node> arena.arena_wsgi:application`
+ 
 After which the gladiators can be started, 
-    - using ./bin/python masterblaster/spinup_arena_instance. 
+    - using `./bin/python masterblaster/spinup_arena_instance` (use --help to figure out what params you need). 
 These instructions have pretty much all assumed you are using the amazon ec2 instances, and have setup the proper permissions and have entered the correct keys and user names. 
 
-
 14) Monitoring 
-   - At this point he arena should be running and you'll just have to do monitoring. 
+   - At this point he arena should be running and you'll just have to do monitoring.
