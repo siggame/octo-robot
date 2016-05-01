@@ -92,6 +92,7 @@ def main():
     parser.add_argument('--r', type=int, default=-1, help='Number of rounds to run')
     parser.add_argument('--g', type=int, default=1, help='Starting game number for pulling in precompleted games')
     parser.add_argument('--s', action='store_true', help='Pull scores in and start on specified round')
+    parser.add_argument('--n', type=int, default=0, help='HALP')
     swissType = parser.add_mutually_exclusive_group(required=True)
     swissType.add_argument('--dutch', action='store_true', help='Run with Dutch Swiss (Currently broken)')
     swissType.add_argument('--monrad', action='store_true', help='Run with Monrad Swiss')
@@ -106,19 +107,21 @@ def main():
     monrad = args.monrad
     dutch = args.dutch
     pullScores = args.s
+    current_round = args.n
+    if args.n != 0:
+        fileStart = True
     CD.main()
     WI.update_clients()
-    cli = Client.objects.filter(embargoed=False).filter(missing=False)
     gam = Game.objects.all()
     if eligible:
-        for i in cli:
+        for i in Client.objects.all():
             if i.eligible == False:
                 i.delete()
     if not include_humans:
-        for i in cli:
+        for i in Client.object.all():
             if i.language == "Human":
                 i.delete()
-
+    cli = Client.objects.filter(embargoed=False).filter(missing=False)
     for x in cli:
         clientNum += 1
         x.score = 0.0
@@ -151,9 +154,13 @@ def main():
             if args.dutch:
                 schedule_volley(stalk, current_round)
             elif args.monrad:
-                if current_round == 0:
+                if current_round == 0 or fileStart:
                     competing_clients = monrad_setup(cli)
+                    fileStart = False
                 else:
+                    for x in competing_clients:
+                        realClient = Client.objects.get(name=x.name)
+                        x.score = realClient.score
                     update_standings(competing_clients)
                     monrad_schedule(competing_clients, stalk)
         else:
@@ -162,6 +169,9 @@ def main():
     while uncompleted_games:
         time.sleep(1)
         score_games(competing_clients)
+    for x in competing_clients:
+        realClient = Client.objects.get(name=x.name)
+        x.score = realClient.score
     update_standings(competing_clients)
     for x in competing_clients:
         realClient = Client.objects.get(name=x.name)
@@ -185,6 +195,9 @@ def main():
         while uncompleted_games:
             time.sleep(1)
             score_games(competing_clients)
+        for x in competing_clients:
+            realClient = Client.objects.get(name=x.name)
+            x.score = realClient.score
         update_standings(competing_clients)
         for x in competing_clients:
             realClient = Client.objects.get(name=x.name)
@@ -201,8 +214,8 @@ def main():
                     print "There was a tie! Playing another round"
     do_another = True
     while do_another:
+        print 'Current rankings:'
         for x in competing_clients:
-            print 'Current rankings:'
             print x.name, x.score, x.buchholz, x.sumrate, x.num_black
         play_again = raw_input('Play another round?(y/n): ')
         if play_again == 'y':
@@ -214,6 +227,9 @@ def main():
             while uncompleted_games:
                 time.sleep(1)
                 score_games(competing_clients)
+            for x in competing_clients:
+                realClient = Client.objects.get(name=x.name)
+                x.score = realClient.score
             update_standings(competing_clients)
             for x in competing_clients:
                 realClient = Client.objects.get(name=x.name)
@@ -640,8 +656,9 @@ def score_games(competing_clients):
 def update_standings(competing_clients):
     global current_round
     f = open("scores.txt", 'w')
+    f.write("%d\n" % (len(competing_clients)))
     for i in competing_clients:
-        f.write("%s-%d-%d-%d-%d-%d-%d" % (i.name, i.score, i.buchholz, i.sumrate, i.num_black, i.num_white, current_round))
+        f.write("%s-%d-%d-%d-%d-%d-%d\n" % (i.name, i.score, i.buchholz, i.sumrate, i.num_black, i.num_white, current_round))
     f.close()    
 
 def print_scoreBrackets(brackets):
@@ -703,9 +720,9 @@ def schedule_game(i, j, stalk):
                                     i.num_black += 1
                             elif j.name == c.name:
                                 if k == 0:
-                                    i.num_white += 1
+                                    j.num_white += 1
                                 elif k == 1:
-                                    i.num_black += 1
+                                    j.num_black += 1
                         #if c.name != g.winner.name:
                             #print c.name, "lost, their score goes from", c.score, "to",
                             #c.score -= 1
@@ -741,18 +758,24 @@ def monrad_setup(clients):
 
     competing_clients = [Player(j.name, 0.0, j.rating) for j in clients]
     if pullScores:
-        f.open('scores.txt', 'r')
-        filein = f.readline()
-        scoresin = filein.split("\n")
-        for x in scoresin:
-            line = x.split("-")
-            for i in competing_clients:
-                if line[0] == i.name:
-                    i.score = line[1]
-                    i.num_black = line[4]
-                    i.num_white = line[5]
-                    current_round = line[6]
+        scoresin = {}
+        f = open('scores.txt', 'r')
+        numcli = int(f.readline())
+        count = 0
+        while count < numcli:
+            count += 1
+            print "Client", count, "read in"
+            filein = f.readline()
+            scoresin[count - 1] = filein.split("\n")
+            for x in scoresin:
+                line = x.split("-")
+                for i in competing_clients:
+                    if line[0] == i.name:
+                        i.score = float(line[1])
+                        i.num_black = int(line[4])
+                        i.num_white = int(line[5])
         print "Setting round to", current_round
+        f.close()
     else:
         print "Setup complete, beginning round 1"
         current_round = 1

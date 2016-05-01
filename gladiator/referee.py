@@ -51,8 +51,13 @@ def looping(stalk):
     job = stalk.reserve()
     game = json.loads(job.body)
     print "Processing game", game['number']
-    
-    game['blaster_id'] = socket.gethostname()
+
+    url = 'http://ifconfig.co'
+    headers = {'Accept': 'application/json'}
+    readin = requests.get(url, headers=headers)
+    external_ip = json.loads(readin.text)['ip']
+
+    game['blaster_id'] = external_ip
     game['referee_id'] = os.getpid()
     game['started'] = str(datetime.now())
     
@@ -95,21 +100,19 @@ def looping(stalk):
     server_host = os.environ['SERVER_HOST']
     players = list()
     humans_be_here = False
-    readin = subprocess.Popen(['hostname', '-i'], stdout=subprocess.PIPE)
-    external_ip = readin.stdout.read()
-    external_ip = external_ip.rstrip()
     for i, cl in enumerate(game['clients']):
         print "Client", cl['name'], "is a", cl['language'], "client"
         if cl['language'] == 'Human':
             humans_be_here = True
             players.append(
                 subprocess.Popen(['bash',
-                                  'arenaRun', game_name,
+                                  'run', game_name,
                                   '-r', game['number'],
                                   '-s', external_ip,
                                   '-i', str(i),
                                   '-n', cl['name'],
-                                  '--chesser-master', 'r99acm.device.mst.edu:5454'
+                                  '--chesser-master', 'r99acm.device.mst.edu:5454',
+                                  '--printIO'
                                  ],
                                  stdout=file('%s-stdout.txt' % cl['name'], 'w'),
                                  stderr=file('%s-stderr.txt' % cl['name'], 'w'),
@@ -117,7 +120,7 @@ def looping(stalk):
         else:
             players.append(
                 subprocess.Popen(['bash',
-                                  'arenaRun', game_name,
+                                  'run', game_name,
                                   '-r', game['number'],
                                   '-s', server_host,
                                   '-i', str(i),
@@ -144,6 +147,7 @@ def looping(stalk):
         if not humans_be_here:
             sleep(.001)     # wait a bit for the clients to connect
         else:
+            job.touch()
             sleep(.1)
         current_time = int(round(time.time() * 1000))
         game_server_status = requests.get('http://%s:3080/status/%s/%s' %
@@ -216,7 +220,7 @@ def looping(stalk):
 
     game_server_status = requests.get('http://%s:3080/status/%s/%s' %
                              (game_server_ip, game_name, game['number'])).json()
-
+    """
     if 'disconnected' in game_server_status['clients'][0]:
         if game_server_status['clients'][0]['disconnected']:
             p0broke = True
@@ -256,7 +260,7 @@ def looping(stalk):
         stalk.put(json.dumps(game))
         job.delete()
         return
-
+    """
     # figure out who won
     print "determining winner..."
     if ('won' in game_server_status['clients'][0] and 'won' in game_server_status['clients'][1]) or ('lost' in game_server_status['clients'][0] and 'lost' in game_server_status['clients'][1]):

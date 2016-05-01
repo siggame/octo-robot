@@ -9,7 +9,7 @@ ACM SIG-Game MegaMiner Arena (Thunderdome) Clients
 <h1>Clients</h1>
 
 {% for client in clients %}
-  {{ client.rating }} - {{ client.embargoed }} - {{ client.last_game_played }} - {{ client.current_version }} - {{ client.name }}
+  {{ client.rating }} - {{ client.embargoed }} - {{ client.embargo_reason }} - {{ client.last_game_played }} - {{ client.current_version }} - {{ client.name }}
   </br>
 
 {% endfor %}

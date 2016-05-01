@@ -26,6 +26,8 @@ def start_referee(ref_id):
     make_ref_folder(ref_id)
     print "Starting referee", ref_id
     return subprocess.Popen(['python', 'referee.py'],
+                            stdout=file('ref-%d-stdout.txt' % ref_id, 'w'),
+                            stderr=file('ref-%d-stderr.txt' % ref_id, 'w'),
                             cwd="%d" % ref_id)
 
 def main():

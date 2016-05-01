@@ -44,16 +44,15 @@ python gladiator.py '%s'
 EOF
 """ % (access_cred, secret_cred, s3_prefix, game_name, client_prefix, beanstalk_host, numRefs)
 
-
+conn = boto.connect_ec2(access_cred, secret_cred)
 
 print "spinning up %i gladiators with %i referees each on %s instances..." % (count, numRefs, instanceType)
-conn = boto.connect_ec2(access_cred, secret_cred)
 gladiator_image = conn.get_image(arena_ami)
 reservation = gladiator_image.run(min_count=count, max_count=count,
                                   user_data=user_data,
                                   instance_type=instanceType,
                                   key_name='arena_head',
-                                  security_group_ids=['sg-1fcebc66'],
+                                  security_group_ids=['sg-572ac82c'],
                                   subnet_id='subnet-de7cd0f5') 
 
 print user_data
