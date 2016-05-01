@@ -126,6 +126,11 @@ def representative_game(request, match_id):
     game_id = 1
     return view_game(request, game_id)
 
+def scores(request):
+    clients = list(Client.objects.all().filter(embargoed=False).filter(missing=False).filter(eligible=True))
+    clients.sort(key = lambda x: x.score, reverse=True)
+    return render_to_response('thunderdome/scores.html', {'clients':clients})
+
 def display_clients(request):
     clients = list(Client.objects.all())
     clients.sort(key = lambda x: x.rating, reverse=True)
