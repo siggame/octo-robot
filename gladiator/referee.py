@@ -51,8 +51,13 @@ def looping(stalk):
     job = stalk.reserve()
     game = json.loads(job.body)
     print "Processing game", game['number']
-    
-    game['blaster_id'] = socket.gethostname()
+
+    url = 'http://ifconfig.co'
+    headers = {'Accept': 'application/json'}
+    readin = requests.get(url, headers=headers)
+    external_ip = json.loads(readin.text)['ip']
+
+    game['blaster_id'] = external_ip
     game['referee_id'] = os.getpid()
     game['started'] = str(datetime.now())
     
@@ -95,9 +100,6 @@ def looping(stalk):
     server_host = os.environ['SERVER_HOST']
     players = list()
     humans_be_here = False
-    readin = subprocess.Popen(['hostname', '-i'], stdout=subprocess.PIPE)
-    external_ip = readin.stdout.read()
-    external_ip = external_ip.rstrip()
     for i, cl in enumerate(game['clients']):
         print "Client", cl['name'], "is a", cl['language'], "client"
         if cl['language'] == 'Human':
@@ -109,7 +111,8 @@ def looping(stalk):
                                   '-s', external_ip,
                                   '-i', str(i),
                                   '-n', cl['name'],
-                                  '--chesser-master', 'r99acm.device.mst.edu:5454'
+                                  '--chesser-master', 'r99acm.device.mst.edu:5454',
+                                  '--printIO'
                                  ],
                                  stdout=file('%s-stdout.txt' % cl['name'], 'w'),
                                  stderr=file('%s-stderr.txt' % cl['name'], 'w'),
@@ -144,6 +147,7 @@ def looping(stalk):
         if not humans_be_here:
             sleep(.001)     # wait a bit for the clients to connect
         else:
+            job.touch()
             sleep(.1)
         current_time = int(round(time.time() * 1000))
         game_server_status = requests.get('http://%s:3080/status/%s/%s' %
