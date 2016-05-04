@@ -1,6 +1,7 @@
 {% extends "thunderdome/base.html" %}
 {% load url from future %}
 
+
 {% block title %}
 ACM SIG-Game MegaMiner Arena (Thunderdome) Clients
 {% endblock %}
@@ -9,19 +10,40 @@ ACM SIG-Game MegaMiner Arena (Thunderdome) Clients
 
 <style>
 table, th, td {
-  padding: 10px;
+  padding: 3px;
 }
 </style>
 
 <h1>Rankings</h1>
 
-<table border="1" style="width:20%">
+<table border="1" style="width:50%">
 <tr><td><b>Rank</b></td><td><b>Client Name</b></td><td><b>Score</b></td></tr>
 {% for client in clients %}
   <tr><td>{{ forloop.counter }}</td><td>{{ client.name }}</td><td>{{ client.score }}</td></tr>
 {% endfor %}
 </table>
 
+<!--
+<div style="float:left">
+<table border="1" style="width:45%">
+{% for client in clients %}
+   {% if forloop.counter < clients|length %}
+       <tr><td>{{ forloop.counter }}</td><td>{{ client.name }}</td><td>{{ client.score }}</td></tr>
+   {% endif %}
+{% endfor %}
+</table>
+</div>
+
+<div style="float:right">
+<table border="1" style="width:45%">
+{% for client in clients %}
+    {% if forloop.counter >= clients|length %}
+        <tr><td>{{ forloop.counter }}</td><td>{{ client.name }}</td><td>{{ client.score }}</td></tr>
+    {% endif %}
+{% endfor %}
+</table>
+</div>
+-->
 <head>
 <meta http-equiv="refresh" content="5">
 </head>

@@ -6,8 +6,7 @@
 
 
 #TO DO:
-#Fix winner output functions
-#Handle ties
+#Add better way handle dup matchups
 #Add parameter for starting game
 import random
 import urllib
@@ -92,7 +91,6 @@ def main():
     parser.add_argument('--r', type=int, default=-1, help='Number of rounds to run')
     parser.add_argument('--g', type=int, default=1, help='Starting game number for pulling in precompleted games')
     parser.add_argument('--s', action='store_true', help='Pull scores in and start on specified round')
-    parser.add_argument('--n', type=int, default=0, help='HALP')
     swissType = parser.add_mutually_exclusive_group(required=True)
     swissType.add_argument('--dutch', action='store_true', help='Run with Dutch Swiss (Currently broken)')
     swissType.add_argument('--monrad', action='store_true', help='Run with Monrad Swiss')
@@ -107,9 +105,6 @@ def main():
     monrad = args.monrad
     dutch = args.dutch
     pullScores = args.s
-    current_round = args.n
-    if args.n != 0:
-        fileStart = True
     CD.main()
     WI.update_clients()
     gam = Game.objects.all()
@@ -118,7 +113,7 @@ def main():
             if i.eligible == False:
                 i.delete()
     if not include_humans:
-        for i in Client.object.all():
+        for i in Client.objects.all():
             if i.language == "Human":
                 i.delete()
     cli = Client.objects.filter(embargoed=False).filter(missing=False)
@@ -154,9 +149,8 @@ def main():
             if args.dutch:
                 schedule_volley(stalk, current_round)
             elif args.monrad:
-                if current_round == 0 or fileStart:
+                if current_round == 0:
                     competing_clients = monrad_setup(cli)
-                    fileStart = False
                 else:
                     for x in competing_clients:
                         realClient = Client.objects.get(name=x.name)
@@ -221,9 +215,9 @@ def main():
         if play_again == 'y':
             print "Current Round:", current_round
             if args.dutch:
-                schedule_volley(stalk, current_round, True)
+                schedule_volley(stalk, current_round)
             elif args.monrad:
-                monrad_schedule(competing_clients, stalk, True)
+                monrad_schedule(competing_clients, stalk)
             while uncompleted_games:
                 time.sleep(1)
                 score_games(competing_clients)
@@ -236,14 +230,12 @@ def main():
                 x.score = realClient.score
             competing_clients = sort_players(competing_clients)
             competing_clients = calc_tie_break(competing_clients)
-            tied = False
             for x in competing_clients:
                 for c in competing_clients:
                     if x.name == c.name:
                         continue
                     if x.score == c.score and x.buchholz == c.buchholz and x.sumrate == c.sumrate and x.num_black == c.num_black:
-                        tied = True
-                        print "There was a tie! Playing another round"
+                        print "There was a tie!"
         elif play_again == 'n':
             do_another = False
         else:
@@ -623,7 +615,7 @@ def score_games(competing_clients):
                                 elif i == 1:
                                     x.num_black += 1
                     if c.name == gameC.winner.name:
-                        print c.name, "is the winner of game", g, "and their score goes from", c.score, "to"
+                        print c.name, "is the winner of game", g, "and their score goes from", c.score, "to",
                         c.score += 1.0
                         c.save()
                         print c.score
@@ -656,9 +648,12 @@ def score_games(competing_clients):
 def update_standings(competing_clients):
     global current_round
     f = open("scores.txt", 'w')
-    f.write("%d\n" % (len(competing_clients)))
     for i in competing_clients:
-        f.write("%s-%d-%d-%d-%d-%d-%d\n" % (i.name, i.score, i.buchholz, i.sumrate, i.num_black, i.num_white, current_round))
+        past = ""
+        for k in i.past_competitors:
+            past += str(k.name)
+            past += "<>"
+        f.write("%s+%d+%d+%d+%d+%d+%d+%s\n" % (i.name, i.score, i.buchholz, i.sumrate, i.num_black, i.num_white, current_round, past))
     f.close()    
 
 def print_scoreBrackets(brackets):
@@ -682,63 +677,69 @@ def schedule_game(i, j, stalk):
         if g.status == 'Complete' and not g.claimed:
             current_game = Game.objects.get(pk=g.pk)
             game_clients = list(current_game.clients.all())
-            if game_clients[0].name == i.name and game_clients[1].name == j.name:
-                score_game = True
-                print "Found game already played, using that"
-                print game_clients[0].name, "vs", game_clients[1].name
-                if g.tied:
-                    print "Draw!"
-                    for k, c in enumerate(game_clients):
-                        print "%s's score goes from %s to" % (c.name, str(c.score)),
-                        c.score += 0.5
-                        c.save()
-                        print c.score
-                        if monrad:
-                            if i.name == c.name:
-                                if k == 0:
-                                    i.num_white += 1
-                                elif k == 1:
-                                    i.num_black += 1
-                            elif j.name == c.name:
-                                if k == 0:
-                                    j.num_white += 1
-                                elif k == 1:
-                                    j.num_black += 1
-
-                else:
-                    for k, c in enumerate(game_clients):
-                        if c.name == g.winner.name:
-                            print c.name, "won, their score goes from", c.score, "to",
-                            c.score += 1.0
+            try:
+                if game_clients[0].name == i.name and game_clients[1].name == j.name:
+                    score_game = True
+                    print "Found game already played, using that"
+                    print game_clients[0].name, "vs", game_clients[1].name
+                    if g.tied:
+                        print "Draw!"
+                        for k, c in enumerate(game_clients):
+                            print "%s's score goes from %s to" % (c.name, str(c.score)),
+                            c.score += 0.5
                             c.save()
                             print c.score
-                        if monrad:
-                            if i.name == c.name:
-                                if k == 0:
-                                    i.num_white += 1
-                                elif k == 1:
-                                    i.num_black += 1
-                            elif j.name == c.name:
-                                if k == 0:
-                                    j.num_white += 1
-                                elif k == 1:
-                                    j.num_black += 1
-                        #if c.name != g.winner.name:
-                            #print c.name, "lost, their score goes from", c.score, "to",
-                            #c.score -= 1
-                            #c.save()
-                            #print c.score
+                            if monrad:
+                                if i.name == c.name:
+                                    if k == 0:
+                                        i.num_white += 1
+                                    elif k == 1:
+                                        i.num_black += 1
+                                elif j.name == c.name:
+                                    if k == 0:
+                                        j.num_white += 1
+                                    elif k == 1:
+                                        j.num_black += 1
 
-                g.claimed = True
-                break
+                    else:
+                        for k, c in enumerate(game_clients):
+                            if c.name == g.winner.name:
+                                print c.name, "won, their score goes from", c.score, "to",
+                                c.score += 1.0
+                                c.save()
+                                print c.score
+                            if monrad:
+                                if i.name == c.name:
+                                    if k == 0:
+                                        i.num_white += 1
+                                    elif k == 1:
+                                        i.num_black += 1
+                                elif j.name == c.name:
+                                    if k == 0:
+                                        j.num_white += 1
+                                    elif k == 1:
+                                        j.num_black += 1
+                            #if c.name != g.winner.name:
+                                #print c.name, "lost, their score goes from", c.score, "to",
+                                #c.score -= 1
+                                #c.save()
+                                #print c.score
+
+                    g.claimed = True
+                    break
+            except:
+                print "Found an invalid game, marking failed"
+                g.status = 'Failed'
+                g.save()
+                    
 
     if not score_game:
         uncompleted_games.append(sked(c1, c2, stalk, "Swiss sked").pk)
-        if dutch:
-            i.pref_power -= 1
-            j.pref_power += 1
-        i.past_competitors.append(j)
-        j.past_competitors.append(i)
+    if dutch:
+        i.pref_power -= 1
+        j.pref_power += 1
+    i.past_competitors.append(j)
+    j.past_competitors.append(i)
     return i,j
 
 def sort_players(competing_clients):
@@ -758,22 +759,27 @@ def monrad_setup(clients):
 
     competing_clients = [Player(j.name, 0.0, j.rating) for j in clients]
     if pullScores:
-        scoresin = {}
+        #scoresin = {}
         f = open('scores.txt', 'r')
-        numcli = int(f.readline())
-        count = 0
-        while count < numcli:
-            count += 1
-            print "Client", count, "read in"
-            filein = f.readline()
-            scoresin[count - 1] = filein.split("\n")
-            for x in scoresin:
-                line = x.split("-")
-                for i in competing_clients:
-                    if line[0] == i.name:
-                        i.score = float(line[1])
-                        i.num_black = int(line[4])
-                        i.num_white = int(line[5])
+        for line in f:
+            #print "Client", count, "read in"
+            scoresin = line.split("+")
+            print "Reading in", scoresin[0]
+            for i in competing_clients:
+                if scoresin[0] == i.name:
+                    client = Client.objects.get(name=scoresin[0])
+                    client.score = float(scoresin[1])
+                    client.save()
+                    i.score = float(scoresin[1])
+                    i.num_black = int(scoresin[4])
+                    i.num_white = int(scoresin[5])
+                    current_round = int(scoresin[6])
+                    past_cli = str(scoresin[7]).split("<>")
+                    for x in past_cli:
+                        #print x
+                        for k in competing_clients:
+                            if x == k.name:
+                                i.past_competitors.append(k)
         print "Setting round to", current_round
         f.close()
     else:
@@ -798,7 +804,8 @@ def monrad_schedule(competing_clients, stalk, tie_breaker=False):
         else:
             odd = False
             if compatible_players(y, x) or tie_breaker:
-                y, x = recalc_colors(y, x)
+                x = recalc_colors(x)
+                y = recalc_colors(y)
                 if y.pref_power >= x.pref_power:
                     print y.name, "gets color preference over", x.name
                     if y.color_pref == 0:
@@ -818,22 +825,15 @@ def monrad_schedule(competing_clients, stalk, tie_breaker=False):
         c.save()
     current_round += 1
     
-def recalc_colors(y, x):
-    prelim_pref_y = y.num_white - y.num_black
+def recalc_colors(x):
     prelim_pref_x = x.num_white - x.num_black
-    if prelim_pref_y <= 0:
-        y.color_pref = 1
-    else:
-        y.color_pref = 0
     if prelim_pref_x <= 0:
-        x.color_pref = 1
-    else:
         x.color_pref = 0
-    y.pref_power = abs(prelim_pref_y)
+    else:
+        x.color_pref = 1
     x.pref_power = abs(prelim_pref_x)
-    print y.name, "has played", y.num_white, "white games and", y.num_black, "black games, and their preference power is", y.pref_power
     print x.name, "has played", x.num_white, "white games and", x.num_black, "black games, and their preference power is", x.pref_power
-    return y, x
+    return x
 
 def calc_tie_break(competing_clients):
     for x in competing_clients:
