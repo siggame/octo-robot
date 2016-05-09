@@ -106,7 +106,7 @@ def looping(stalk):
             humans_be_here = True
             players.append(
                 subprocess.Popen(['bash',
-                                  'run', game_name,
+                                  'arenaRun', game_name,
                                   '-r', game['number'],
                                   '-s', external_ip,
                                   '-i', str(i),
@@ -120,7 +120,7 @@ def looping(stalk):
         else:
             players.append(
                 subprocess.Popen(['bash',
-                                  'run', game_name,
+                                  'arenaRun', game_name,
                                   '-r', game['number'],
                                   '-s', server_host,
                                   '-i', str(i),
