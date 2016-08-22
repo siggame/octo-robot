@@ -36,7 +36,19 @@ game_name = game_name[0].upper() + game_name[1:len(game_name)]
 
 print "Playing with game: ", game_name
 
-
+while True:
+    print "Getting external IP"
+    try:
+        url = 'http://ifconfig.co'
+        headers = {'Accept': 'application/json'}
+        readin = requests.get(url, headers=headers, timeout=10)
+        external_ip = json.loads(readin.text)['ip']
+        print "Got external IP:", external_ip
+        break
+    except ValueError:
+        print "Too many requests, trying again"
+        sleepInterval = random.randint(10, 30)
+        sleep(sleepInterval)
 
 
 def main(games_to_play=None):
@@ -51,11 +63,6 @@ def looping(stalk):
     job = stalk.reserve()
     game = json.loads(job.body)
     print "Processing game", game['number']
-
-    url = 'http://ifconfig.co'
-    headers = {'Accept': 'application/json'}
-    readin = requests.get(url, headers=headers)
-    external_ip = json.loads(readin.text)['ip']
 
     game['blaster_id'] = external_ip
     game['referee_id'] = os.getpid()
