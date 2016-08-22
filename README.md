@@ -55,8 +55,10 @@ For the Javascript client you will need:
 Node.js:
 
 ```
-curl -sL https://deb.nodesource.com/setup_4.x | sudo -E bash -
-sudo apt-get install -y nodejs
+curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.31.4/install.sh | bash
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+nvm install 6.4.0
 ```
 
 For the Lua client you will need:
