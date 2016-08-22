@@ -19,6 +19,7 @@ import beanstalkc
 #import bootstrap
 from thunderdome.config import game_name
 from thunderdome.models import Game, GameData, Match
+from thunderdome.sked import sked
 
 import django
 django.setup()
@@ -109,6 +110,11 @@ def generate_speculative_game(match):
         p1 = random.choice(match.ones)
         if p0.name == 'bye' or p1.name == 'bye' or p0.name == p1.name:
             continue
+        
+        print "Speculatively",
+        sked(p0, p1, stalk, "Tournament", 2000)
+
+        '''
         game = Game.objects.create()
         GameData(game=game, client=p0).save()
         GameData(game=game, client=p1).save()
@@ -128,7 +134,7 @@ def generate_speculative_game(match):
         game.claimed = False
         game.save()
         stalk.put(game.stats, priority=2000, ttr=400)
-        print "Speculatively scheduled", game, "with", p0.name, "vs", p1.name
+        '''
 
 
 def maintain_bracket(match):
@@ -240,13 +246,14 @@ def maintain_match(match):
     for i in xrange(count):
         game = get_game_from_pool(match)
         if game is None:
-            #TODO update this with sked from thunderdome.sked
-            # needs to be carefully done since game.tournament = true is important
-            game = Game.objects.create()
             if i % 2 == 0:
-                player_order = [match.p0, match.p1]
+                game = sked(match.p0, match.p1, stalk, "Tournament")
+                #player_order = [match.p0, match.p1]
             else:
-                player_order = [match.p1, match.p0]
+                game = sked(match.p1, match.p0, stalk, "Tournament")
+                #player_order = [match.p1, match.p0]
+            '''
+            game = Game.objects.create()
             GameData(game=game, client=player_order[0]).save()
             GameData(game=game, client=player_order[1]).save()
             game.tournament = True
@@ -265,6 +272,7 @@ def maintain_match(match):
             game.save()
             stalk.put(game.stats, priority=1000, ttr=400)
             print "Scheduled", game, player_order[0].name, "vs", player_order[1].name
+            '''
         else:
             player_order = list(game.clients.all())
             print "Got", player_order[0].name, "vs", player_order[1].name, "from pool"
