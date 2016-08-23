@@ -152,7 +152,7 @@ def looping(stalk):
     # block while at least one client is not connected
     while len(game_server_status['clients']) < 2 and (current_time - start_time <= MAX_TIME):
         if not humans_be_here:
-            sleep(.001)     # wait a bit for the clients to connect
+            sleep(.01)     # wait a bit for the clients to connect
         else:
             job.touch()
             sleep(.1)
@@ -163,28 +163,58 @@ def looping(stalk):
     
     # check if we timed out waiting for clients to connect
     if current_time - start_time > MAX_TIME:
-        print "Failing the game, only %d clients connected" % (len(game_server_status['clients']))
         kill_clients(players)
-	game['status'] = "Failed"
-	game['complete'] = str(datetime.now())
-	game['tied'] = False
-	if len(game_server_status['clients']) == 0:
-	    game['tie_reason'] = "Game failed to start, neither client connected."
-	    game['clients'][0]['noconnect'] = True
-	    game['clients'][1]['noconnect'] = True
-	elif len(game_server_status['clients']) == 1:
-	    for i, cl in enumerate(game['clients']):
-		if cl['name'] != game_server_status['clients'][0]['name']:
-		    reason = ("Game failed to start,", cl['name'], "didn't connect.")
-		    print cl['name'], "didn't connect"
-                    game['tie_reason'] = ' '.join(reason)
-		    game['clients'][i]['noconnect'] = True
+        if game['origin'] != "Tournament":
+            print "Failing the game, only %d clients connected" % (len(game_server_status['clients']))
+            game['status'] = "Failed"
+            game['complete'] = str(datetime.now())
+            game['tied'] = False
+            if len(game_server_status['clients']) == 0:
+                game['tie_reason'] = "Game failed to start, neither client connected."
+                game['clients'][0]['noconnect'] = True
+                game['clients'][1]['noconnect'] = True
+            elif len(game_server_status['clients']) == 1:
+                for i, cl in enumerate(game['clients']):
+                    if cl['name'] != game_server_status['clients'][0]['name']:
+                        reason = ("Game failed to start,", cl['name'], "didn't connect.")
+                        print cl['name'], "didn't connect"
+                        game['tie_reason'] = ' '.join(reason)
+                        game['clients'][i]['noconnect'] = True
+        else:
+            game['status'] = "Complete"
+            game['complete'] = str(datetime.now())
+            game['tied'] = False
+            if len(game_server_status['clients']) == 0:
+                randomWinner = random.randint(0,1)
+                game['winner'] = game['clients'][randomWinner]
+                if randomWinner == 0:
+                    game['loser'] = game['clients'][1]
+                else:
+                    game['loser'] = game['clients'][0]
+                reason = ("Neither client connected, so", game['clients'][randomWinner]['name'], "wins by coin flip.")
+                game['win_reason'] = ' '.join(reason)
+                game['lose_reason'] = ' '.join(reason)
+                print reason
+            elif len(game_server_status['clients']) == 1:
+                for i, cl in enumerate(game['clients']):
+                    if cl['name'] != game_server_status['clients'][0]['name']:
+                        game['loser'] = cl
+                        if cl['name'] == game['clients'][0]['name']:
+                            game['winner'] = game['clients'][1]
+                            reason = (cl['name'], "didn't connect.")
+                            game['win_reason'] = ' '.join(reason)
+                            game['lose_reason'] = ' '.join(reason)
+                        else:
+                            game['winner'] = game['clients'][0]
+                            reason = (cl['name'], "didn't connect.")
+                            game['win_reason'] = ' '.join(reason)
+                            game['lose_reason'] = ' '.join(reason)
 	push_datablocks(game)
 	stalk.put(json.dumps(game))
 	job.delete()
         return
     
-    # game is running. watch for gamelog
+    # game is running. 
     print "Running...", game['number']
     server_path = os.environ['SERVER_PATH']
     game['status'] = "Running"
@@ -207,8 +237,8 @@ def looping(stalk):
 	
 	
     if current_time - start_time > MAX_TIME:
-	print "Failing game, took to long"
-	kill_clients(players)
+        kill_clients(players)
+        print "Failing game, took to long"
 	game['clients'][0]['gamservdied'] = True
 	game['clients'][1]['gamservdied'] = True
 	game['status'] = "Failed"
