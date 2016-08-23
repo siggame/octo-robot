@@ -15,7 +15,7 @@ from seeder import seed_tournament, seed
 import argparse
 
 
-tournament = 286241200
+tournament = 286241203
 
 def seed_or_bye(n):
     try:
