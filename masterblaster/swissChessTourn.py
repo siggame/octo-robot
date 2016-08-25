@@ -6,7 +6,8 @@
 
 
 #TO DO:
-#Add better way handle dup matchups
+#Test better way handle dup matchups
+#Better sorting according to GitHub issue 100
 #Add parameter for starting game
 import random
 import urllib
@@ -790,34 +791,68 @@ def monrad_setup(clients):
 
 def monrad_schedule(competing_clients, stalk, tie_breaker=False):
     global current_round
+    to_schedule = []
+    cli_on_hold = []
     for x in competing_clients:
         realClient = Client.objects.get(name=x.name)
         x.score = realClient.score
     competing_clients = sort_players(competing_clients)
     for x in competing_clients:
         print x.name, x.score
+    hold = False
     for i, x in enumerate(competing_clients):
-        if i % 2 == 0:
+        if i % 2 == 0 and !hold:
             y = x
             odd = True
             continue
         else:
-            odd = False
-            if compatible_players(y, x) or tie_breaker:
-                x = recalc_colors(x)
-                y = recalc_colors(y)
-                if y.pref_power >= x.pref_power:
-                    print y.name, "gets color preference over", x.name
-                    if y.color_pref == 0:
-                        schedule_game(y, x, stalk)
+            first_x = x
+            while True:
+                odd = False
+                if compatible_players(y, x) or tie_breaker:
+                    x = recalc_colors(x)
+                    y = recalc_colors(y)
+                    if y.pref_power >= x.pref_power:
+                        print y.name, "gets color preference over", x.name
+                        if y.color_pref == 0:
+                            a = [y, x]
+                            #schedule_game(y, x, stalk)
+                        else:
+                            a = [x, y]
+                            #schedule_game(x, y, stalk)
                     else:
-                        schedule_game(x, y, stalk)
-                else:
-                    print x.name, "gets color preference over", y.name
-                    if x.color_pref == 0:
-                        schedule_game(x, y, stalk)
+                        print x.name, "gets color preference over", y.name
+                        if x.color_pref == 0:
+                            a = [x, y]
+                            #schedule_game(x, y, stalk)
+                        else:
+                            a = [y, x]
+                            #schedule_game(y, x, stalk)
+                    to_schedule.append(a)
+                    if len(cli_on_hold) >= 1:
+                        sort_players(cli_on_hold)
+                        y = cli_on_hold.pop(0)
+                        if len(cli_on_hold) >= 1:
+                            x = cli_on_hold.pop(0)
+                            first_x = x
+                        else:
+                            break
                     else:
-                        schedule_game(y, x, stalk)
+                        hold = False
+                        break
+                elif !compatible_players(y, x):
+                    if len(cli_on_hold) == 0:
+                        hold = True
+                    cli_on_hold.append(x)
+                    temp = cli_on_hold.pop(0)
+                    cli_on_hold.insert(0, temp)
+                    if temp != first_x:
+                        x = temp
+                        if len(cli_on_hold) == 0:
+                            hold = False
+                    else:
+                        break
+                
     if odd:
         c = Client.objects.get(name=y.name)
         print c.name, "gets a bye"
