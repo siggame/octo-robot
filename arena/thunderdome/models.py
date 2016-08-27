@@ -103,6 +103,8 @@ class Game(models.Model):
     win_reason = models.CharField(max_length=1024, default='Unknown reason') #Reason the winner won
     lose_reason = models.CharField(max_length=1024, default='Unknown reason') #Reason the loser lost
     tie_reason = models.CharField(max_length=1024, default='') #Reason for a tie
+    score = models.IntegerField(default=-1)
+    discon_happened = models.BooleanField(default=False)
 
     class Meta():
         ordering = ['-completed', '-id']
@@ -130,11 +132,7 @@ class Game(models.Model):
         self.save()
         
     def get_calc_rating(self):
-        data = json.loads(self.stats)
-        try:
-            return data['calc_rating']
-        except:
-            return 0
+        return self.score
 
     def add_rating(self, rating):
         data = json.loads(self.stats)
@@ -232,7 +230,6 @@ class Match(models.Model):
             max_rating = -1 * float('inf')
             game = None
             for i in winners_games:
-                i.update_calc_rating()
                 if i.get_calc_rating() > max_rating:
                     max_rating = i.get_calc_rating()
                     game = i
@@ -339,3 +336,8 @@ class SettingsForm(forms.Form):
         super(SettingsForm, self).__init__(*args, **kwarfs)
         self.fields['arenaConfig'].choices = [(x.pk, x.config_name) for x in ArenaConfig.objects.all()]
         
+class GameStats(models.Model):
+    game = models.CharField(max_length=200, default='')
+    interesting_win_reasons = models.ArrayField(models.CharField(max_length=1024, default=''))
+    numPlayed = models.IntegerField(default=0)
+    maxSize = models.IntegerField(default=0)
