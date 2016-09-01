@@ -23,7 +23,7 @@ def update_clients(api_url=None):
         api_url = api_url_template + game_name
         r = requests.get(api_url, auth=(WEBSITE_USER_NAME, WEBSITE_ARENA_PASSWORD), verify=False)
     else:
-        print "Attempting to get cliens from", api_url
+        print "Attempting to get clients from", api_url
         r = requests.get(api_url)
         
     try:
