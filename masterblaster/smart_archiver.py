@@ -107,9 +107,9 @@ def main():
         (r, c) = Referee.objects.get_or_create(
             blaster_id=request['blaster_id'],
             referee_id=request['referee_id'],
-            defaults={'started': datetime.utcnow(),
-                      'last_update': datetime.utcnow()})
-        r.last_update = datetime.utcnow()
+            defaults={'started': datetime.now(),
+                      'last_update': datetime.now()})
+        r.last_update = datetime.now()
         r.games.add(game)
         r.save()
         print "Game", request['number'], "status", request['status']
