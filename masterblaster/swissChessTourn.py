@@ -754,9 +754,8 @@ def schedule_game(i, j, stalk):
 
 def sort_players(competing_clients):
     global current_round
-    if current_round <= 1:
-        competing_clients = sorted(competing_clients, key=lambda x: x.rating, reverse=True)
-    else:
+    competing_clients = sorted(competing_clients, key=lambda x: x.rating, reverse=True)
+    if current_round > 0:
         competing_clients = sorted(competing_clients, key=lambda x: x.num_black, reverse=True)
         competing_clients = sorted(competing_clients, key=lambda x: x.sumrate, reverse=True)
         competing_clients = sorted(competing_clients, key=lambda x: x.buchholz, reverse=True)
