@@ -593,7 +593,7 @@ def score_games(competing_clients):
             except:
                 pass
             if gameC.tied:
-                print "Draw!"
+                print "Game %d: Draw!" % (g)
                 #c_iterator = game_clients.clients.iterator()
                 #c1 = c_iterator.next()
                 #c2 = c_iterator.next()
@@ -690,7 +690,7 @@ def schedule_game(i, j, stalk):
             try:
                 if game_clients[0].name == i.name and game_clients[1].name == j.name:
                     score_game = True
-                    print "Found game already played, using that"
+                    print "Found game", g, "already played, using that"
                     print game_clients[0].name, "vs", game_clients[1].name
                     if g.tied:
                         print "Draw!"
