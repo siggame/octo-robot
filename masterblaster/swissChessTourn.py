@@ -111,6 +111,8 @@ def main():
     pullScores = args.s
     CD.main()
     WI.update_clients()
+    print "Include humans", include_humans
+    print "Removing non-eligible clients"
     if eligible:
         for i in Client.objects.all():
             if i.eligible == False:
@@ -119,29 +121,33 @@ def main():
         for i in Client.objects.all():
             if i.language == "Human":
                 i.delete()
+    print "Success!"
+    print "Reseting scores"
     cli = Client.objects.filter(embargoed=False).filter(missing=False)
     for x in cli:
         clientNum += 1
         x.score = 0.0
         x.save()
-            
+    print "Success!"
+    print "Unclaiming games"
     for x in Game.objects.all().filter(claimed=True):
         x.claimed = False
         x.save()
+    print "Success!"
+    print "Calculating number of rounds"
     round_calculate = clientNum
     while round_calculate > 1:
         round_calculate = round_calculate / 2
         max_rounds += 1
     if args.r != -1:
         max_rounds = args.r
-        
-    print "Include humans", include_humans
+
     print "Playing with", max_rounds, "rounds"
     try:
         stalk = beanstalkc.Connection(port=11300)
     except:
         raise Exception("Beanstalk error:")
-    
+    print "Inital setup complete, beginning swiss algorithm specific setup"
     req_tube = "game-requests-%s" % game_name
     stalk = beanstalkc.Connection()
     stalk.use(req_tube)

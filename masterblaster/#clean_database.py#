@@ -27,7 +27,6 @@ def main():
 
     print "Cleaning database..."
     for x in Game.objects.all():
-        if x.status == 'Complete' or x.status == 'Failed':
             if x.status == 'Failed' and x.tie_reason == '':
                 x.tie_reason = 'Unknown reason'
         else:
@@ -39,7 +38,6 @@ def main():
             x.status = 'Failed'
             x.save()
     print "Database cleanup complete!"
-    return
 
 if __name__ == "__main__":
     main()

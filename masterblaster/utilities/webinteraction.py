@@ -43,7 +43,9 @@ def update_clients(api_url=None):
         return
 
     update_clients_from_data_block(data)
-
+    print "Clients updated!"
+    return
+    
 def update_clients_from_data_block(data):
     # list of clients that are found on the webserver
     updated_clients = []
