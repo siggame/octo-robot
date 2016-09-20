@@ -4,9 +4,8 @@
 
 # Swiss Chess scheduler built for the CS5400 Chess AI tournament. 
 
-
 #TO DO:
-#Run production test
+#Test game clients compare code
 import random
 import urllib
 import json
@@ -18,6 +17,8 @@ import beanstalkc
 import gc
 import sys
 import argparse
+import decimal
+from multiprocessing import Process
 
 import django
 django.setup()
@@ -43,6 +44,7 @@ pullScores = False
 eligible = True
 max_rounds = 0
 clientNum = 0
+valid_list = []
 scores_file = open('wins.txt', 'w')
 class Player():
     def __init__(self, name, score=0.0, rating=0):
@@ -123,13 +125,12 @@ def main():
         x.score = 0.0
         x.save()
             
-    #for x in Game.objects.all().order_by('-id')[:start_game]:
     for x in Game.objects.all().filter(claimed=True):
         x.claimed = False
         x.save()
-
-    while clientNum > 1:
-        clientNum = clientNum / 2
+    round_calculate = clientNum
+    while round_calculate > 1:
+        round_calculate = round_calculate / 2
         max_rounds += 1
     if args.r != -1:
         max_rounds = args.r
@@ -655,6 +656,8 @@ def score_games(competing_clients):
             
 def update_standings(competing_clients):
     global current_round
+    competing_clients = calc_tie_break(competing_clients)
+    competing_clients = sort_players(competing_clients)
     f = open("scores.txt", 'w')
     for i in competing_clients:
         past = ""
@@ -683,12 +686,10 @@ def schedule_game(i, j, stalk):
     score_game = False
     game_to_score = None
     for g in games:
-        if g.status == 'Complete' and not g.claimed and g.pk >= start_game:
-            #current_game = Game.objects.get(pk=g.pk)
-            #game_clients = list(current_game.clients.all())
+        if g.status == "Complete" and not g.claimed and g.pk >= start_game:
             game_clients = list(g.clients.all())
             try:
-                if game_clients[0].name == i.name and game_clients[1].name == j.name:
+                if game_clients[0].pk == c1.pk and game_clients[1].pk == c2.pk:
                     score_game = True
                     print "Found game", g, "already played, using that"
                     print game_clients[0].name, "vs", game_clients[1].name
@@ -788,7 +789,6 @@ def monrad_setup(clients):
                     current_round = int(scoresin[6])
                     past_cli = str(scoresin[7]).split("<>")
                     for x in past_cli:
-                        #print x
                         for k in competing_clients:
                             if x == k.name:
                                 i.past_competitors.append(k)
@@ -864,27 +864,27 @@ def monrad_schedule(competing_clients, stalk, tie_breaker=False):
                     if misses >= len(cli_on_hold):
                         cli_on_hold.insert(0, temp)
                         break
-
+    try_count_count = 0
     if len(cli_on_hold) == 0 and hold:
         odd = True
     elif len(cli_on_hold) > 0:
         odd = False
         hold = True
         try_count = 0
-        while hold == True:
-            print "Loop 2"
+        while hold == True and try_count_count < clientNum:
             try_count += 1
+            print "Try:", try_count, try_count_count
             GO_BACK = to_schedule
             GO_BACK.reverse()
             try:
-                if try_count > (clientNum * 10):
+                if try_count > (clientNum * 50):
+                    random.seed(os.urandom(100))
                     random.shuffle(GO_BACK)
                 for wumbo in GO_BACK:
                     if try_count > (clientNum * 2):
-                        if try_count % 2:
+                        if try_count % 2 == 1:
                             wumbo.reverse()
                     for z in wumbo:
-                        print "Compare Here"
                         if compatible_players(y, z):
                             for q in to_schedule:
                                 if (wumbo[0] == q[0] and wumbo[1] == q[1]) or (wumbo[0] == q[1] and wumbo[1] == q[0]):
@@ -914,7 +914,7 @@ def monrad_schedule(competing_clients, stalk, tie_breaker=False):
                             a = []
                             raise Found
 
-                if(try_count > (clientNum * 30)):
+                if(try_count > (clientNum * 300)):
                    raise Found
 
             except Found:
@@ -923,17 +923,17 @@ def monrad_schedule(competing_clients, stalk, tie_breaker=False):
                     hold = False
                     y = cli_on_hold.pop()
                 elif len(cli_on_hold) > 1:
-                    sort_players(cli_on_hold)
-                    for r in cli_on_hold:
-                        print r.name,
+                    if try_count > (clientNum * 75):
+                        random.seed(os.urandom(100))
+                        random.shuffle(cli_on_hold)
+                    else:
+                        sort_players(cli_on_hold)
                     y = cli_on_hold.pop(0)
                     x = cli_on_hold.pop(0)
                     misses = 0
                     while True:
-                        print "Loop 3"
                         odd = False
                         if compatible_players(y, x):
-                            try_count = 0
                             x = recalc_colors(x)
                             y = recalc_colors(y)
                             if y.pref_power >= x.pref_power:
@@ -955,7 +955,6 @@ def monrad_schedule(competing_clients, stalk, tie_breaker=False):
                             to_schedule.append(a)
                             a = []
                             if len(cli_on_hold) >= 1:
-                                sort_players(cli_on_hold)
                                 y = cli_on_hold.pop(0)
                                 if len(cli_on_hold) >= 1:
                                     x = cli_on_hold.pop(0)
@@ -973,14 +972,80 @@ def monrad_schedule(competing_clients, stalk, tie_breaker=False):
                             cli_on_hold.append(x)
                             temp = cli_on_hold.pop(0)
                             x = temp
-                            if len(cli_on_hold) == 0:
-                                hold = False
-                            if misses >= len(cli_on_hold):
+                            if misses > len(cli_on_hold):
                                 cli_on_hold.insert(0, temp)
-                                hold = True
-                                if try_count > (clientNum * 30):
-                                    try_count = clientNum * 20
+                                if try_count > (clientNum * 300):
+                                    try_count = clientNum * 75
+                                    try_count_count += 1
                                 break
+    if try_count_count >= clientNum:
+        print "Giving up on that, random matchups until a valid matchup set is found"
+        try_again = True
+        try_count = 0
+        possible_lists = []
+        for p in permute(competing_clients):
+            try_count += 1
+            print "Try:", '%.2E' % decimal.Decimal(try_count)
+            for x in to_schedule:
+                to_schedule.remove(x)
+            w = Process(target=try_matchup, args=(p,))
+            w.start()
+            if len(valid_list) > 0:
+                break
+        to_schedule = valid_list.pop(0)
+
+
+
+
+
+
+
+
+
+
+    
+        """
+        #while try_again:
+            try_count += 1
+            print "Try:", '%.2E' % decimal.Decimal(try_count)
+            for x in to_schedule:
+                to_schedule.remove(x)
+            #random.seed(os.urandom(100))
+            #random.shuffle(competing_clients)
+            for i, x in enumerate(p):
+                if i % 2 == 0:
+                    y = x
+                    odd = True
+                    continue
+                else:
+                    odd = False
+                    if not compatible_players(y, x):
+                        try_again = True
+                        break
+                    x = recalc_colors(x)
+                    y = recalc_colors(y)
+                    if y.pref_power >= x.pref_power:
+                        print y.name, "gets color preference over", x.name
+                        if y.color_pref == 0:
+                            a.append(y)
+                            a.append(x)
+                        else:
+                            a.append(x)
+                            a.append(y)
+                    else:
+                        print x.name, "gets color preference over", y.name
+                        if x.color_pref == 0:
+                            a.append(x)
+                            a.append(y)
+                        else:
+                            a.append(y)
+                            a.append(x)
+                    to_schedule.append(a)
+                    a = []
+                    try_again = False
+            if not try_again:
+                break
+        """
     for x in to_schedule:
         schedule_game(x.pop(0), x.pop(0), stalk)
     if odd and len(to_schedule) > 0:
@@ -1009,6 +1074,55 @@ def calc_tie_break(competing_clients):
                 x.buchholz += c.score
                 x.sumrate += c.rating
     return competing_clients
+
+def permute(xs, low=0):
+    if low + 1 >= len(xs):
+        yield xs
+    else:
+        for p in permute(xs, low + 1):
+            yield p        
+        for i in range(low + 1, len(xs)):        
+            xs[low], xs[i] = xs[i], xs[low]
+            for p in permute(xs, low + 1):
+                yield p        
+            xs[low], xs[i] = xs[i], xs[low]
+
+def try_matchup(p):
+    to_schedule = []
+    a = []
+    global valid_list
+    for i, x in enumerate(p):
+        if i % 2 == 0:
+            y = x
+            odd = True
+            continue
+        else:
+            odd = False
+            if not compatible_players(y, x):
+                try_again = True
+                break
+            x = recalc_colors(x)
+            y = recalc_colors(y)
+            if y.pref_power >= x.pref_power:
+                print y.name, "gets color preference over", x.name
+                if y.color_pref == 0:
+                    a.append(y)
+                    a.append(x)
+                else:
+                    a.append(x)
+                    a.append(y)
+            else:
+                print x.name, "gets color preference over", y.name
+                if x.color_pref == 0:
+                    a.append(x)
+                    a.append(y)
+                else:
+                    a.append(y)
+                    a.append(x)
+            to_schedule.append(a)
+            try_again = False
+    if not try_again:
+        valid_list.append(to_schedule)
 
 if __name__ == "__main__":
     main()
