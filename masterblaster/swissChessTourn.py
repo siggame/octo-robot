@@ -693,26 +693,27 @@ def schedule_game(i, j, stalk):
     game_to_score = None
     for g in games:
         if g.status == "Complete" and not g.claimed and g.pk >= start_game:
-            game_clients = list(g.clients.all())
+            game_clients = list(g.gamedata_set.all())
             try:
-                if game_clients[0].pk == c1.pk and game_clients[1].pk == c2.pk:
-                    score_game = True
+                print c1.name, "vs.", c2.name, "found:", game_clients[0].client.name, game_clients[1].client.name, g.pk, game_clients[0].client.name == c1.name, game_clients[1].client.name == c2.name
+                if game_clients[0].client.name == c1.name and game_clients[1].client.name == c2.name:
+                    print g.pk
                     print "Found game", g, "already played, using that"
                     print game_clients[0].name, "vs", game_clients[1].name
                     if g.tied:
                         print "Draw!"
                         for k, c in enumerate(game_clients):
-                            print "%s's score goes from %s to" % (c.name, str(c.score)),
-                            c.score += 0.5
-                            c.save()
-                            print c.score
+                            print "%s's score goes from %s to" % (c.client.name, str(c.client.score)),
+                            c.client.score += 0.5
+                            c.client.save()
+                            print c.client.score
                             if monrad:
-                                if i.name == c.name:
+                                if i.name == c.client.name:
                                     if k == 0:
                                         i.num_white += 1
                                     elif k == 1:
                                         i.num_black += 1
-                                elif j.name == c.name:
+                                elif j.name == c.client.name:
                                     if k == 0:
                                         j.num_white += 1
                                     elif k == 1:
@@ -720,29 +721,24 @@ def schedule_game(i, j, stalk):
 
                     else:
                         for k, c in enumerate(game_clients):
-                            if c.name == g.winner.name:
-                                print c.name, "won, their score goes from", c.score, "to",
-                                c.score += 1.0
-                                c.save()
-                                print c.score
+                            if c.client.name == g.winner.name:
+                                print c.client.name, "won, their score goes from", c.client.score, "to",
+                                c.client.score += 1.0
+                                c.client.save()
+                                print c.client.score
                             if monrad:
-                                if i.name == c.name:
+                                if i.name == c.client.name:
                                     if k == 0:
                                         i.num_white += 1
                                     elif k == 1:
                                         i.num_black += 1
-                                elif j.name == c.name:
+                                elif j.name == c.client.name:
                                     if k == 0:
                                         j.num_white += 1
                                     elif k == 1:
                                         j.num_black += 1
-                            #if c.name != g.winner.name:
-                                #print c.name, "lost, their score goes from", c.score, "to",
-                                #c.score -= 1
-                                #c.save()
-                                #print c.score
-
                     g.claimed = True
+                    score_game = True
                     break
             except:
                 print "Found an invalid game, marking failed"
