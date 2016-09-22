@@ -4,8 +4,6 @@
 
 # Swiss Chess scheduler built for the CS5400 Chess AI tournament. 
 
-#TO DO:
-#Test game clients compare code
 import random
 import urllib
 import json
@@ -699,7 +697,7 @@ def schedule_game(i, j, stalk):
                 if game_clients[0].client.name == c1.name and game_clients[1].client.name == c2.name:
                     print g.pk
                     print "Found game", g, "already played, using that"
-                    print game_clients[0].name, "vs", game_clients[1].name
+                    print game_clients[0].client.name, "vs", game_clients[1].client.name
                     if g.tied:
                         print "Draw!"
                         for k, c in enumerate(game_clients):
@@ -738,12 +736,13 @@ def schedule_game(i, j, stalk):
                                     elif k == 1:
                                         j.num_black += 1
                     g.claimed = True
+                    g.save()
                     score_game = True
                     break
             except:
                 print "Found an invalid game, marking failed"
-                g.status = 'Failed'
-                g.save()
+                #g.status = 'Failed'
+                #g.save()
                     
 
     if not score_game:
