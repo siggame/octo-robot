@@ -39,6 +39,7 @@ def main():
             x.status = 'Failed'
             x.save()
     print "Database cleanup complete!"
+    return
 
 if __name__ == "__main__":
     main()
