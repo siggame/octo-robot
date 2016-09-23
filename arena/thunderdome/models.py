@@ -14,6 +14,7 @@ import json
 from django import forms
 from django.db import models
 from django.db.models import Max
+from django.contrib.postgres.fields import ArrayField
 
 class Client(models.Model):
     name = models.CharField(max_length=200)
@@ -338,6 +339,6 @@ class SettingsForm(forms.Form):
         
 class GameStats(models.Model):
     game = models.CharField(max_length=200, default='')
-    interesting_win_reasons = models.ArrayField(models.CharField(max_length=1024, default=''))
+    interesting_win_reasons = ArrayField(models.CharField(max_length=1024, default=''))
     numPlayed = models.IntegerField(default=0)
     maxSize = models.IntegerField(default=0)
