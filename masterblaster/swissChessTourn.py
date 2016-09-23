@@ -693,9 +693,7 @@ def schedule_game(i, j, stalk):
         if g.status == "Complete" and not g.claimed and g.pk >= start_game:
             game_clients = list(g.gamedata_set.all())
             try:
-                print c1.name, "vs.", c2.name, "found:", game_clients[0].client.name, game_clients[1].client.name, g.pk, game_clients[0].client.name == c1.name, game_clients[1].client.name == c2.name
                 if game_clients[0].client.name == c1.name and game_clients[1].client.name == c2.name:
-                    print g.pk
                     print "Found game", g, "already played, using that"
                     print game_clients[0].client.name, "vs", game_clients[1].client.name
                     if g.tied:
@@ -874,7 +872,6 @@ def monrad_schedule(competing_clients, stalk, tie_breaker=False):
         try_count = 0
         while hold == True and try_count_count < clientNum:
             try_count += 1
-            print "Try:", try_count, try_count_count
             GO_BACK = to_schedule
             GO_BACK.reverse()
             try:
