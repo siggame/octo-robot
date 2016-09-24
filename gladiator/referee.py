@@ -45,7 +45,7 @@ while True:
         external_ip = json.loads(readin.text)['ip']
         print "Got external IP:", external_ip
         break
-    except ValueError:
+    except:
         print "Too many requests, trying again"
         sleepInterval = random.randint(10, 30)
         sleep(sleepInterval)
@@ -63,7 +63,7 @@ def looping(stalk):
     job = stalk.reserve()
     game = json.loads(job.body)
     print "Processing game", game['number']
-
+    
     game['blaster_id'] = external_ip
     game['referee_id'] = os.getpid()
     game['started'] = str(datetime.now())
@@ -71,6 +71,8 @@ def looping(stalk):
     # get latest client code in arena mode.
     # tournament mode uses client code that is already in place
     game['status'] = "Building"
+    stalk.put(json.dumps(game))
+    job.touch()
     for client in game['clients']:
         update_local_repo(client)
 
