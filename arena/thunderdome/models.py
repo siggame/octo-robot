@@ -228,11 +228,11 @@ class Match(models.Model):
     def get_representative_game(self):
         if self.games.all():
             winners_games = self.games.filter(winner=self.winner).filter(status="Complete")
-            max_rating = -1 * float('inf')
+            best_score = -1
             game = None
             for i in winners_games:
-                if i.get_calc_rating() > max_rating:
-                    max_rating = i.get_calc_rating()
+                if i.score > best_score:
+                    best_score = i.score
                     game = i
             return game
         else:
