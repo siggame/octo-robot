@@ -11,9 +11,7 @@ import gzip
 import os
 import urllib2
 from copy import copy
-from multiprocessing import Process
 from datetime import datetime, timedelta
-from bz2 import BZ2Decompressor
 from collections import defaultdict
 
 # Non-Django 3rd Party Imports
@@ -22,29 +20,45 @@ import json
 # My Imports
 from thunderdome.config import game_name
 from thunderdome.models import Client, Game, GameData, Referee, GameStats
-from thunderdome.models import WinRatePrediction
-
+from django.core.exceptions import ObjectDoesNotExist
 
 import django
 django.setup()
 
 def main():
-    global gamestats
-    gamestats = GameStats.objects.get_or_create(game=game_name)
+    #############TEMPORARY REMOVE
+    for x in Game.objects.all():
+        x.score = -1
+        x.save()
+    for x in GameStats.objects.all():
+        x.delete()
+    try:
+        gamestats = GameStats.objects.get(game=game_name)
+    except ObjectDoesNotExist:
+        gamestats = GameStats.objects.create()
+        gamestats.game = game_name
+        gamestats.interesting_win_reasons = []
+        gamestats.numPlayed = 0
+        gamestats.maxSize = 0
+        gamestats.save()
     print "Preparing anaylsis parameters..."
     win_reasons = []
     try:
         f = open('win_reasons.txt', 'r')
         for line in f:
-            win_reasons.append(line)
+            win_reasons.append(line.strip())
         f.close()
-        gamestats.interesting_win_reasons = win_reasons
-        gamestats.save()
     except:
         print "Couldn't read in win_reasons.txt"
         return
+    gamestats.interesting_win_reasons = win_reasons
+    gamestats.save()
     while gamestats.numPlayed < 100:
-        for x in Game.objects.all().filter(score=-5).filter(status="Complete"):
+        for x in Game.objects.all().filter(score=-1).filter(status="Complete"):
+            if x.gamelog_url == '':
+                x.score = -2
+                x.save()
+                continue
             url = x.gamelog_url
     
             file_name = url.split('/')[-1]
@@ -52,7 +66,7 @@ def main():
             f = open(file_name, 'wb')
             meta = u.info()
             file_size = int(meta.getheaders("Content-Length")[0])
-            print "Downloading: %s Bytes: %s" % (file_name, file_size)
+            print "Downloading: %s Bytes: %d" % (file_name, file_size)
 
             file_size_dl = 0
             block_sz = 8192
@@ -68,18 +82,17 @@ def main():
                 print status,
 
             f.close()
-            charactors = 0
-            with open(file_name, 'r') as in_file:
-                for line in in_file:
-                    charactors += len(line)
+            print ' '
             os.remove(file_name)
-            if charactors > gamestats.maxSize:
-                gamestats.maxSize = charactors
+            print file_size
+            if file_size > gamestats.maxSize:
+                gamestats.maxSize = file_size
+            
             gamestats.numPlayed += 1
             gamestats.save()
             x.score = -5
             x.save()
-            if gamestats.numplayed >= 100:
+            if gamestats.numPlayed >= 100:
                 break
         time.sleep(10)
     
@@ -91,12 +104,16 @@ def main():
         for x in Game.objects.all().filter(score=-1).filter(status="Complete"):
             x.score = 0
             x.save()
-            p = Process(target=analyse_game, args=(x,))
             print "Now analysing game", x
-            p.start()
+            analyse_game(x)
         time.sleep(10)
 
 def analyse_game(game):
+    gamestats = GameStats.objects.get(game=game_name)
+    if game.gamelog_url == '':
+        game.score = -2
+        game.save()
+        return
     url = game.gamelog_url
 
     file_name = url.split('/')[-1]
@@ -120,18 +137,15 @@ def analyse_game(game):
         print status,
 
     f.close()
-    charactors = 0
-    with open(file_name, 'r') as in_file:
-        for line in in_file:
-            charactors += len(line)
+    print ' '
     os.remove(file_name)
-    if charactors > gamestats.maxSize:
-        gamestats.maxSize = charactors
+    if file_size > gamestats.maxSize:
+        gamestats.maxSize = file_size
     gamestats.numPlayed += 1
     gamestats.save()
     
     #Begin scoring
-    if charactors > (gamestats.maxSize * 0.4) and charactors < (gamestats.maxSize * 0.8):
+    if file_size > (gamestats.maxSize * 0.3) and file_size < (gamestats.maxSize * 0.8):
         game.score += 1
         print "Game", game, "is an interesting length!"
     if not game.discon_happened:
