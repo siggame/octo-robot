@@ -339,6 +339,9 @@ class SettingsForm(forms.Form):
         
 class GameStats(models.Model):
     game = models.CharField(max_length=200, default='')
-    interesting_win_reasons = ArrayField(models.CharField(max_length=1024, default=''))
+    interesting_win_reasons = ArrayField(models.CharField(max_length=1024, default=''), default=[])
     numPlayed = models.IntegerField(default=0)
     maxSize = models.IntegerField(default=0)
+    
+    def __unicode__(self):
+        return self.game
