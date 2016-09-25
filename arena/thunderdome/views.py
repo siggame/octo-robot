@@ -93,12 +93,40 @@ def view_match(request, match_id):
 
 def get_next_game_url_to_visualize(request):
     found = False
+    best_possible = False
+    score_level = 0
+    current_game = 0
     for x in Game.objects.all():
-        if x.been_vised == False and x.status == 'Complete':
+        if x.been_vised == False and x.status == 'Complete' and x.score == 6:
             next_game_url = x.gamelog_url
             x.been_vised = True
             found = True
+            best_possible = True
+            x.save()
             break
+        if x.been_vised == False and x.status == 'Complete' and x.score == 5:
+            found = True
+            current_game = x
+            score_level = 5
+        if x.been_vised == False and x.status == 'Complete' and x.score == 3 and score_level < 3:
+            found = True
+            current_game = x
+            score_level = 3
+        if x.been_vised == False and x.status == 'Complete' and x.score == 2 and score_level < 2:
+            found = True
+            current_game = x
+            score_level = 2
+        if x.been_vised == False and x.status == 'Complete' and x.score == 1 and score_level == 0:
+            found = True
+            current_game = x
+            score_level = 1
+        if x.been_vised == False and x.status == 'Complete' and x.score == 0 and score_level == 0:
+            found = True
+            current_game = x
+    if found and not best_possible:
+        current_game.been_vised = True
+        current_game.save()
+        next_game_url = current_game.gamelog_url
     if not found:
         x = Game.objects.order_by('?').first()
         while x.status != 'Complete':
