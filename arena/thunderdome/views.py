@@ -15,7 +15,7 @@ import boto
 # Django Imports
 import settings.defaults
 from django.shortcuts import render_to_response, get_object_or_404
-from django.http import HttpResponseRedirect, HttpResponse
+from django.http import HttpResponseRedirect, HttpResponse, JsonResponse
 from django.core.context_processors import csrf
 from django.contrib.auth.decorators import login_required
 from django.db.models import Max
@@ -158,6 +158,11 @@ def scores(request):
     clients = list(Client.objects.all().filter(embargoed=False).filter(missing=False))
     clients.sort(key = lambda x: x.score, reverse=True)
     return render_to_response('thunderdome/scores.html', {'clients':clients})
+
+def get_scores(request):
+    clients = list(Client.objects.all().filter(embargoed=False).filter(missing=False))
+    clients.sort(key = lambda x: x.score, reverse=True)
+    return JsonResponse({'clients':clients})
 
 def display_clients(request):
     clients = list(Client.objects.all())

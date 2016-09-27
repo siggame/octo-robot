@@ -16,34 +16,13 @@ table, th, td {
 
 <h1>Rankings</h1>
 
-<table border="1" style="width:50%">
+<table id="clients_table" border="1" style="width:50%">
 <tr><td><b>Rank</b></td><td><b>Client Name</b></td><td><b>Score</b></td></tr>
 {% for client in clients %}
   <tr><td>{{ forloop.counter }}</td><td>{{ client.name }}</td><td>{{ client.score }}</td></tr>
 {% endfor %}
 </table>
 
-<!--
-<div style="float:left">
-<table border="1" style="width:45%">
-{% for client in clients %}
-   {% if forloop.counter < clients|length %}
-       <tr><td>{{ forloop.counter }}</td><td>{{ client.name }}</td><td>{{ client.score }}</td></tr>
-   {% endif %}
-{% endfor %}
-</table>
-</div>
-
-<div style="float:right">
-<table border="1" style="width:45%">
-{% for client in clients %}
-    {% if forloop.counter >= clients|length %}
-        <tr><td>{{ forloop.counter }}</td><td>{{ client.name }}</td><td>{{ client.score }}</td></tr>
-    {% endif %}
-{% endfor %}
-</table>
-</div>
--->
 <head>
 <meta http-equiv="refresh" content="5">
 </head>
