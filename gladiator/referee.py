@@ -69,7 +69,7 @@ def looping(stalk):
     game['started'] = str(datetime.now())
     
     # get latest client code in arena mode.
-    # tournament mode uses client code that is already in place
+    # tournament mode will not fail games that clients fail to connect to
     game['status'] = "Building"
     stalk.put(json.dumps(game))
     job.touch()
