@@ -49,11 +49,11 @@ def health(request):
     
     (p['scheduled_games'], p['running_games'],
      p['complete_games'], p['failed_games'], p['building_games']) = \
-        [Game.objects.filter(status=x).count
+        [Game.objects.filter(status=x).count()
          for x in ('Scheduled', 'Running', 'Complete', 'Failed', 'Building')]
     
     p['sanity'] = p['ready_requests'] == p['scheduled_games'] \
-        and p['running_games'] == p['running_requests']
+        and p['running_games'] + p['building_games'] == p['running_requests']
     
     p['matches'] = list(Match.objects.order_by('-id'))
     p['matches'].sort(key=lambda x: x.status, reverse=True)
@@ -93,12 +93,40 @@ def view_match(request, match_id):
 
 def get_next_game_url_to_visualize(request):
     found = False
+    best_possible = False
+    score_level = 0
+    current_game = 0
     for x in Game.objects.all():
-        if x.been_vised == False and x.status == 'Complete':
+        if x.been_vised == False and x.status == 'Complete' and x.score == 6:
             next_game_url = x.gamelog_url
             x.been_vised = True
             found = True
+            best_possible = True
+            x.save()
             break
+        if x.been_vised == False and x.status == 'Complete' and x.score == 5:
+            found = True
+            current_game = x
+            score_level = 5
+        if x.been_vised == False and x.status == 'Complete' and x.score == 3 and score_level < 3:
+            found = True
+            current_game = x
+            score_level = 3
+        if x.been_vised == False and x.status == 'Complete' and x.score == 2 and score_level < 2:
+            found = True
+            current_game = x
+            score_level = 2
+        if x.been_vised == False and x.status == 'Complete' and x.score == 1 and score_level == 0:
+            found = True
+            current_game = x
+            score_level = 1
+        if x.been_vised == False and x.status == 'Complete' and x.score == 0 and score_level == 0:
+            found = True
+            current_game = x
+    if found and not best_possible:
+        current_game.been_vised = True
+        current_game.save()
+        next_game_url = current_game.gamelog_url
     if not found:
         x = Game.objects.order_by('?').first()
         while x.status != 'Complete':
@@ -127,7 +155,7 @@ def representative_game(request, match_id):
     return view_game(request, game_id)
 
 def scores(request):
-    clients = list(Client.objects.all().filter(embargoed=False).filter(missing=False).filter(eligible=True))
+    clients = list(Client.objects.all().filter(embargoed=False).filter(missing=False))
     clients.sort(key = lambda x: x.score, reverse=True)
     return render_to_response('thunderdome/scores.html', {'clients':clients})
 

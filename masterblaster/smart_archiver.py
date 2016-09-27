@@ -107,9 +107,9 @@ def main():
         (r, c) = Referee.objects.get_or_create(
             blaster_id=request['blaster_id'],
             referee_id=request['referee_id'],
-            defaults={'started': datetime.utcnow(),
-                      'last_update': datetime.utcnow()})
-        r.last_update = datetime.utcnow()
+            defaults={'started': datetime.now(),
+                      'last_update': datetime.now()})
+        r.last_update = datetime.now()
         r.games.add(game)
         r.save()
         print "Game", request['number'], "status", request['status']
@@ -304,7 +304,9 @@ def handle_completion(request, game):
         if 'gamservdied' in clidict[gd.client.name]:
 	    gd.client.embargoed = True
             gd.client.embargo_reason = "Gameserver broke, please see an Arena Dev"
-        #if 'discon' in clidict[gd.client.name]:
+        if 'discon' in clidict[gd.client.name]:
+            game.discon_happened = True
+            game.save()
 	    #gd.client.embargoed = True
             #gd.client.embargo_reason = "Your client disconnected from the game unexpectedly"
         try:

@@ -45,7 +45,7 @@ while True:
         external_ip = json.loads(readin.text)['ip']
         print "Got external IP:", external_ip
         break
-    except ValueError:
+    except:
         print "Too many requests, trying again"
         sleepInterval = random.randint(10, 30)
         sleep(sleepInterval)
@@ -63,14 +63,16 @@ def looping(stalk):
     job = stalk.reserve()
     game = json.loads(job.body)
     print "Processing game", game['number']
-
+    
     game['blaster_id'] = external_ip
     game['referee_id'] = os.getpid()
     game['started'] = str(datetime.now())
     
     # get latest client code in arena mode.
-    # tournament mode uses client code that is already in place
+    # tournament mode will not fail games that clients fail to connect to
     game['status'] = "Building"
+    stalk.put(json.dumps(game))
+    job.touch()
     for client in game['clients']:
         update_local_repo(client)
 
@@ -257,7 +259,7 @@ def looping(stalk):
 
     game_server_status = requests.get('http://%s:3080/status/%s/%s' %
                              (game_server_ip, game_name, game['number'])).json()
-    """
+    
     if 'disconnected' in game_server_status['clients'][0]:
         if game_server_status['clients'][0]['disconnected']:
             p0broke = True
@@ -277,18 +279,19 @@ def looping(stalk):
 
 
     if p0broke or p1broke:
-        print "game %s early termination, broken client" % game['number']
-        game['status'] = "Failed"
-        game['completed'] = str(datetime.now())
-        game['tied'] = False
+        #print "game %s early termination, broken client" % game['number']
+        #game['status'] = "Failed"
+        #game['completed'] = str(datetime.now())
+        #game['tied'] = False
         if p0broke:
             game['clients'][0]['discon'] = True
-            reason = ("Early termination because", game_server_status['clients'][0]['name'], "disconnected unexpectedly.")
-            game['tie_reason'] = ' '.join(reason)
+            #reason = ("Early termination because", game_server_status['clients'][0]['name'], "disconnected unexpectedly.")
+            #game['tie_reason'] = ' '.join(reason)
         if p1broke:
             game['clients'][1]['discon'] = True
-            reason = ("Early termination because", game_server_status['clients'][1]['name'], "disconnected unexpectedly.")
-            game['tie_reason'] = ' '.join(reason)
+            #reason = ("Early termination because", game_server_status['clients'][1]['name'], "disconnected unexpectedly.")
+            #game['tie_reason'] = ' '.join(reason)
+        """
         push_datablocks(game)
         try:
             push_gamelog(game)
@@ -297,7 +300,7 @@ def looping(stalk):
         stalk.put(json.dumps(game))
         job.delete()
         return
-    """
+        """
     # figure out who won
     print "determining winner..."
     if ('won' in game_server_status['clients'][0] and 'won' in game_server_status['clients'][1]) or ('lost' in game_server_status['clients'][0] and 'lost' in game_server_status['clients'][1]):

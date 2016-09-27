@@ -13,6 +13,7 @@ Game #{{ game.pk }}
 
   Status: {{ game.status }} <br>
   Priority: {{ game.priority }} <br>
+  Interestingness: {{ game.score }} <br>
   {% if game.gamelog_url|length > 0 %}
     <a href="{{game.gamelog_url }}" > gamelog </a>
   {% endif %}

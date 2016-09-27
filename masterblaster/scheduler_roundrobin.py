@@ -41,7 +41,6 @@ def main():
     
     # remove humans
     for i in list(clients):
-        stats = json.loads(i.stats)
         if i.language == 'Human':
             clients.remove(i)
 
