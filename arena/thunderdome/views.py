@@ -49,11 +49,11 @@ def health(request):
     
     (p['scheduled_games'], p['running_games'],
      p['complete_games'], p['failed_games'], p['building_games']) = \
-        [Game.objects.filter(status=x).count
+        [Game.objects.filter(status=x).count()
          for x in ('Scheduled', 'Running', 'Complete', 'Failed', 'Building')]
     
     p['sanity'] = p['ready_requests'] == p['scheduled_games'] \
-        and p['running_games'] == p['running_requests']
+        and p['running_games'] + p['building_games'] == p['running_requests']
     
     p['matches'] = list(Match.objects.order_by('-id'))
     p['matches'].sort(key=lambda x: x.status, reverse=True)
