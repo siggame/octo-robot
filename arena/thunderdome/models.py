@@ -14,6 +14,7 @@ import json
 from django import forms
 from django.db import models
 from django.db.models import Max
+from django.contrib.postgres.fields import ArrayField
 
 class Client(models.Model):
     name = models.CharField(max_length=200)
@@ -103,6 +104,8 @@ class Game(models.Model):
     win_reason = models.CharField(max_length=1024, default='Unknown reason') #Reason the winner won
     lose_reason = models.CharField(max_length=1024, default='Unknown reason') #Reason the loser lost
     tie_reason = models.CharField(max_length=1024, default='') #Reason for a tie
+    score = models.IntegerField(default=-1)
+    discon_happened = models.BooleanField(default=False)
 
     class Meta():
         ordering = ['-completed', '-id']
@@ -130,11 +133,7 @@ class Game(models.Model):
         self.save()
         
     def get_calc_rating(self):
-        data = json.loads(self.stats)
-        try:
-            return data['calc_rating']
-        except:
-            return 0
+        return self.score
 
     def add_rating(self, rating):
         data = json.loads(self.stats)
@@ -229,12 +228,11 @@ class Match(models.Model):
     def get_representative_game(self):
         if self.games.all():
             winners_games = self.games.filter(winner=self.winner).filter(status="Complete")
-            max_rating = -1 * float('inf')
+            best_score = -1
             game = None
             for i in winners_games:
-                i.update_calc_rating()
-                if i.get_calc_rating() > max_rating:
-                    max_rating = i.get_calc_rating()
+                if i.score > best_score:
+                    best_score = i.score
                     game = i
             return game
         else:
@@ -339,3 +337,11 @@ class SettingsForm(forms.Form):
         super(SettingsForm, self).__init__(*args, **kwarfs)
         self.fields['arenaConfig'].choices = [(x.pk, x.config_name) for x in ArenaConfig.objects.all()]
         
+class GameStats(models.Model):
+    game = models.CharField(max_length=200, default='')
+    interesting_win_reasons = ArrayField(models.CharField(max_length=1024, default=''), default=[])
+    numPlayed = models.IntegerField(default=0)
+    maxSize = models.IntegerField(default=0)
+    
+    def __unicode__(self):
+        return self.game
