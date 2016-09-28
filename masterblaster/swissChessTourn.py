@@ -158,9 +158,14 @@ def main():
                 if current_round == 0:
                     competing_clients = monrad_setup(cli)
                 else:
+                    competing_clients = calc_tie_break(competing_clients)
                     for x in competing_clients:
                         realClient = Client.objects.get(name=x.name)
                         x.score = realClient.score
+                        x.buchholz = realClient.buchholz
+                        x.sumrate = realClient.sumrate
+                        x.num_black = realClient.num_black
+                    competing_clients = sort_players(competing_clients)
                     update_standings(competing_clients)
                     monrad_schedule(competing_clients, stalk)
         else:
@@ -169,15 +174,15 @@ def main():
     while uncompleted_games:
         time.sleep(1)
         score_games(competing_clients)
-    for x in competing_clients:
-        realClient = Client.objects.get(name=x.name)
-        x.score = realClient.score
-    update_standings(competing_clients)
-    for x in competing_clients:
-        realClient = Client.objects.get(name=x.name)
-        x.score = realClient.score
     competing_clients = calc_tie_break(competing_clients)
+    for x in competing_clients:
+        realClient = Client.objects.get(name=x.name)
+        x.score = realClient.score
+        x.buchholz = realClient.buchholz
+        x.sumrate = realClient.sumrate
+        x.num_black = realClient.num_black
     competing_clients = sort_players(competing_clients)
+    update_standings(competing_clients)
     tied = False
     for x in competing_clients:
         for c in competing_clients:
@@ -195,15 +200,15 @@ def main():
         while uncompleted_games:
             time.sleep(1)
             score_games(competing_clients)
-        for x in competing_clients:
-            realClient = Client.objects.get(name=x.name)
-            x.score = realClient.score
-        update_standings(competing_clients)
-        for x in competing_clients:
-            realClient = Client.objects.get(name=x.name)
-            x.score = realClient.score
         competing_clients = calc_tie_break(competing_clients)
+        for x in competing_clients:
+            realClient = Client.objects.get(name=x.name)
+            x.score = realClient.score
+            x.buchholz = realClient.buchholz
+            x.sumrate = realClient.sumrate
+            x.num_black = realClient.num_black
         competing_clients = sort_players(competing_clients)
+        update_standings(competing_clients)
         tied = False
         for x in competing_clients:
             for c in competing_clients:
@@ -228,15 +233,15 @@ def main():
             while uncompleted_games:
                 time.sleep(1)
                 score_games(competing_clients)
-            for x in competing_clients:
-                realClient = Client.objects.get(name=x.name)
-                x.score = realClient.score
-            update_standings(competing_clients)
-            for x in competing_clients:
-                realClient = Client.objects.get(name=x.name)
-                x.score = realClient.score
             competing_clients = calc_tie_break(competing_clients)
+            for x in competing_clients:
+                realClient = Client.objects.get(name=x.name)
+                x.score = realClient.score
+                x.buchholz = realClient.buchholz
+                x.sumrate = realClient.sumrate
+                x.num_black = realClient.num_black
             competing_clients = sort_players(competing_clients)
+            update_standings(competing_clients)
             for x in competing_clients:
                 for c in competing_clients:
                     if x.name == c.name:
@@ -594,7 +599,7 @@ def score_games(competing_clients):
         if game_status(g) == "Complete":
             try:
                 gameC = Game.objects.get(pk=g)
-                game_clis = list(gameC.clients.all())
+                game_clis = list(gameC.gamedata_set.all())
             except:
                 pass
             if gameC.tied:
@@ -607,45 +612,36 @@ def score_games(competing_clients):
                 for i, c in enumerate(game_clis):
                     if monrad:
                         for x in competing_clients:
-                            if x.name == c.name:
+                            if x.name == c.client.name:
                                 if i == 0:
                                     x.num_white += 1
                                 elif i == 1:
-                                    x.num_black += 1
-                    print "%s's score goes from %s to" % (c.name, str(c.score)),
-                    c.score += 0.5
-                    c.save()
-                    print c.score
-                    scores_file.write("%s\n" % c.name)
-                    scores_file.flush()
+                                    c.client.num_black += 1
+                                    c.client.save()
+                    print "%s's score goes from %s to" % (c.client.name, str(c.client.score)),
+                    c.client.score += 0.5
+                    c.client.save()
+                    print c.client.score
             else:
                 for i, c in enumerate(game_clis):
                     if monrad:
                         for x in competing_clients:
-                            if x.name == c.name:
+                            if x.name == c.client.name:
                                 if i == 0:
                                     x.num_white += 1
                                 elif i == 1:
-                                    x.num_black += 1
-                    if c.name == gameC.winner.name:
-                        print c.name, "is the winner of game", g, "and their score goes from", c.score, "to",
-                        c.score += 1.0
-                        c.save()
-                        print c.score
-                        scores_file.write("%s\n" % c.name)
-                        scores_file.flush()
-                    #else:
-                        #print c.name, "is the loser of game", g, "and their score goes from", c.score, "to"
-                        #c.score -= 1
-                        #c.save()
-                        #print c.score
-                        #scores_file.write("%s\n" % c.name)
-                        #scores_file.flush()
+                                    c.client.num_black += 1
+                                    c.client.save()
+                    if c.client.name == gameC.winner.name:
+                        print c.client.name, "is the winner of game", g, "and their score goes from", c.client.score, "to",
+                        c.client.score += 1.0
+                        c.client.save()
+                        print c.client.score
             gameC.claimed = True
             gameC.save()
             uncompleted_games.remove(g)
         elif game_status(g) == "Failed":            
-            print "Game:", g, "Failed, commiting suicide now."
+            print "Game:", g, "failed, commiting suicide now."
             exit() # exit the game.
             # during competition just restart swiss
             uncompleted_games.remove(g)
@@ -656,12 +652,11 @@ def score_games(competing_clients):
                 x.score = 0.0
                 x.save()
             current_round = 0
+    competing_clients = calc_tie_break(competing_clients)
     return competing_clients
             
 def update_standings(competing_clients):
     global current_round
-    competing_clients = calc_tie_break(competing_clients)
-    competing_clients = sort_players(competing_clients)
     f = open("scores.txt", 'w')
     for i in competing_clients:
         past = ""
@@ -708,12 +703,14 @@ def schedule_game(i, j, stalk):
                                     if k == 0:
                                         i.num_white += 1
                                     elif k == 1:
-                                        i.num_black += 1
+                                        c1.num_black += 1
+                                        c1.save()
                                 elif j.name == c.client.name:
                                     if k == 0:
                                         j.num_white += 1
                                     elif k == 1:
-                                        j.num_black += 1
+                                        c2.num_black += 1
+                                        c2.save()
 
                     else:
                         for k, c in enumerate(game_clients):
@@ -727,29 +724,33 @@ def schedule_game(i, j, stalk):
                                     if k == 0:
                                         i.num_white += 1
                                     elif k == 1:
-                                        i.num_black += 1
+                                        c1.num_black += 1
+                                        c1.save()
                                 elif j.name == c.client.name:
                                     if k == 0:
                                         j.num_white += 1
                                     elif k == 1:
-                                        j.num_black += 1
+                                        c2.num_black += 1
+                                        c2.save()
                     g.claimed = True
                     g.save()
                     score_game = True
                     break
             except:
                 print "Found an invalid game, marking failed"
-                #g.status = 'Failed'
-                #g.save()
+                g.status = 'Failed'
+                g.save()
                     
-
+    i.past_competitors.append(j)
+    j.past_competitors.append(i)
     if not score_game:
         uncompleted_games.append(sked(c1, c2, stalk, "Tournament").pk)
+    else:
+        i = calc_tie_break(i)
+        j = calc_tie_break(j)
     if dutch:
         i.pref_power -= 1
         j.pref_power += 1
-    i.past_competitors.append(j)
-    j.past_competitors.append(i)
     return i,j
 
 def sort_players(competing_clients):
@@ -781,9 +782,8 @@ def monrad_setup(clients):
                 if scoresin[0] == i.name:
                     client = Client.objects.get(name=scoresin[0])
                     client.score = float(scoresin[1])
+                    client.num_black = int(scoresin[4])
                     client.save()
-                    i.score = float(scoresin[1])
-                    i.num_black = int(scoresin[4])
                     i.num_white = int(scoresin[5])
                     current_round = int(scoresin[6])
                     past_cli = str(scoresin[7]).split("<>")
@@ -794,8 +794,9 @@ def monrad_setup(clients):
         print "Setting round to", current_round
         f.close()
     else:
-        print "Setup complete, beginning round 1"
         current_round = 1
+    competing_clients = calc_tie_break(competing_clients)
+    print "Setup complete, beginning round", current_round
     return competing_clients
 
 
@@ -805,10 +806,13 @@ def monrad_schedule(competing_clients, stalk, tie_breaker=False):
     to_schedule = []
     cli_on_hold = []
     a = []
+    competing_clients = calc_tie_break(competing_clients)
     for x in competing_clients:
         realClient = Client.objects.get(name=x.name)
         x.score = realClient.score
-    competing_clients = calc_tie_break(competing_clients)
+        x.buchholz = realClient.buchholz
+        x.sumrate = realClient.sumrate
+        x.num_black = realClient.num_black
     competing_clients = sort_players(competing_clients)
     for x in competing_clients:
         print x.name, x.score
@@ -992,58 +996,6 @@ def monrad_schedule(competing_clients, stalk, tie_breaker=False):
                 break
         to_schedule = valid_list.pop(0)
 
-
-
-
-
-
-
-
-
-
-    
-        """
-        #while try_again:
-            try_count += 1
-            print "Try:", '%.2E' % decimal.Decimal(try_count)
-            for x in to_schedule:
-                to_schedule.remove(x)
-            #random.seed(os.urandom(100))
-            #random.shuffle(competing_clients)
-            for i, x in enumerate(p):
-                if i % 2 == 0:
-                    y = x
-                    odd = True
-                    continue
-                else:
-                    odd = False
-                    if not compatible_players(y, x):
-                        try_again = True
-                        break
-                    x = recalc_colors(x)
-                    y = recalc_colors(y)
-                    if y.pref_power >= x.pref_power:
-                        print y.name, "gets color preference over", x.name
-                        if y.color_pref == 0:
-                            a.append(y)
-                            a.append(x)
-                        else:
-                            a.append(x)
-                            a.append(y)
-                    else:
-                        print x.name, "gets color preference over", y.name
-                        if x.color_pref == 0:
-                            a.append(x)
-                            a.append(y)
-                        else:
-                            a.append(y)
-                            a.append(x)
-                    to_schedule.append(a)
-                    a = []
-                    try_again = False
-            if not try_again:
-                break
-        """
     for x in to_schedule:
         schedule_game(x.pop(0), x.pop(0), stalk)
     if odd and len(to_schedule) > 0:
@@ -1065,12 +1017,17 @@ def recalc_colors(x):
 
 def calc_tie_break(competing_clients):
     for x in competing_clients:
+        client = Client.objects.get(name=x.name)
         x.buchholz = 0
         x.sumrate = 0
         for c in competing_clients:
             if c in x.past_competitors:
-                x.buchholz += c.score
-                x.sumrate += c.rating
+                past_client = Client.objects.get(name=c.name)
+                x.buchholz += past_client.score
+                x.sumrate += past_client.rating
+        client.buchholz = x.buchholz
+        client.sumrate = x.sumrate
+        client.save()
     return competing_clients
 
 def permute(xs, low=0):
