@@ -156,7 +156,7 @@ def representative_game(request, match_id):
 
 def scores(request):
     clients = list(Client.objects.all().filter(embargoed=False).filter(missing=False))
-    clients = sorted(clients, key = lambda x: x.num_rating, reverse=True)
+    clients = sorted(clients, key = lambda x: x.rating, reverse=True)
     clients = sorted(clients, key = lambda x: x.num_black, reverse=True)
     clients = sorted(clients, key = lambda x: x.sumrate, reverse=True)
     clients = sorted(clients, key = lambda x: x.buchholz, reverse=True)
