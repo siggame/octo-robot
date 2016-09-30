@@ -138,6 +138,7 @@ def main():
     while round_calculate > 1:
         round_calculate = round_calculate / 2
         max_rounds += 1
+    max_rounds += 1 #Seems to make a big difference in accuracy of results
     if args.r != -1:
         max_rounds = args.r
 
@@ -160,12 +161,6 @@ def main():
                     competing_clients = monrad_setup(cli)
                 else:
                     competing_clients = calc_tie_break(competing_clients)
-                    for x in competing_clients:
-                        realClient = Client.objects.get(name=x.name)
-                        x.score = realClient.score
-                        x.buchholz = realClient.buchholz
-                        x.sumrate = realClient.sumrate
-                        x.num_black = realClient.num_black
                     competing_clients = sort_players(competing_clients)
                     update_standings(competing_clients)
                     monrad_schedule(competing_clients, stalk)
@@ -176,12 +171,6 @@ def main():
         time.sleep(1)
         score_games(competing_clients)
     competing_clients = calc_tie_break(competing_clients)
-    for x in competing_clients:
-        realClient = Client.objects.get(name=x.name)
-        x.score = realClient.score
-        x.buchholz = realClient.buchholz
-        x.sumrate = realClient.sumrate
-        x.num_black = realClient.num_black
     competing_clients = sort_players(competing_clients)
     update_standings(competing_clients)
     tied = False
@@ -202,12 +191,6 @@ def main():
             time.sleep(1)
             score_games(competing_clients)
         competing_clients = calc_tie_break(competing_clients)
-        for x in competing_clients:
-            realClient = Client.objects.get(name=x.name)
-            x.score = realClient.score
-            x.buchholz = realClient.buchholz
-            x.sumrate = realClient.sumrate
-            x.num_black = realClient.num_black
         competing_clients = sort_players(competing_clients)
         update_standings(competing_clients)
         tied = False
@@ -235,12 +218,6 @@ def main():
                 time.sleep(1)
                 score_games(competing_clients)
             competing_clients = calc_tie_break(competing_clients)
-            for x in competing_clients:
-                realClient = Client.objects.get(name=x.name)
-                x.score = realClient.score
-                x.buchholz = realClient.buchholz
-                x.sumrate = realClient.sumrate
-                x.num_black = realClient.num_black
             competing_clients = sort_players(competing_clients)
             update_standings(competing_clients)
             for x in competing_clients:
@@ -606,33 +583,30 @@ def score_games(competing_clients):
             if gameC.tied:
                 print "Game %d: Draw!" % (g)
                 for i, c in enumerate(game_clis):
-                    if monrad:
-                        for x in competing_clients:
+                    for x in competing_clients:
+                        if monrad:
                             if x.name == c.client.name:
                                 if i == 0:
                                     x.num_white += 1
                                 elif i == 1:
-                                    c.client.num_black += 1
-                                    c.client.save()
-                    print "%s's score goes from %s to" % (c.client.name, str(c.client.score)),
-                    c.client.score += 0.5
-                    c.client.save()
-                    print c.client.score
+                                    x.num_black += 1
+                    if x.name == c.client.name:
+                        print "%s's score goes from %s to" % (x.name, str(x.score)),
+                        x.score += 0.5
+                        print x.score
             else:
                 for i, c in enumerate(game_clis):
-                    if monrad:
-                        for x in competing_clients:
+                    for x in competing_clients:
+                        if x.name == gameC.winner.name:
+                            print x.name, "is the winner of game", g, "and their score goes from", x.score, "to",
+                            x.score += 1.0
+                            print x.score
+                        if monrad:
                             if x.name == c.client.name:
                                 if i == 0:
                                     x.num_white += 1
                                 elif i == 1:
-                                    c.client.num_black += 1
-                                    c.client.save()
-                    if c.client.name == gameC.winner.name:
-                        print c.client.name, "is the winner of game", g, "and their score goes from", c.client.score, "to",
-                        c.client.score += 1.0
-                        c.client.save()
-                        print c.client.score
+                                    x.num_black += 1
             gameC.claimed = True
             gameC.save()
             uncompleted_games.remove(g)
@@ -690,44 +664,48 @@ def schedule_game(i, j, stalk):
                     if g.tied:
                         print "Draw!"
                         for k, c in enumerate(game_clients):
-                            print "%s's score goes from %s to" % (c.client.name, str(c.client.score)),
-                            c.client.score += 0.5
-                            c.client.save()
-                            print c.client.score
+                            if c.client.name == i.name:
+                                print "%s's score goes from %s to" % (i.name, str(i.score)),
+                                i.score += 0.5
+                                print i.score
+                            else:
+                                print "%s's score goes from %s to" % (j.name, str(j.score)),
+                                j.score += 0.5
+                                print j.score
                             if monrad:
                                 if i.name == c.client.name:
                                     if k == 0:
                                         i.num_white += 1
                                     elif k == 1:
-                                        c1.num_black += 1
-                                        c1.save()
+                                        i.num_black += 1
                                 elif j.name == c.client.name:
                                     if k == 0:
                                         j.num_white += 1
                                     elif k == 1:
-                                        c2.num_black += 1
-                                        c2.save()
+                                        j.num_black += 1
 
                     else:
                         for k, c in enumerate(game_clients):
                             if c.client.name == g.winner.name:
-                                print c.client.name, "won, their score goes from", c.client.score, "to",
-                                c.client.score += 1.0
-                                c.client.save()
-                                print c.client.score
+                                if c.client.name == i.name:
+                                    print c.client.name, "won, their score goes from", i.score, "to",
+                                    i.score += 1.0
+                                    print i.score
+                                else:
+                                    print c.client.name, "won, their score goes from", j.score, "to",
+                                    j.score += 1.0
+                                    print j.score
                             if monrad:
                                 if i.name == c.client.name:
                                     if k == 0:
                                         i.num_white += 1
                                     elif k == 1:
-                                        c1.num_black += 1
-                                        c1.save()
+                                        i.num_black += 1
                                 elif j.name == c.client.name:
                                     if k == 0:
                                         j.num_white += 1
                                     elif k == 1:
-                                        c2.num_black += 1
-                                        c2.save()
+                                        j.num_black += 1
                     g.claimed = True
                     g.save()
                     score_game = True
@@ -803,12 +781,6 @@ def monrad_schedule(competing_clients, stalk, tie_breaker=False):
     cli_on_hold = []
     a = []
     competing_clients = calc_tie_break(competing_clients)
-    for x in competing_clients:
-        realClient = Client.objects.get(name=x.name)
-        x.score = realClient.score
-        x.buchholz = realClient.buchholz
-        x.sumrate = realClient.sumrate
-        x.num_black = realClient.num_black
     competing_clients = sort_players(competing_clients)
     for x in competing_clients:
         print x.name, x.score
@@ -1023,6 +995,8 @@ def calc_tie_break(competing_clients):
                 x.sumrate += past_client.rating
         client.buchholz = x.buchholz
         client.sumrate = x.sumrate
+        client.score = x.score
+        client.num_black = x.num_black
         client.save()
     return competing_clients
 
