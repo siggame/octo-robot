@@ -125,6 +125,7 @@ def main():
     for x in cli:
         clientNum += 1
         x.score = 0.0
+        x.num_black = 0
         x.save()
     print "Success!"
     print "Unclaiming games"
@@ -604,11 +605,6 @@ def score_games(competing_clients):
                 pass
             if gameC.tied:
                 print "Game %d: Draw!" % (g)
-                #c_iterator = game_clients.clients.iterator()
-                #c1 = c_iterator.next()
-                #c2 = c_iterator.next()
-                
-                #for i in game_clients.clients.iterator():
                 for i, c in enumerate(game_clis):
                     if monrad:
                         for x in competing_clients:
@@ -746,8 +742,8 @@ def schedule_game(i, j, stalk):
     if not score_game:
         uncompleted_games.append(sked(c1, c2, stalk, "Tournament").pk)
     else:
-        i = calc_tie_break(i)
-        j = calc_tie_break(j)
+        i = calc_tie_break([i])
+        j = calc_tie_break([j])
     if dutch:
         i.pref_power -= 1
         j.pref_power += 1
