@@ -329,7 +329,7 @@ def assign_elo(winner, loser):
     odds = 1 / (1 + math.pow(10, exp))
     if winner.rating < 2100:
         k = 32
-    elif winner.rating > 2400:
+    elif winner.rating > 2500:
         k = 12
     else:
         k = 24
