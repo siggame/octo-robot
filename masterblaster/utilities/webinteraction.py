@@ -73,7 +73,7 @@ def update_clients_from_data_block(data):
     missing_clients = [x for x in current_clients if x not in updated_clients] # list of clients not in the updated list
     if missing_clients:
         for i in missing_clients:
-            if i.missing = False:
+            if i.missing == False:
                 print i.name, "is missing, marking as missing"
             i.missing = True
             i.save()
