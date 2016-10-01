@@ -15,11 +15,12 @@ Game #{{ game.pk }}
   Priority: {{ game.priority }} <br>
   Interestingness: {{ game.score }} <br>
   {% if game.gamelog_url|length > 0 %}
-    <a href="{{game.gamelog_url }}" > gamelog </a>
+    <a href="{{game.gamelog_url }}" > gamelog </a><br>
   {% endif %}
-  {{ game.stats }}
-  {% for key, value in game.stats.iteritems %}
-    {{ key }}: {{ value }} <br>
+  {% for name, value in game.get_fields %}
+  {% if value and name != 'score' and name != 'id' and name != 'winner' and name != 'loser' and name != 'status' and name != 'priority' and name != 'gamelog_url' and name != 'visualized' and name != 'discon_happened'%}
+    {{ name }} : {{ value }} <br>
+  {% endif %}
   {% endfor %}
   <hr>
   {% for data in game.gamedata_set.all %}

@@ -173,6 +173,9 @@ class Game(models.Model):
     
     def game_time(self):
         return (self.completed - self.started)
+    
+    def get_fields(self):
+        return [(field.name, field.value_to_string(self)) for field in Game._meta.fields]
 
 class GameData(models.Model):
     ### each Game will have one of these for each competitor in that game
