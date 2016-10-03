@@ -89,7 +89,7 @@ def main():
     global pullScores
     global clientNum
     parser = argparse.ArgumentParser(description='Swiss Chess scheduler')
-    parser.add_argument('--h', action='store_true', help='Whether to include humans, mainly for the swiss tournament')
+    parser.add_argument('--h', action='store_true', help='Whether to include humans, mainly for the chess tournament')
     parser.add_argument('--r', type=int, default=-1, help='Number of rounds to run')
     parser.add_argument('--g', type=int, default=1, help='Starting game number for pulling in precompleted games')
     parser.add_argument('--s', action='store_true', help='Pull scores in and start on specified round')
