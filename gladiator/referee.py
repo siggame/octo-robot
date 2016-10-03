@@ -74,7 +74,16 @@ def looping(stalk):
     stalk.put(json.dumps(game))
     job.touch()
     for client in game['clients']:
-        update_local_repo(client)
+        if not update_local_repo(client):
+            print "Failing the game, someone didn't clone"
+            game['status'] = "Failed"
+            game['completed'] = str(datetime.now())
+            game['tied'] = False
+            game['tie_reason'] = "The arena was unable to communicate with the webserver"
+            push_datablocks(game)
+            stalk.put(json.dumps(game))
+            job.delete()
+            return
 
     # make empty files for all the output files
     for prefix in [x['name'] for x in game['clients']]:
@@ -416,7 +425,7 @@ def update_local_repo(client):
                     stderr=subprocess.STDOUT)
     
     numFailed = 0
-    while numFailed < 10000:        #try to clone 10000 times
+    while numFailed < 5000:        #try to clone 5000 times
         try:
             print "git clone %s%s client: %s" % (base_path, client['repo'], client['name'])
             subprocess.call(['git', 'clone',
@@ -437,18 +446,9 @@ def update_local_repo(client):
                 sleep(0.01)         #Wait 10ms before attempting to clone again
             elif numFailed > 15:
                 sleep(.5)
-    #if numFailed == 10000:
-        #Insert code to handle permanent clone failure here
-        #------------------------------------------------------
-        #
-        #
-        #
-        #
-        #
-        #
-        #
-        #
-        #------------------------------------------------------
+    if numFailed >= 5000:
+        return False
+    
     subprocess.call(['git', 'pull'], cwd=client['name'],
                     stdout=file('%s-gitout.txt' % client['name'], 'a'),
                     stderr=subprocess.STDOUT)

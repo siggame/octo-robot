@@ -156,7 +156,11 @@ def representative_game(request, match_id):
 
 def scores(request):
     clients = list(Client.objects.all().filter(embargoed=False).filter(missing=False))
-    clients.sort(key = lambda x: x.score, reverse=True)
+    clients = sorted(clients, key = lambda x: x.rating, reverse=True)
+    clients = sorted(clients, key = lambda x: x.num_black, reverse=True)
+    clients = sorted(clients, key = lambda x: x.sumrate, reverse=True)
+    clients = sorted(clients, key = lambda x: x.buchholz, reverse=True)
+    clients = sorted(clients, key = lambda x: x.score, reverse=True)
     return render_to_response('thunderdome/scores.html', {'clients':clients})
 
 def get_scores(request):
