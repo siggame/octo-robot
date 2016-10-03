@@ -1,3 +1,4 @@
+
 #####
 ### Missouri S&T ACM SIG-Game Arena (Thunderdome)
 #####
@@ -30,4 +31,5 @@ urlpatterns = patterns(
     url(r'^clients$', 'display_clients'),
     url(r'^swissTurn$', 'human_swiss'),
     url(r'^api/', include(v1_api.urls)),
+    url(r'^api/get_scores$', 'get_scores'),
 )
