@@ -16,8 +16,6 @@
 </head>
 
 <body>
-<div class="logout_button" style="text-align:right">
-</div>
 <div class="content">
 <a href="{% url 'thunderdome.views.scoreboard' %}">Main</a>
 <a href='inject'>Inject</a>
@@ -25,6 +23,7 @@
 <a href='settings'>Settings</a>
 <a href='clients'>Clients</a>
 <a href='scores'>Chess Rankings</a>
+<a href='logout'>Logout</a>
 
 {% block content %}
 If you can see this, then the djano template author forgot to put block
