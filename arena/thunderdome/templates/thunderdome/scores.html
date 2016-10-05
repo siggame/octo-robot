@@ -16,9 +16,8 @@ table, th, td {
 
 <h1>Rankings</h1>
 
-<table border="2" style="width:100%">
+<table id="clients_table" border="2" style="width:100%">
 <font color="white"><tr><td></font><b>Rank</b></td><td><b>Client Name</b></td><td><b>Score</b></td><td><b>Sum of Opponents' Scores</b></td><td><b>Sum of Opponents' Ratings</b></td><td><b>Number of Times Played as Black</b></td></tr>
-<table id="clients_table" border="1" style="width:50%">
 
 {% for client in clients %}
   <tr><td>{{ forloop.counter }}</td><td>{{ client.name }}</td><td>{{ client.score }}</td><td>{{ client.buchholz }}</td><<td>{{ client.sumrate }}</td><<td>{{ client.num_black }}</td><</tr>
