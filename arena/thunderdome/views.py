@@ -18,6 +18,7 @@ from django.shortcuts import render_to_response, get_object_or_404
 from django.http import HttpResponseRedirect, HttpResponse, JsonResponse
 from django.core.context_processors import csrf
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth import logout
 from django.db.models import Max
 
 # My Imports
@@ -32,6 +33,9 @@ def index(request):
     msg = "<html><body><p>Hello index page!</p></body></html>"
     return HttpResponse(msg)
 
+def logout_view(request):
+    logout(request)
+    return render_to_response('thunderdome/logout.html')
 
 @login_required(login_url='/admin')
 def health(request):
@@ -65,6 +69,7 @@ def health(request):
     p['refs'] = refs
     return render_to_response('thunderdome/health.html', p)
 
+@login_required(login_url='/admin')
 def human_swiss(request):
     p = dict()
     
@@ -82,11 +87,12 @@ def human_swiss(request):
     p['client_names'] = [i[0].name for i in h_clients]
     return render_to_response('thunderdome/human_swiss.html', p)
 
-
+@login_required(login_url='/admin')
 def view_game(request, game_id):
     game = get_object_or_404(Game, pk=game_id)
     return render_to_response('thunderdome/view_game.html', {'game': game})
 
+@login_required(login_url='/admin')
 def view_match(request, match_id):
     match = get_object_or_404(Match, pk=match_id)
     return render_to_response('thunderdome/view_match.html', {'match' : match})
@@ -134,6 +140,7 @@ def get_next_game_url_to_visualize(request):
         next_game_url = x.gamelog_url
     return HttpResponse(next_game_url)
 
+@login_required(login_url='/admin')
 def rate_game(request, game_id, rating):
     print 'rating game', game_id, 'with rating', rating
     game = Game.objects.get(pk=game_id)
@@ -147,6 +154,7 @@ def rate_game(request, game_id, rating):
     message = {"status" : "Rated"}
     return HttpResponse(json.dumps(message))
 
+@login_required(login_url='/admin')
 def representative_game(request, match_id):
     match = Match.objects.get(pk=match_id)
     if match.stats != 'Complete':
@@ -154,14 +162,14 @@ def representative_game(request, match_id):
     game_id = 1
     return view_game(request, game_id)
 
-def scores(request):
+def scoreboard(request):
     clients = list(Client.objects.all().filter(embargoed=False).filter(missing=False))
     clients = sorted(clients, key = lambda x: x.rating, reverse=True)
     clients = sorted(clients, key = lambda x: x.num_black, reverse=True)
     clients = sorted(clients, key = lambda x: x.sumrate, reverse=True)
     clients = sorted(clients, key = lambda x: x.buchholz, reverse=True)
     clients = sorted(clients, key = lambda x: x.score, reverse=True)
-    return render_to_response('thunderdome/scores.html', {'clients':clients})
+    return render_to_response('thunderdome/scoreboard.html', clients)
 
 def get_scores(request):
     clients = list(Client.objects.all().filter(embargoed=False).filter(missing=False))
@@ -170,8 +178,9 @@ def get_scores(request):
     clients = sorted(clients, key = lambda x: x.sumrate, reverse=True)
     clients = sorted(clients, key = lambda x: x.buchholz, reverse=True)
     clients = sorted(clients, key = lambda x: x.score, reverse=True)
-    return JsonResponse({'clients':clients})
+    return JsonResponse(clients)
 
+@login_required(login_url='/admin')
 def display_clients(request):
     clients = list(Client.objects.all())
     clients.sort(key = lambda x: x.rating, reverse=True)

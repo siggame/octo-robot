@@ -47,7 +47,7 @@ while True:
         break
     except:
         print "Too many requests, trying again"
-        sleepInterval = random.randint(10, 30)
+        sleepInterval = random.randint(10, 40)
         sleep(sleepInterval)
 
 
@@ -68,12 +68,18 @@ def looping(stalk):
     game['referee_id'] = os.getpid()
     game['started'] = str(datetime.now())
     
+    game['status'] = "Building"
+    # make empty files for all the output files
+    for prefix in [x['name'] for x in game['clients']]:
+        for suffix in ['stdout', 'stderr', 'makeout', 'gitout']:
+            with file('%s-%s.txt' % (prefix, suffix), 'w') as f:
+                f.write('empty')
+    
     # get latest client code in arena mode.
     # tournament mode will not fail games that clients fail to connect to
-    game['status'] = "Building"
-    stalk.put(json.dumps(game))
-    job.touch()
     for client in game['clients']:
+        stalk.put(json.dumps(game))
+        job.touch()
         if not update_local_repo(client):
             print "Failing the game, someone didn't clone"
             game['status'] = "Failed"
@@ -84,12 +90,6 @@ def looping(stalk):
             stalk.put(json.dumps(game))
             job.delete()
             return
-
-    # make empty files for all the output files
-    for prefix in [x['name'] for x in game['clients']]:
-        for suffix in ['stdout', 'stderr', 'makeout', 'gitout']:
-            with file('%s-%s.txt' % (prefix, suffix), 'w') as f:
-                f.write('empty')
       
     # compile the clients
     stalk.put(json.dumps(game))
@@ -425,7 +425,7 @@ def update_local_repo(client):
                     stderr=subprocess.STDOUT)
     
     numFailed = 0
-    while numFailed < 5000:        #try to clone 5000 times
+    while numFailed < 750:        #try to clone 750 times, should come out just shy of 400 seconds
         try:
             print "git clone %s%s client: %s" % (base_path, client['repo'], client['name'])
             subprocess.call(['git', 'clone',
@@ -446,7 +446,7 @@ def update_local_repo(client):
                 sleep(0.01)         #Wait 10ms before attempting to clone again
             elif numFailed > 15:
                 sleep(.5)
-    if numFailed >= 5000:
+    if numFailed >= 750:
         return False
     
     subprocess.call(['git', 'pull'], cwd=client['name'],
@@ -457,7 +457,7 @@ def update_local_repo(client):
                     stderr=subprocess.STDOUT,
                     cwd=client['name'])
     print "Checking out ", client['tag']
-
+    return True
 
 if __name__ == "__main__":
     main()
