@@ -1,9 +1,9 @@
 $(function() {
   var Scores = {
     init: function() {
-      $.post("/mies/thunderdome/get_scores"
-        
-      );
+      $("#scoreboard").DataTable({
+        "ajax": "../api/get_scores",
+      });
     },
     
     update_scores: function() {

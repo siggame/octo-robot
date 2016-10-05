@@ -113,6 +113,7 @@ INSTALLED_APPS = (
     'k_storage',
     'gunicorn',
     'django_nose',
+    'django_extensions',
 )
 
 LOGGING = {
