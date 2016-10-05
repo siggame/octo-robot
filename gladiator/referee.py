@@ -357,9 +357,6 @@ def kill_clients(players):
 def compile_client(client):
     ''' Compile the client and return the code returned by make '''
     print 'Making %s/%s' % (os.getcwd(), client['name'])
-    #subprocess.call(['make', 'clean'], cwd=client['name'],
-                    #stdout=file("/dev/null", "w"),
-                    #stderr=subprocess.STDOUT)
     return subprocess.call(['make'], cwd=client['name'],
                            stdout=file("%s-makeout.txt" % client['name'], "w"),
                            stderr=subprocess.STDOUT)
@@ -377,7 +374,11 @@ def push_file(local_filename, remote_filename, is_glog):
     k = boto.s3.key.Key(b)
     k.key = 'logs/%s/%s' % (os.environ['GAME_NAME'], remote_filename)
     if is_glog:
-        k.set_contents_from_filename(local_filename, {'Content-Type': 'application/json; charset=utf-8', 'Content-Encoding': 'gzip', 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'Origin,X-Requested-With,Content-Type,Accept'}, policy='public-read')
+        try:
+            k.set_contents_from_filename(local_filename, {'Content-Type': 'application/json; charset=utf-8', 'Content-Encoding': 'gzip', 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'Origin,X-Requested-With,Content-Type,Accept'}, policy='public-read')
+        except:
+            sleep(5)
+            k.set_contents_from_filename(local_filename, {'Content-Type': 'application/json; charset=utf-8', 'Content-Encoding': 'gzip', 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'Origin,X-Requested-With,Content-Type,Accept'}, policy='public-read')
     else:
         k.set_contents_from_filename(local_filename, policy='public-read')
     return "http://%s.s3.amazonaws.com/%s" % (bucket_name, k.key)
@@ -389,7 +390,6 @@ def push_datablocks(game):
         in_name = "%s-data.zip" % client['name']
         with zipfile.ZipFile(in_name, 'w', zipfile.ZIP_DEFLATED, allowZip64 = True) as z:
             for suffix in ['stdout', 'stderr', 'makeout', 'gitout']:
-#            for suffix in ['makeout', 'gitout']: # this should be removed after competition
                 z.write('%s-%s.txt' % (client['name'], suffix))
         salt = md5.md5(str(random.random())).hexdigest()[:5]
         remote = "%s-%s-%s-data.zip" % (game['number'], salt, client['name'])
@@ -404,17 +404,8 @@ def push_gamelog(game):
     # salt exists to stop people from randomly probing for files
     salt = md5.md5(str(random.random())).hexdigest()[:5]
     remote = "%s-%s-%s.json.gz" % (game['number'], game_name, salt)
-    #local_json = "%s/output/gamelogs/%s-%s.json" % (server_path, game_name, game['number'])
-    #with gzip.open("%s/output/gamelogs/%s-%s.json.gz" % (server_path, game_name, game['number']), 'rb') as f:
-       #log = f.read()
-       #local_json_data = open(local_json, 'w')
-       #local_json_data.write(log)
-       #local_json_data.close()
-    #remote_json = "%s-Anarchy-%s.json" % (game['number'], salt)
     game['gamelog_url'] = push_file(gamelog_filename, remote, True)
-    #push_file(local_json, remote_json)
     os.remove(gamelog_filename)
-    #os.remove(local_json)
 
 
 def update_local_repo(client):

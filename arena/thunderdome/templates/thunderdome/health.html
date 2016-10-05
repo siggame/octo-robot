@@ -20,7 +20,7 @@ Complete Games: {{ complete_games }}</br>
 Failed Games: {{ failed_games }}<br>
 Last Game Completed: {{ last }}<br>
 
-Sanity: {{ sanity }} </br>
+Sanity: {% if sanity %}<font color="green">True</font>{% else %}<font color="red">False</font>{% endif %} </br>
 
 <h2>Match Statuses</h2>
 {% for match in matches %}
@@ -39,6 +39,7 @@ Sanity: {{ sanity }} </br>
   <th>Current Game</th>
   <th>Game Status</th>
   <th>Last Update</th>
+  <th>Status</th>
 </tr>
 {% for ref in refs %}
 
@@ -50,6 +51,11 @@ Sanity: {{ sanity }} </br>
   <td>{{ref.last_match}}</td>
   <td>{{ref.last_match.status}}</td>
   <td>{{ref.last_update}}</td>
+  {% if ref.dead %}
+  <td bgcolor="red"></td>
+  {% else %}
+  <td bgcolor="green"></td>
+  {% endif %}
 </tr>
 {% endfor %}
 </table>

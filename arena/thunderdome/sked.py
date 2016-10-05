@@ -9,7 +9,7 @@ import time
 # My Imports
 from thunderdome.models import Game, GameData
 
-def sked(guy0, guy1, stalk, origin, priority=1000, ttr=400):
+def sked(guy0, guy1, stalk, origin, priority=1000, ttr=450):
     '''Schedule these guys for a game'''
     game = Game.objects.create()
     game.status = "Scheduled"
