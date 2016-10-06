@@ -114,7 +114,13 @@ def main():
         r.save()
         print "Game", request['number'], "status", request['status']
         request.update({'reporter': 'archiver'})
-        #log.info(json.dumps(request))
+        for x in Referee.objects.all():
+            if x.last_update < datetime.now() - timedelta(hours=1):
+                x.dead = True
+            else:
+                x.dead = False
+            x.save()
+
 
 
 def processing():
