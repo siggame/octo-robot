@@ -74,33 +74,33 @@ def main():
             job.delete()
             continue
         game.stats = job.body
-        game.status = request['status']
-        if game.status in ["Complete", "Failed"]:
-            if 'gamelog_url' in request:
-                game.gamelog_url = request['gamelog_url']
-            if 'completed' in request:
-                game.completed = request['completed']
-                #process_game_stats(game)
-            #Recompute the scoreboard and throughput
-            game.tied = request['tied']
-            if game.tied or game.status == 'Failed':
-                try:
-                    game.tie_reason = request['tie_reason']
-                except:
-                    print "Warning: Unable to read tie_reason for game", game
-                count = 0
-                for guy in request['clients']:
-                    if count > 0:
-                        print "vs.",
-                    print guy['name'],
-                    count += 1
-                print ":", game.tie_reason
-            else:
-                game.win_reason = request['win_reason']
-                game.lose_reason = request['lose_reason']
-                print request['winner']['name'], "beat", request['loser']['name'], "because", game.win_reason
-            handle_completion(request, game)
-        game.save()
+        if game.status != request['status']:
+            game.status = request['status']
+            if game.status in ["Complete", "Failed"]:
+                if 'gamelog_url' in request:
+                    game.gamelog_url = request['gamelog_url']
+                if 'completed' in request:
+                    game.completed = request['completed']
+                game.tied = request['tied']
+                if game.tied or game.status == 'Failed':
+                    try:
+                        game.tie_reason = request['tie_reason']
+                    except:
+                        print "Warning: Unable to read tie_reason for game", game
+                    count = 0
+                    for guy in request['clients']:
+                        if count > 0:
+                            print "vs.",
+                        print guy['name'],
+                        count += 1
+                    print ":", game.tie_reason
+                else:
+                    game.win_reason = request['win_reason']
+                    game.lose_reason = request['lose_reason']
+                    print request['winner']['name'], "beat", request['loser']['name'], "because", game.win_reason
+                handle_completion(request, game)
+            game.save()
+            print "Game", request['number'], "status", request['status']
         job.delete()
         del job.conn
         del job
@@ -112,7 +112,6 @@ def main():
         r.last_update = datetime.now()
         r.games.add(game)
         r.save()
-        print "Game", request['number'], "status", request['status']
         request.update({'reporter': 'archiver'})
         for x in Referee.objects.all():
             if x.last_update < datetime.now() - timedelta(hours=1):
@@ -120,155 +119,6 @@ def main():
             else:
                 x.dead = False
             x.save()
-
-
-
-def processing():
-    while True:
-        start = datetime.now()
-        compute_throughput()
-        compute_scoreboard()
-        td = datetime.now()-start
-        delay = max(td * 2, timedelta(seconds=30)).total_seconds()
-        print "Next run in %s secs" % delay
-        time.sleep(delay)
-
-
-def process_game_stats(game):
-    global clusters
-    if game.status == "Complete":
-        data = json.loads(game.stats)
-        gamelogurl = game.gamelog_url
-        with gzip.open(urllib.urlretrieve(gamelogurl), 'rb') as j:
-            game_log = j.read()
-
-        game_stats = gamelog_regepars.get_stats(game_log)
-        print 'GAME STATS ', game_stats
-        data['rating_stats'] = game_stats
-        game.stats = json.dumps(data)
-        game.save()
-        if 'tournament' in data:
-            tempPoint = kmeans.convert_to_point(game)
-            rating = kmeans.nearest_cluster_center(tempPoint, clusters)[2]
-            data['spect_rating'] = rating
-            game.stats = json.dumps(data)
-            game.save()
-
-
-def compute_throughput():
-    refs = Referee.objects.all().order_by('pk')
-    if refs.count() == 0:
-        return
-    formatted = dict()
-    earliest_start = min([ref.started for ref in refs])
-    step = (datetime.utcnow()-earliest_start)/50
-    step = max([step, timedelta(minutes=5)])
-    interval = step*6
-    period = datetime.utcnow()-earliest_start+interval
-    print "Computing rate table p:%s s:%s i:%s" % (period, step, interval)
-    for ref in refs:
-        table = ref.rate_table(period, step, interval)
-        for (t, v) in table:
-            t = t.replace(second=0, microsecond=0)
-            try:
-                formatted[t].append(v)
-            except KeyError:
-                formatted[t] = [v]
-    struct =[[k] + v for (k, v) in sorted(formatted.iteritems())]
-    desc = [('Time', 'datetime')]
-    desc += [('%s/%s' % (ref.blaster_id, ref.referee_id), 'number')
-             for ref in refs]
-    dt = DataTable(desc, struct)
-    try:
-        path = os.path.join(settings.STATIC_ROOT, 'throughput.js')
-        f = open(path, 'w')
-        f.write(dt.ToJSCode('data'))
-        f.close()
-    except IOError:
-        print "Couldn't write throughput"
-        pass
-    print "Throughput chart computed!"
-
-
-def compute_scoreboard():
-    clients = Client.objects.exclude(current_version="")
-    # Build the speedy lookup table
-    grid = dict()
-    wl = dict()
-    for c1 in clients:
-        grid[c1] = dict()
-        for c2 in clients:
-            grid[c1][c2] = 0
-
-    for c1 in clients:
-        for c2 in clients:
-            grid[c1][c2] = c1.games_won.filter(loser=c2).count()
-
-    for c1 in clients:
-        wins = 0
-        total = 0
-        for c2 in clients:
-            wins += grid[c1][c2]
-            total += grid[c1][c2] + grid[c2][c1]
-        if total > 0:
-            wl[c1] = (wins*1.0)/total
-        else:
-            wl[c1] = 0.0
-
-    # Sort the clients by winningness
-    clients = list(clients)
-    clients.sort(reverse=True, key=lambda x: x.fitness())
-
-    client_link = "<a href='view_client/%s'>%s</a>"
-
-    desc = [('vs', 'string')]
-    desc += [('embargoed', 'boolean')]
-    desc += [('Wins', 'number')]
-    desc += [('PCT', 'number')]
-    desc += [('Elo', 'number')]
-    desc += [(client_link % (client.pk, client.name), 'string') for client in clients]
-
-    struct = []
-
-    for client1 in clients:
-        tmp = [client_link % (client1.pk, client1.name), client1.embargoed]
-        tmp2 = []
-        total = 0
-        for client2 in clients:
-            link = "<a href='matchup/%svs%s'>%s</a>" % (client1.pk,
-                                                        client2.pk,
-                                                        grid[client1][client2])
-            tmp2.append(link)
-            total += grid[client1][client2]
-        tmp.append(total)
-        tmp.append(round(wl[client1], 4))
-        tmp.append(client1.rating)
-        tmp += tmp2
-        struct.append(tmp)
-    struct.sort(reverse=True, key=lambda x: x[4])
-
-    dt = DataTable(desc, struct)
-    try:
-        f = open(os.path.join(settings.STATIC_ROOT, 'scoreboard.js'), 'w')
-        static = """
-        function drawScoreboardTable() {
-        %s
-        var options = {
-            title: 'Competitor Overview',
-            allowHtml: true,
-        };
-        var table = new google.visualization.Table(document.getElementById('scoreboard_table'));
-        table.draw(data, options);
-        }
-        drawScoreboardTable();
-        """
-        f.write(static % dt.ToJSCode('data'))
-        f.close()
-    except IOError:
-        print "Couldn't write scoreboard"
-        pass
-    print "Scoreboard Computed!"
-    pass
 
 
 def handle_completion(request, game):
