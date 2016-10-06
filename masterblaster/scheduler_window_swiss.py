@@ -103,7 +103,7 @@ def schedule_a_game(stalk):
     # Shuffle player order and schedule the game
     players = [least_recent, partner]
     random.shuffle(players)
-    uncompleted_games.append(sked(players[0], players[1], stalk, "Window Swiss Scheduler", ttr=300))
+    uncompleted_games.append(sked(players[0], players[1], stalk, "Window Swiss Scheduler"))
 
 if __name__ == "__main__":
     main()

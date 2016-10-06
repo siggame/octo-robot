@@ -65,7 +65,7 @@ mkdir 1
 ln referee.py 1/referee.py
 ln prep_for_bake.py 1/prep_for_bake.py
 cd 1
-python referee.py &
+python referee.py 2> ref1.txt &
 cd ..
 
 """ % (str(access_cred), str(secret_cred), str(s3_prefix), game_name, client_prefix, 'localhost', server_path, 'localhost', living_corders)

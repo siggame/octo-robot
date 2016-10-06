@@ -47,7 +47,7 @@ while True:
         break
     except:
         print "Too many requests, trying again"
-        sleepInterval = random.randint(10, 30)
+        sleepInterval = random.randint(10, 40)
         sleep(sleepInterval)
 
 
@@ -68,19 +68,28 @@ def looping(stalk):
     game['referee_id'] = os.getpid()
     game['started'] = str(datetime.now())
     
-    # get latest client code in arena mode.
-    # tournament mode will not fail games that clients fail to connect to
     game['status'] = "Building"
-    stalk.put(json.dumps(game))
-    job.touch()
-    for client in game['clients']:
-        update_local_repo(client)
-
     # make empty files for all the output files
     for prefix in [x['name'] for x in game['clients']]:
         for suffix in ['stdout', 'stderr', 'makeout', 'gitout']:
             with file('%s-%s.txt' % (prefix, suffix), 'w') as f:
                 f.write('empty')
+    
+    # get latest client code in arena mode.
+    # tournament mode will not fail games that clients fail to connect to
+    for client in game['clients']:
+        stalk.put(json.dumps(game))
+        job.touch()
+        if not update_local_repo(client):
+            print "Failing the game, someone didn't clone"
+            game['status'] = "Failed"
+            game['completed'] = str(datetime.now())
+            game['tied'] = False
+            game['tie_reason'] = "The arena was unable to communicate with the webserver"
+            push_datablocks(game)
+            stalk.put(json.dumps(game))
+            job.delete()
+            return
       
     # compile the clients
     stalk.put(json.dumps(game))
@@ -348,9 +357,6 @@ def kill_clients(players):
 def compile_client(client):
     ''' Compile the client and return the code returned by make '''
     print 'Making %s/%s' % (os.getcwd(), client['name'])
-    #subprocess.call(['make', 'clean'], cwd=client['name'],
-                    #stdout=file("/dev/null", "w"),
-                    #stderr=subprocess.STDOUT)
     return subprocess.call(['make'], cwd=client['name'],
                            stdout=file("%s-makeout.txt" % client['name'], "w"),
                            stderr=subprocess.STDOUT)
@@ -368,7 +374,11 @@ def push_file(local_filename, remote_filename, is_glog):
     k = boto.s3.key.Key(b)
     k.key = 'logs/%s/%s' % (os.environ['GAME_NAME'], remote_filename)
     if is_glog:
-        k.set_contents_from_filename(local_filename, {'Content-Type': 'application/json; charset=utf-8', 'Content-Encoding': 'gzip', 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'Origin,X-Requested-With,Content-Type,Accept'}, policy='public-read')
+        try:
+            k.set_contents_from_filename(local_filename, {'Content-Type': 'application/json; charset=utf-8', 'Content-Encoding': 'gzip', 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'Origin,X-Requested-With,Content-Type,Accept'}, policy='public-read')
+        except:
+            sleep(5)
+            k.set_contents_from_filename(local_filename, {'Content-Type': 'application/json; charset=utf-8', 'Content-Encoding': 'gzip', 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'Origin,X-Requested-With,Content-Type,Accept'}, policy='public-read')
     else:
         k.set_contents_from_filename(local_filename, policy='public-read')
     return "http://%s.s3.amazonaws.com/%s" % (bucket_name, k.key)
@@ -380,7 +390,6 @@ def push_datablocks(game):
         in_name = "%s-data.zip" % client['name']
         with zipfile.ZipFile(in_name, 'w', zipfile.ZIP_DEFLATED, allowZip64 = True) as z:
             for suffix in ['stdout', 'stderr', 'makeout', 'gitout']:
-#            for suffix in ['makeout', 'gitout']: # this should be removed after competition
                 z.write('%s-%s.txt' % (client['name'], suffix))
         salt = md5.md5(str(random.random())).hexdigest()[:5]
         remote = "%s-%s-%s-data.zip" % (game['number'], salt, client['name'])
@@ -395,17 +404,8 @@ def push_gamelog(game):
     # salt exists to stop people from randomly probing for files
     salt = md5.md5(str(random.random())).hexdigest()[:5]
     remote = "%s-%s-%s.json.gz" % (game['number'], game_name, salt)
-    #local_json = "%s/output/gamelogs/%s-%s.json" % (server_path, game_name, game['number'])
-    #with gzip.open("%s/output/gamelogs/%s-%s.json.gz" % (server_path, game_name, game['number']), 'rb') as f:
-       #log = f.read()
-       #local_json_data = open(local_json, 'w')
-       #local_json_data.write(log)
-       #local_json_data.close()
-    #remote_json = "%s-Anarchy-%s.json" % (game['number'], salt)
     game['gamelog_url'] = push_file(gamelog_filename, remote, True)
-    #push_file(local_json, remote_json)
     os.remove(gamelog_filename)
-    #os.remove(local_json)
 
 
 def update_local_repo(client):
@@ -416,7 +416,7 @@ def update_local_repo(client):
                     stderr=subprocess.STDOUT)
     
     numFailed = 0
-    while numFailed < 10000:        #try to clone 10000 times
+    while numFailed < 750:        #try to clone 750 times, should come out just shy of 400 seconds
         try:
             print "git clone %s%s client: %s" % (base_path, client['repo'], client['name'])
             subprocess.call(['git', 'clone',
@@ -437,18 +437,9 @@ def update_local_repo(client):
                 sleep(0.01)         #Wait 10ms before attempting to clone again
             elif numFailed > 15:
                 sleep(.5)
-    #if numFailed == 10000:
-        #Insert code to handle permanent clone failure here
-        #------------------------------------------------------
-        #
-        #
-        #
-        #
-        #
-        #
-        #
-        #
-        #------------------------------------------------------
+    if numFailed >= 750:
+        return False
+    
     subprocess.call(['git', 'pull'], cwd=client['name'],
                     stdout=file('%s-gitout.txt' % client['name'], 'a'),
                     stderr=subprocess.STDOUT)
@@ -457,7 +448,7 @@ def update_local_repo(client):
                     stderr=subprocess.STDOUT,
                     cwd=client['name'])
     print "Checking out ", client['tag']
-
+    return True
 
 if __name__ == "__main__":
     main()

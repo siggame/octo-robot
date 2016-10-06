@@ -63,6 +63,8 @@ def update_clients_from_data_block(data):
             client.embargo_reason = ''
             client.current_version = block['tag']['commit']
             client.language = block['language']
+            client.missing = False
+            client.repo = block['repository']['path']
 
         client.save()
         updated_clients.append(client)
@@ -70,8 +72,9 @@ def update_clients_from_data_block(data):
     current_clients = list(Client.objects.all()) # list of all clients
     missing_clients = [x for x in current_clients if x not in updated_clients] # list of clients not in the updated list
     if missing_clients:
-        print "missing clients, marking as missing"
         for i in missing_clients:
+            if i.missing == False:
+                print i.name, "is missing, marking as missing"
             i.missing = True
             i.save()
             

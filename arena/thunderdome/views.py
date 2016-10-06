@@ -15,9 +15,10 @@ import boto
 # Django Imports
 import settings.defaults
 from django.shortcuts import render_to_response, get_object_or_404
-from django.http import HttpResponseRedirect, HttpResponse
+from django.http import HttpResponseRedirect, HttpResponse, JsonResponse
 from django.core.context_processors import csrf
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth import logout
 from django.db.models import Max
 
 # My Imports
@@ -32,6 +33,9 @@ def index(request):
     msg = "<html><body><p>Hello index page!</p></body></html>"
     return HttpResponse(msg)
 
+def logout_view(request):
+    logout(request)
+    return render_to_response('thunderdome/logout.html')
 
 @login_required(login_url='/admin')
 def health(request):
@@ -65,6 +69,7 @@ def health(request):
     p['refs'] = refs
     return render_to_response('thunderdome/health.html', p)
 
+@login_required(login_url='/admin')
 def human_swiss(request):
     p = dict()
     
@@ -82,11 +87,12 @@ def human_swiss(request):
     p['client_names'] = [i[0].name for i in h_clients]
     return render_to_response('thunderdome/human_swiss.html', p)
 
-
+@login_required(login_url='/admin')
 def view_game(request, game_id):
     game = get_object_or_404(Game, pk=game_id)
     return render_to_response('thunderdome/view_game.html', {'game': game})
 
+@login_required(login_url='/admin')
 def view_match(request, match_id):
     match = get_object_or_404(Match, pk=match_id)
     return render_to_response('thunderdome/view_match.html', {'match' : match})
@@ -134,6 +140,7 @@ def get_next_game_url_to_visualize(request):
         next_game_url = x.gamelog_url
     return HttpResponse(next_game_url)
 
+@login_required(login_url='/admin')
 def rate_game(request, game_id, rating):
     print 'rating game', game_id, 'with rating', rating
     game = Game.objects.get(pk=game_id)
@@ -147,6 +154,7 @@ def rate_game(request, game_id, rating):
     message = {"status" : "Rated"}
     return HttpResponse(json.dumps(message))
 
+@login_required(login_url='/admin')
 def representative_game(request, match_id):
     match = Match.objects.get(pk=match_id)
     if match.stats != 'Complete':
@@ -154,41 +162,32 @@ def representative_game(request, match_id):
     game_id = 1
     return view_game(request, game_id)
 
-def scores(request):
-    clients = list(Client.objects.all().filter(embargoed=False).filter(missing=False))
-    clients.sort(key = lambda x: x.score, reverse=True)
-    return render_to_response('thunderdome/scores.html', {'clients':clients})
+def scoreboard(request):
+    return render_to_response('thunderdome/scoreboard.html')
 
+def get_scores(request):
+    clients = list(Client.objects.all().filter(embargoed=False).filter(missing=False))
+    clients = sorted(clients, key = lambda x: x.rating, reverse=True)
+    clients = sorted(clients, key = lambda x: x.num_black, reverse=True)
+    clients = sorted(clients, key = lambda x: x.sumrate, reverse=True)
+    clients = sorted(clients, key = lambda x: x.buchholz, reverse=True)
+    clients = sorted(clients, key = lambda x: x.score, reverse=True)
+    client_data = [pull_relevant_fields(i,c) for i,c in enumerate(clients)]    
+    return JsonResponse({"data": client_data})
+
+def pull_relevant_fields(i, c): #meant to pull client fields
+    return {"rank": i+1,
+            "name": c.name,
+            "score": c.score,
+            "sum_of_opps_score": c.buchholz,
+            "sum_of_opps_rat": c.sumrate,
+            "num_black": c.num_black}
+
+@login_required(login_url='/admin')
 def display_clients(request):
     clients = list(Client.objects.all())
     clients.sort(key = lambda x: x.rating, reverse=True)
     return render_to_response('thunderdome/clients.html', {'clients':clients})
-
-def scoreboard(request):
-    clients = Client.objects.exclude(current_version="")
-    grid = dict()
-    for c1 in clients:
-        grid[c1] = dict()
-        for c2 in clients:
-            grid[c1][c2] = 0
-            
-    for c1 in clients:
-        for c2 in clients:
-            grid[c1][c2] = c1.games_won.filter(loser=c2).count()
-            
-    clients = list(clients)
-    clients.sort(reverse=True, key=lambda x: x.fitness())
-    
-    for c1 in clients:
-        c1.row = list()
-        for c2 in clients:
-            if c1 in grid and c2 in grid[c1]:
-                c1.row.append((c1.pk, c2.pk, grid[c1][c2]))
-            else:
-                c1.row.append((c1.pk, c2.pk, ' '))
-    payload = {'clients':clients}
-    return render_to_response('thunderdome/scoreboard.html', payload)
-
 
 @login_required(login_url='/admin')
 def inject(request):

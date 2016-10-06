@@ -5,31 +5,33 @@
 <html>
 <head>
 <title>{% block title %}Page title{% endblock %}</title>
-<script src='http://code.jquery.com/jquery-1.7.1.min.js' type='text/javascript'></script>
-<script src='https://www.google.com/jsapi' type='text/javascript'></script>
-<script type='text/javascript'>
-  google.load("visualization", "1", {packages:["corechart", "table"]});
-</script>
+<!-- <script src='http://code.jquery.com/jquery-1.7.1.min.js' type='text/javascript'></script> -->
+<!-- <script src='https://www.google.com/jsapi' type='text/javascript'></script> -->
+<!-- <script type='text/javascript'> -->
+  <!-- google.load("visualization", "1", {packages:["corechart", "table"]}); -->
+<!-- </script> -->
 {% block head %}
 
 {% endblock %}
 </head>
 
 <body>
-<div class="logout_button" style="text-align:right">
-</div>
 <div class="content">
 <a href="{% url 'thunderdome.views.scoreboard' %}">Main</a>
 <a href='inject'>Inject</a>
 <a href='health'>Health</a>
 <a href='settings'>Settings</a>
 <a href='clients'>Clients</a>
+<a href='scores'>Chess Rankings</a>
+<a href='logout'>Logout</a>
 
 {% block content %}
-If you can see this, then the djano template author forgot to put block
+If you can see this, then the django template author forgot to put block
 delimiters around the content block. Go laugh at him.
 {% endblock %}
 
 </div>
+
+{% block scripts %}{% endblock %}
 </body>
 </html>

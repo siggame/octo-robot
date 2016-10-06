@@ -1,3 +1,4 @@
+
 #####
 ### Missouri S&T ACM SIG-Game Arena (Thunderdome)
 #####
@@ -15,7 +16,7 @@ v1_api.register(MatchResource())
 
 urlpatterns = patterns(
     'thunderdome.views',
-    url(r'^$', 'scoreboard'),
+    url(r'^$', 'index'),
     url(r'^health$', 'health'),
     url(r'^view/(?P<game_id>\d+)$', 'view_game'),
     url(r'^view_match/(?P<match_id>\d+)$', 'view_match', name='matchy'),
@@ -23,11 +24,12 @@ urlpatterns = patterns(
     url(r'^represent/(?P<match_id>\d+)$', 'representative_game'),
     url(r'^inject$', 'inject'),
     url(r'^get_next_game$', 'get_next_game_url_to_visualize'),
-    url(r'^scores$', 'scores'),
-    
+    url(r'^scoreboard$', 'scoreboard'),
+    url(r'^logout$', 'logout_view'),
     url(r'^settings$', 'settings'),
 
     url(r'^clients$', 'display_clients'),
     url(r'^swissTurn$', 'human_swiss'),
     url(r'^api/', include(v1_api.urls)),
+    url(r'^api/get_scores$', 'get_scores'),
 )

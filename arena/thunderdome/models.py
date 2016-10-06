@@ -31,6 +31,9 @@ class Client(models.Model):
     missing = models.BooleanField(default=False)
     language = models.CharField(max_length=50, default='')
     last_game_played = models.IntegerField(default=-1)
+    buchholz = models.FloatField(default=0.0)
+    sumrate = models.FloatField(default=0.0)
+    num_black = models.FloatField(default=0.0)
 
     def inc_score(self, delta):
         # wishing for an atomic increment
@@ -170,6 +173,9 @@ class Game(models.Model):
     
     def game_time(self):
         return (self.completed - self.started)
+    
+    def get_fields(self):
+        return [(field.name, field.value_to_string(self)) for field in Game._meta.fields]
 
 class GameData(models.Model):
     ### each Game will have one of these for each competitor in that game
