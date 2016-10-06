@@ -16,7 +16,7 @@ v1_api.register(MatchResource())
 
 urlpatterns = patterns(
     'thunderdome.views',
-    url(r'^$', 'scoreboard'),
+    url(r'^$', 'index'),
     url(r'^health$', 'health'),
     url(r'^view/(?P<game_id>\d+)$', 'view_game'),
     url(r'^view_match/(?P<match_id>\d+)$', 'view_match', name='matchy'),

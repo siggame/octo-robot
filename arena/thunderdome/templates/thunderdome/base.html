@@ -5,11 +5,11 @@
 <html>
 <head>
 <title>{% block title %}Page title{% endblock %}</title>
-<script src='http://code.jquery.com/jquery-1.7.1.min.js' type='text/javascript'></script>
-<script src='https://www.google.com/jsapi' type='text/javascript'></script>
-<script type='text/javascript'>
-  google.load("visualization", "1", {packages:["corechart", "table"]});
-</script>
+<!-- <script src='http://code.jquery.com/jquery-1.7.1.min.js' type='text/javascript'></script> -->
+<!-- <script src='https://www.google.com/jsapi' type='text/javascript'></script> -->
+<!-- <script type='text/javascript'> -->
+  <!-- google.load("visualization", "1", {packages:["corechart", "table"]}); -->
+<!-- </script> -->
 {% block head %}
 
 {% endblock %}
@@ -31,5 +31,7 @@ delimiters around the content block. Go laugh at him.
 {% endblock %}
 
 </div>
+
+{% block scripts %}{% endblock %}
 </body>
 </html>

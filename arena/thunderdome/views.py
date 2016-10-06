@@ -169,7 +169,8 @@ def scoreboard(request):
     clients = sorted(clients, key = lambda x: x.sumrate, reverse=True)
     clients = sorted(clients, key = lambda x: x.buchholz, reverse=True)
     clients = sorted(clients, key = lambda x: x.score, reverse=True)
-    return render_to_response('thunderdome/scoreboard.html', clients)
+    client_data = [pull_relevant_fields(i,c) for i,c in enumerate(clients)]
+    return render_to_response('thunderdome/scoreboard.html', {"data": client_data})
 
 def get_scores(request):
     clients = list(Client.objects.all().filter(embargoed=False).filter(missing=False))
@@ -178,7 +179,16 @@ def get_scores(request):
     clients = sorted(clients, key = lambda x: x.sumrate, reverse=True)
     clients = sorted(clients, key = lambda x: x.buchholz, reverse=True)
     clients = sorted(clients, key = lambda x: x.score, reverse=True)
-    return JsonResponse(clients)
+    client_data = [pull_relevant_fields(i,c) for i,c in enumerate(clients)]    
+    return JsonResponse({"data": client_data})
+
+def pull_relevant_fields(i, c): #meant to pull client fields
+    return {"rank": i+1,
+            "name": c.name,
+            "score": c.score,
+            "sum_of_opps_score": 0,
+            "sum_of_opps_rat": 0,
+            "num_black": c.num_black}
 
 @login_required(login_url='/admin')
 def display_clients(request):

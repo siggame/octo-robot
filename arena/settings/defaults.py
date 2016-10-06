@@ -65,7 +65,8 @@ STATIC_URL = '/static/'
 ADMIN_MEDIA_PREFIX = '/static/admin/'
 
 STATICFILES_DIRS = (
-    os.path.join(PROJECT_DIR, "static"),
+    # os.path.join(PROJECT_DIR, "static"),
+    os.path.join(PROJECT_DIR, "thunderdome/static"),
 )
 
 STATICFILES_FINDERS = (
