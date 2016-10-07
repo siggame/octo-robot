@@ -110,14 +110,13 @@ def main():
             defaults={'started': datetime.now(),
                       'last_update': datetime.now()})
         r.last_update = datetime.now()
+        r.dead = False
         r.games.add(game)
         r.save()
         request.update({'reporter': 'archiver'})
-        for x in Referee.objects.all():
+        for x in Referee.objects.filter(dead=False):
             if x.last_update < datetime.now() - timedelta(hours=1):
                 x.dead = True
-            else:
-                x.dead = False
             x.save()
 
 
