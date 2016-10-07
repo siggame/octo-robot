@@ -30,8 +30,9 @@ from thunderdome.sked import sked
 from k_storage.models import DataPoint
 
 def index(request):
-    msg = "<html><body><p>Hello index page!</p></body></html>"
-    return HttpResponse(msg)
+    #msg = "<html><body><p>Hello index page!</p></body></html>"
+    #return HttpResponse(msg)
+    return render_to_response('thunderdome/welcome.html')
 
 def logout_view(request):
     logout(request)
