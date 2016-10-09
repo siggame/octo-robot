@@ -146,16 +146,21 @@ def looping(stalk):
     for index, cl in enumerate(game['clients']):
         print "Index", index
         if index == 0:
-            players.append(subprocess.Popen(['bash', 'run', server_host, game['number'], m_port_p0, human_port_p0],
-                                            stdout=file('%s-stdout.txt' % cl['name'], 'w'),
-                                            stderr=file('%s-stderr.txt' % cl['name'], 'w'),
-                                            cwd=cl['name']))
+            pla = subprocess.Popen(['bash', 'run', server_host, game['number'], m_port_p0, human_port_p0],
+                                    stdout=subprocess.PIPE,
+                                    stderr=file('%s-stderr.txt' % cl['name'], 'w'),
+                                    cwd=cl['name'])
 
         if index == 1:
-            players.append(subprocess.Popen(['bash', 'run', server_host, game['number'], m_port_p1, human_port_p1],
-                                            stdout=file('%s-stdout.txt' % cl['name'], 'w'),
-                                            stderr=file('%s-stderr.txt' % cl['name'], 'w'),
-                                            cwd=cl['name']))
+            pla = subprocess.Popen(['bash', 'run', server_host, game['number'], m_port_p1, human_port_p1],
+                                    stdout=subprocess.PIPE,
+                                    stderr=file('%s-stderr.txt' % cl['name'], 'w'),
+                                    cwd=cl['name'])
+        players.append(pla)
+        limit = int(5e6)
+        subprocess.Popen(['tail', '-c', str(limit)],
+                        stdin=pla.stdout,
+                        stdout=file('%s-stdout.txt' % cl['name'], 'w'))
 
         if p0_human and index == 0:
             # listen for tunneler
