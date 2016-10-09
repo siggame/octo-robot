@@ -131,7 +131,7 @@ def looping(stalk):
                                   '--chesser-master', 'r99acm.device.mst.edu:5454',
                                   '--printIO'
                                  ],
-                                 stdout=subprocess.PIPE
+                                 stdout=subprocess.PIPE,
                                  stderr=file('%s-stderr.txt' % cl['name'], 'w'),
                                  cwd=cl['name'])
         else:
@@ -142,7 +142,7 @@ def looping(stalk):
                                   '-i', str(i),
                                   '-n', cl['name']
                                  ],
-                                 stdout=subprocess.PIPE
+                                 stdout=subprocess.PIPE,
                                  stderr=file('%s-stderr.txt' % cl['name'], 'w'),
                                  cwd=cl['name'])
         players.append(pla)
