@@ -189,7 +189,7 @@ def display_clients(request):
     clients = list(Client.objects.all())
     clients.sort(key = lambda x: x.rating, reverse=True)
     for x in clients:
-        x.rating = int(x.rating)
+        x.rating = round(x.rating)
     return render_to_response('thunderdome/clients.html', {'clients':clients})
 
 @login_required(login_url='/admin')
