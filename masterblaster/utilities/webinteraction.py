@@ -58,13 +58,18 @@ def update_clients_from_data_block(data):
         else:
             client = Client.objects.get(name=block['team']['slug'])        
             client.eligible = block['team']['eligible_to_win']
+            if client.missing:
+                client.rating = 1800.0
+                client.missing = False
+            client.repo = block['repository']['path']
         if client.current_version != block['tag']['commit']:
             client.embargoed = False # this is the only place an embargo can be broken
             client.embargo_reason = ''
             client.current_version = block['tag']['commit']
             client.language = block['language']
-            client.missing = False
-            client.repo = block['repository']['path']
+        else:
+            if client.embargoed and client.rating > 500:
+                client.rating -= 1.0
 
         client.save()
         updated_clients.append(client)
@@ -76,6 +81,7 @@ def update_clients_from_data_block(data):
             if i.missing == False:
                 print i.name, "is missing, marking as missing"
             i.missing = True
+            i.rating = 1
             i.save()
             
 def makeClient(block):
