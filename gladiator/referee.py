@@ -146,7 +146,7 @@ def looping(stalk):
                                  stderr=file('%s-stderr.txt' % cl['name'], 'w'),
                                  cwd=cl['name'])
         players.append(pla)
-        limit = int(5e6)
+        limit = 5242880 #5MB
         subprocess.Popen(['tail', '-c', str(limit)],
                         stdin=pla.stdout,
                         stdout=file('%s-stdout.txt' % cl['name'], 'w'))
