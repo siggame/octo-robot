@@ -21,11 +21,11 @@ class Client(models.Model):
     current_version = models.CharField(max_length=100, default='', null=True)
     embargoed = models.BooleanField(default=False) # broke
     embargo_reason = models.CharField(max_length=255, default='')
-    eligible = models.BooleanField(default=False) # not able to compete for prizes
+    eligible = models.BooleanField(default=False) # able to compete for prizes
     repo = models.CharField(max_length=200, default='')
     seed = models.IntegerField(default=0)
     score = models.FloatField(default=0.0)
-    rating = models.IntegerField(default=2300)
+    rating = models.FloatField(default=2300.0)
     stats = models.TextField(default='') # extra json field for stuff
     game_name = models.CharField(max_length=200, default='')
     missing = models.BooleanField(default=False)
