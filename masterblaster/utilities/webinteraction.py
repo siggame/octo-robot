@@ -19,31 +19,35 @@ def test_api(custom_game_name):
 
 def update_clients(api_url=None):
     '''update the database with the current clients, based on game_name'''
-    if api_url is None:
-        api_url = api_url_template + game_name
-        r = requests.get(api_url, auth=(WEBSITE_USER_NAME, WEBSITE_ARENA_PASSWORD), verify=False)
-    else:
-        print "Attempting to get clients from", api_url
-        r = requests.get(api_url)
-        
     try:
-        data = json.loads(r.text) # TODO: change this to r.json()
-    except ValueError:
-        print WEBSITE_USER_NAME
-        print WEBSITE_ARENA_PASSWORD
-        print api_url
-        print r.text
-        print "couldn't parse text to json"
-        return
+        if api_url is None:
+            api_url = api_url_template + game_name
+            r = requests.get(api_url, auth=(WEBSITE_USER_NAME, WEBSITE_ARENA_PASSWORD), verify=False)
+        else:
+            print "Attempting to get clients from", api_url
+            r = requests.get(api_url)
     
-    # check if got an invalid password login
-    if r.status_code != 200: 
-        print "website error code", r.status_code
-        print data
-        return
+    
+        try:
+            data = json.loads(r.text) # TODO: change this to r.json()
+        except ValueError:
+            print WEBSITE_USER_NAME
+            print WEBSITE_ARENA_PASSWORD
+            print api_url
+            print r.text
+            print "couldn't parse text to json"
+            return
+    
+        # check if got an invalid password login
+        if r.status_code != 200: 
+            print "website error code", r.status_code
+            print data
+            return
 
-    update_clients_from_data_block(data)
-    print "Clients updated!"
+        update_clients_from_data_block(data)
+        print "Clients updated!"
+    except:
+        print "Unable to connect to webserver to update clients"
     return
     
 def update_clients_from_data_block(data):
