@@ -15,6 +15,7 @@ import random
 import socket
 import md5
 import zipfile
+import sys
 from time import sleep
 from datetime import datetime 
 
@@ -417,6 +418,7 @@ def update_local_repo(client):
     
     numFailed = 0
     while numFailed < 750:        #try to clone 750 times, should come out just shy of 400 seconds
+        sys.stderr.write('Clone failed %s times' % numFailed)
         try:
             print "git clone %s%s client: %s" % (base_path, client['repo'], client['name'])
             subprocess.call(['git', 'clone',
