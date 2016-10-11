@@ -122,8 +122,7 @@ def looping(stalk):
         print "Client", cl['name'], "is a", cl['language'], "client"
         if cl['language'] == 'Human':
             humans_be_here = True
-            players.append(
-                subprocess.Popen(['bash',
+            pla = subprocess.Popen(['bash',
                                   'arenaRun', game_name,
                                   '-r', game['number'],
                                   '-s', external_ip,
@@ -132,22 +131,25 @@ def looping(stalk):
                                   '--chesser-master', 'r99acm.device.mst.edu:5454',
                                   '--printIO'
                                  ],
-                                 stdout=file('%s-stdout.txt' % cl['name'], 'w'),
+                                 stdout=subprocess.PIPE,
                                  stderr=file('%s-stderr.txt' % cl['name'], 'w'),
-                                 cwd=cl['name']))
+                                 cwd=cl['name'])
         else:
-            players.append(
-                subprocess.Popen(['bash',
+            pla = subprocess.Popen(['bash',
                                   'arenaRun', game_name,
                                   '-r', game['number'],
                                   '-s', server_host,
                                   '-i', str(i),
                                   '-n', cl['name']
                                  ],
-                                 stdout=file('%s-stdout.txt' % cl['name'], 'w'),
+                                 stdout=subprocess.PIPE,
                                  stderr=file('%s-stderr.txt' % cl['name'], 'w'),
-                                 cwd=cl['name']))
-
+                                 cwd=cl['name'])
+        players.append(pla)
+        limit = 5242880 #5MB
+        subprocess.Popen(['tail', '-c', str(limit)],
+                        stdin=pla.stdout,
+                        stdout=file('%s-stdout.txt' % cl['name'], 'w'))
     
     # make sure both clients have connected
     game_server_ip        = os.environ['SERVER_HOST']
