@@ -36,14 +36,6 @@ sudo apt-get install python-boto python-yaml libcurl4-openssl-dev
 sudo pip install cffi
 ```
 
-The arena uses buildout to download and install all the necessary python packages and libraries, but there are a few that can not be downloaded through buildout since they require some c header.
-
-install these by
-
-```
-sudo apt-get install build-essential python-dev postgresql
-```
-
 The webserver that is currently used is called nginx, make sure to install it with
 
 ```
