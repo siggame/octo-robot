@@ -148,11 +148,14 @@ def handle_completion(request, game):
     for gd in GameData.objects.filter(game=game):
         if gd.client == game.winner:
             gd.won = True
-        gd.compiled = clidict[gd.client.name]['compiled']
         gd.version = clidict[gd.client.name]['tag']
-        if not gd.compiled:
-            gd.client.embargoed = True
-            gd.client.embargo_reason = "Your client didn't compile"
+        try:
+            gd.compiled = clidict[gd.client.name]['compiled']
+            if not gd.compiled:
+                gd.client.embargoed = True
+                gd.client.embargo_reason = "Your client didn't compile"
+        except:
+            gd.compiled = False
         if 'noconnect' in clidict[gd.client.name]:
 	    gd.client.embargoed = True
             gd.client.embargo_reason = "Your client didn't connect to the game"
