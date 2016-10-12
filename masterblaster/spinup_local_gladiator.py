@@ -63,7 +63,6 @@ cd $LIVING_CORDERS
 
 mkdir 1
 ln referee.py 1/referee.py
-ln prep_for_bake.py 1/prep_for_bake.py
 cd 1
 python referee.py 2> ref1.txt &
 cd ..
