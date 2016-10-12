@@ -29,16 +29,7 @@ from thunderdome.models import WinRatePrediction
 import django
 django.setup()
 
-#from datatizer import add_gamelog_data
-
-#from thunderdome.loggly_logging import log
-from gviz_api import DataTable
-
 import settings
-
-# Rating Imports
-#from utilities import gamelog_regepars
-#from utilities import kmeans
 
 stalk = None
 tourny_time = True 
