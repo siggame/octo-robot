@@ -20,6 +20,7 @@ def sked(guy0, guy1, stalk, origin, priority=1000, ttr=450):
                'status'     : "Scheduled",
                'time_scheduled' : str(time.time()),
                'origin'     : origin,
+               'timeout'    : ttr,
                'clients'    : [{'name' : p.name,
                                 'repo' : p.repo,
                                 'tag'  : p.current_version,

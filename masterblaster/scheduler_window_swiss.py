@@ -30,7 +30,6 @@ def main():
 
     print game_name
     req_tube = "game-requests-%s" % game_name
-    req_queue_len = 10
     stalk.use(req_tube)
     while True:
         stats = stalk.stats_tube(req_tube)

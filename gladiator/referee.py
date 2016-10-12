@@ -81,7 +81,7 @@ def looping(stalk):
     for client in game['clients']:
         stalk.put(json.dumps(game))
         job.touch()
-        if not update_local_repo(client):
+        if not update_local_repo(client, game['timeout']):
             print "Failing the game, someone didn't clone"
             game['status'] = "Failed"
             game['completed'] = str(datetime.now())
@@ -409,7 +409,7 @@ def push_gamelog(game):
     os.remove(gamelog_filename)
 
 
-def update_local_repo(client):
+def update_local_repo(client, timeout):
     '''Get the appropriate code and version from the repository'''
     base_path = os.environ['CLIENT_PREFIX']
     subprocess.call(['rm', '-rf', client['name']],
@@ -417,8 +417,9 @@ def update_local_repo(client):
                     stderr=subprocess.STDOUT)
     
     numFailed = 0
-    while numFailed < 750:        #try to clone 750 times, should come out just shy of 400 seconds
-        sys.stderr.write('Clone failed %s times' % numFailed)
+    max_tries = int(round(timeout / 5))
+    while numFailed < max_tries:        #try to clone max_tries times, should come out just shy of 400 seconds
+        sys.stderr.write('Clone failed %s times\n' % numFailed)
         try:
             print "git clone %s%s client: %s" % (base_path, client['repo'], client['name'])
             subprocess.call(['git', 'clone',
@@ -439,7 +440,7 @@ def update_local_repo(client):
                 sleep(0.01)         #Wait 10ms before attempting to clone again
             elif numFailed > 15:
                 sleep(.5)
-    if numFailed >= 750:
+    if numFailed >= max_tries:
         return False
     
     subprocess.call(['git', 'pull'], cwd=client['name'],
