@@ -417,8 +417,8 @@ def update_local_repo(client, timeout):
                     stderr=subprocess.STDOUT)
     
     numFailed = 0
-    max_tries = int(round(timeout / 5))
-    while numFailed < max_tries:        #try to clone max_tries times, should come out just shy of 400 seconds
+    max_tries = int(round(timeout / 6))
+    while numFailed < max_tries:        #try to clone max_tries times, should come out just shy of the timeout
         sys.stderr.write('Clone failed %s times\n' % numFailed)
         try:
             print "git clone %s%s client: %s" % (base_path, client['repo'], client['name'])
