@@ -6,29 +6,35 @@ ACM SIG-Game MegaMiner Arena (Thunderdome)
 {% endblock %}
 
 {% block content %}
-<h1>{{ clientname }}'s Games</h1>
+<h1>{{ client.name }}'s Games</h1>
+
+{% if client.embargoed %}
+  <font color="red"><h1>Embargoed</h1>
+  {{ client.embargo_reason }}</font>
+{% endif %}
 
 <table border="2" style="width:100%">
-<tr><b><td>Game</td><td>Status</td><td>Opponent</td><td>Gamelog</td><td>Build Output</td></b></tr>
+<tr><b><td>Game</td><td>Status</td><td>Opponent</td><td>Win Reason</td><td>Lose Reason</td><td>Tie/Fail Reason</td><td>Gamelog</td><td>Build Output</td></b></tr>
 
 {% for game in games %}
-  {% if clientname == game.winner.name %}
+  {% if client.name == game.winner.name %}
     <tr bgcolor="#42f448">
-  {% elif clientname == game.loser.name %}
+  {% elif client.name == game.loser.name %}
     <tr bgcolor="#f44242">
   {% else %}
     <tr>
   {% endif %}
   <td>{{ game.pk }}</td><td>{{ game.status }}</td>
-  {% if clientname == game.winner.name %}
+  {% if client.name == game.winner.name %}
     <td>{{ game.loser.name }}</td>
   {% else %}
     <td>{{ game.winner.name }}</td>
   {% endif %}
+  <td>{{ game.win_reason }}</td><td>{{ game.lose_reason }}</td><td>{{ game.tie_reason }}</td>
   <td><a href="http://r99acm.device.mst.edu:8018/visualizer/?log={{ game.gamelog_url }}"> A link that probably works </a></td>
   {% for data in gamedatas %}
     {% if data.game == game %}
-      {% if clientname == data.client.name %}
+      {% if client.name == data.client.name %}
         <td><a href="{{ data.output_url }}"> A link that probably works</a></td>
       {% endif %}
     {% endif %}

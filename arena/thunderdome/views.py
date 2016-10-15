@@ -230,10 +230,11 @@ def searchgames(request):
     return render_to_response('thunderdome/searchgames.html', payload)
 
 def gameslist(request, clientname):
-    games = list(Game.objects.filter(clients__name=clientname).filter(clients__name=clientname))
+    games = list(Game.objects.filter(clients__name=clientname).filter(clients__name=clientname).filter(been_vised=False))
     gamedatas = list(GameData.objects.all())
     games.sort(key = lambda x: x.pk, reverse=True)
-    return render_to_response('thunderdome/gameslist.html', {'games':games, 'clientname':clientname, 'gamedatas':gamedatas})
+    client = Client.objects.get(name=clientname)
+    return render_to_response('thunderdome/gameslist.html', {'games':games, 'client':client, 'gamedatas':gamedatas})
 
 @login_required(login_url='/admin')
 def settings(request):
