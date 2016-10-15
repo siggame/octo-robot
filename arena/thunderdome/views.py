@@ -23,8 +23,8 @@ from django.db.models import Max
 
 # My Imports
 from thunderdome.config import game_name, access_cred, secret_cred
-from thunderdome.models import Client, Game, ArenaConfig
-from thunderdome.models import Match, Referee, InjectedGameForm, SettingsForm
+from thunderdome.models import Client, Game, ArenaConfig, GameData
+from thunderdome.models import Match, Referee, InjectedGameForm, SettingsForm, SearchGamesForm
 from thunderdome.sked import sked
 
 from k_storage.models import DataPoint
@@ -36,6 +36,9 @@ def index(request):
 def logout_view(request):
     logout(request)
     return render_to_response('thunderdome/logout.html')
+
+def howtodev(request):
+    return render_to_response('thunderdome/howtodev.html')
 
 @login_required(login_url='/admin')
 def health(request):
@@ -212,6 +215,25 @@ def inject(request):
     payload.update(csrf(request))
     return render_to_response('thunderdome/inject.html', payload)
 
+def searchgames(request):
+    if request.method == 'POST':
+        form = SearchGamesForm(request.POST)
+        if form.is_valid():
+            client = get_object_or_404(
+                Client, pk__iexact=form.cleaned_data['client'])
+
+            return HttpResponseRedirect('gameslist/%s' % client.name)
+    else:
+        form = SearchGamesForm()
+    payload = {'form': form}
+    payload.update(csrf(request))
+    return render_to_response('thunderdome/searchgames.html', payload)
+
+def gameslist(request, clientname):
+    games = list(Game.objects.filter(clients__name=clientname).filter(clients__name=clientname))
+    gamedatas = list(GameData.objects.all())
+    games.sort(key = lambda x: x.pk, reverse=True)
+    return render_to_response('thunderdome/gameslist.html', {'games':games, 'clientname':clientname, 'gamedatas':gamedatas})
 
 @login_required(login_url='/admin')
 def settings(request):
