@@ -164,7 +164,7 @@ There are some past configs that are available for the purpose of running old ga
 ./bin/production loaddata arena/fixtures/configs.json
 ```
 
-The selected config is denoted by which one is "active" check the database looking for which config is "active" if its not the one your look for it, switch that one to be the active one. (TODO: fill the details)
+The selected config is denoted by which one is "active" check the database looking for which config is "active" if its not the one your look for it, switch that one to be the active one.
 
 8) Checking out the website.
 
