@@ -16,7 +16,33 @@ ACM SIG-Game MegaMiner Arena (Thunderdome)
 <table border="2" style="width:100%">
 <tr><b><td>Game</td><td>Status</td><td>Opponent</td><td>Win Reason</td><td>Lose Reason</td><td>Tie/Fail Reason</td><td>Gamelog</td><td>Build Output</td></b></tr>
 
-{% for game in games %}
+{% for game in games1 %}
+  {% if client.name == game.winner.name %}
+    <tr bgcolor="#42f448">
+  {% elif client.name == game.loser.name %}
+    <tr bgcolor="#f44242">
+  {% else %}
+    <tr>
+  {% endif %}
+  <td>{{ game.pk }}</td><td>{{ game.status }}</td>
+  {% if client.name == game.winner.name %}
+    <td>{{ game.loser.name }}</td>
+  {% else %}
+    <td>{{ game.winner.name }}</td>
+  {% endif %}
+  <td>{{ game.win_reason }}</td><td>{{ game.lose_reason }}</td><td>{{ game.tie_reason }}</td>
+  <td><a href="http://r99acm.device.mst.edu:8018/visualizer/?log={{ game.gamelog_url }}"> A link that probably works </a></td>
+  {% for data in gamedatas %}
+    {% if data.game == game %}
+      {% if client.name == data.client.name %}
+        <td><a href="{{ data.output_url }}"> A link that probably works</a></td>
+      {% endif %}
+    {% endif %}
+  {% endfor %}
+  </tr>
+
+{% endfor %}
+{% for game in games2 %}
   {% if client.name == game.winner.name %}
     <tr bgcolor="#42f448">
   {% elif client.name == game.loser.name %}

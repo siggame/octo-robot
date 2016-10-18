@@ -6,7 +6,7 @@
 import re
 import os
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 
 # Non-Django 3rd Party Imports
 import beanstalkc
@@ -230,11 +230,14 @@ def searchgames(request):
     return render_to_response('thunderdome/searchgames.html', payload)
 
 def gameslist(request, clientname):
-    games = list(Game.objects.filter(clients__name=clientname).filter(clients__name=clientname).filter(been_vised=False))
+    time_deltta = datetime.now() - timedelta(hours=1)
+    games1 = list(Game.objects.filter(clients__name=clientname).filter(clients__name=clientname).filter(completed__gte=time_deltta))
+    games2 = list(Game.objects.filter(clients__name=clientname).filter(clients__name=clientname).filter(status='Failed'))
+    games1.sort(key = lambda x: x.pk, reverse=True)
+    games2.sort(key = lambda x: x.pk, reverse=True)
     gamedatas = list(GameData.objects.all())
-    games.sort(key = lambda x: x.pk, reverse=True)
     client = Client.objects.get(name=clientname)
-    return render_to_response('thunderdome/gameslist.html', {'games':games, 'client':client, 'gamedatas':gamedatas})
+    return render_to_response('thunderdome/gameslist.html', {'games1':games1, 'games2':games2, 'client':client, 'gamedatas':gamedatas})
 
 @login_required(login_url='/admin')
 def settings(request):
@@ -247,8 +250,6 @@ def settings(request):
             arenaConfig = get_object_or_404(ArenaConfig, pk__iexact=form.cleaned_data['arenaConfig'])
             arenaConfig.active = True
             arenaConfig.save()
-            # TODO have a redirect to a page that indicates what must be done
-            # after settings have been changed
     else:
         form = SettingsForm()
     payload = {'arena_settings' : list(ArenaConfig.objects.all())}
