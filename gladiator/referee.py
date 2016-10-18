@@ -81,7 +81,7 @@ def looping(stalk):
     for client in game['clients']:
         stalk.put(json.dumps(game))
         job.touch()
-        if not update_local_repo(client, game['timeout']):
+        if not update_local_repo(client, game['timeout'], job):
             print "Failing the game, someone didn't clone"
             game['status'] = "Failed"
             game['completed'] = str(datetime.now())
@@ -409,7 +409,7 @@ def push_gamelog(game):
     os.remove(gamelog_filename)
 
 
-def update_local_repo(client, timeout):
+def update_local_repo(client, timeout, job):
     '''Get the appropriate code and version from the repository'''
     base_path = os.environ['CLIENT_PREFIX']
     subprocess.call(['rm', '-rf', client['name']],
@@ -417,8 +417,8 @@ def update_local_repo(client, timeout):
                     stderr=subprocess.STDOUT)
     
     numFailed = 0
-    max_tries = int(round(timeout / 6))
-    while numFailed < max_tries:        #try to clone max_tries times, should come out just shy of the timeout
+    max_tries = int(round(timeout / 4))
+    while numFailed < max_tries:        #try to clone max_tries times
         sys.stderr.write('Clone failed %s times\n' % numFailed)
         try:
             print "git clone %s%s client: %s" % (base_path, client['repo'], client['name'])
@@ -426,7 +426,7 @@ def update_local_repo(client, timeout):
                     '%s%s' % (base_path, client['repo']), client['name']],
                     stdout=file('%s-gitout.txt' % client['name'], 'w'),
                     stderr=subprocess.STDOUT)
-            
+
 
             subprocess.call(['git', 'checkout', 'master'], cwd=client['name'],
                     stdout=file('%s-gitout.txt' % client['name'], 'a'),
@@ -434,12 +434,13 @@ def update_local_repo(client, timeout):
             print "Clone successful!"
             break
         except OSError:
-            numFailed += 1      #keep track of how many times 
+            numFailed += 1      #keep track of how many times
             print "Clone failed, retrying"
             if numFailed <= 15:
                 sleep(0.01)         #Wait 10ms before attempting to clone again
             elif numFailed > 15:
                 sleep(.5)
+        job.touch()
     if numFailed >= max_tries:
         return False
     
