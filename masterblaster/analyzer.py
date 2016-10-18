@@ -26,12 +26,6 @@ import django
 django.setup()
 
 def main():
-    #############TEMPORARY REMOVE
-    for x in Game.objects.all():
-        x.score = -1
-        x.save()
-    for x in GameStats.objects.all():
-        x.delete()
     try:
         gamestats = GameStats.objects.get(game=game_name)
     except ObjectDoesNotExist:
