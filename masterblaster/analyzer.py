@@ -10,6 +10,7 @@ import math
 import gzip
 import os
 import urllib2
+import argparse
 from copy import copy
 from datetime import datetime, timedelta
 from collections import defaultdict
@@ -26,6 +27,16 @@ import django
 django.setup()
 
 def main():
+    parser = argparse.ArgumentParser(description='Game Analyzer')
+    parser.add_argument('--r', action='store_true', help='Reset all scores and start over')
+    args = parser.parse_args()
+    print args
+    if args.r:
+        for x in Game.objects.all():
+            x.score = -1
+            x.save()
+        for x in GameStats.objects.all():
+            x.delete()
     try:
         gamestats = GameStats.objects.get(game=game_name)
     except ObjectDoesNotExist:
@@ -97,7 +108,7 @@ def analyse_game(game):
     gamestats.save()
     
     #Begin scoring
-    if file_size > (gamestats.maxSize * 0.3) and file_size < (gamestats.maxSize * 0.8):
+    if file_size > (gamestats.maxSize * 0.2) and file_size < (gamestats.maxSize * 0.7):
         game.score += 1
         print "Game", game, "is an interesting length!"
     if not game.discon_happened:
