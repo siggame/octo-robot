@@ -42,8 +42,8 @@ def main():
     stalk = beanstalkc.Connection()
     stalk.use(req_tube)
     while True:
-        #try:
-        # wi.update_clients()
+        try:
+            wi.update_clients()
         stats = stalk.stats_tube(req_tube)
         if stats['current-jobs-ready'] < req_queue_len:
             print "schedule a game"

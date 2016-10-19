@@ -110,14 +110,13 @@ def main():
             defaults={'started': datetime.now(),
                       'last_update': datetime.now()})
         r.last_update = datetime.now()
+        r.dead = False
         r.games.add(game)
         r.save()
         request.update({'reporter': 'archiver'})
-        for x in Referee.objects.all():
+        for x in Referee.objects.filter(dead=False):
             if x.last_update < datetime.now() - timedelta(hours=1):
                 x.dead = True
-            else:
-                x.dead = False
             x.save()
 
 
@@ -149,11 +148,14 @@ def handle_completion(request, game):
     for gd in GameData.objects.filter(game=game):
         if gd.client == game.winner:
             gd.won = True
-        gd.compiled = clidict[gd.client.name]['compiled']
         gd.version = clidict[gd.client.name]['tag']
-        if not gd.compiled:
-            gd.client.embargoed = True
-            gd.client.embargo_reason = "Your client didn't compile"
+        try:
+            gd.compiled = clidict[gd.client.name]['compiled']
+            if not gd.compiled:
+                gd.client.embargoed = True
+                gd.client.embargo_reason = "Your client didn't compile"
+        except:
+            gd.compiled = False
         if 'noconnect' in clidict[gd.client.name]:
 	    gd.client.embargoed = True
             gd.client.embargo_reason = "Your client didn't connect to the game"
