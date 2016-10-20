@@ -102,19 +102,18 @@ def looping(stalk):
     for client in game['clients']:
         client['compiled'] = (compile_client(client) is 0)
         job.touch()
+        print "result for make in %s was %s" % (client['name'], client['compiled'])
         if not client['compiled']:
             print "Failing the game, someone didn't compile"
             game['status'] = "Failed"
-	          game['completed'] = str(datetime.now())
-	          game['tied'] = False
-	          game['tie_reason'] = "%s didn't compile" % client['name']
-	          push_datablocks(game)
-	          stalk.put(json.dumps(game))
-	          job.delete()
+            game['completed'] = str(datetime.now())
+            game['tied'] = False
+            game['tie_reason'] = "%s didn't compile" % client['name']
+            push_datablocks(game)
+            stalk.put(json.dumps(game))
+            job.delete()
             return
 
-        print "result for make in %s was %s" % (client['name'],
-                                                client['compiled'])
 
     # start the clients
     server_host = os.environ['SERVER_HOST']
