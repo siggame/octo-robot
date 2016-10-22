@@ -3,12 +3,12 @@
 ![{octo-robot}](http://i.imgur.com/fXvKgah.jpg)
 
 
-How to run the arena (Ubuntu 14.04 - 15.10)
+How to run the arena (Ubuntu 16.04)
 
 These will be very specific instructions on how to setup the arena for an actual tournament. There might be some slight differences when running this as a "test" arena, but those are typically for either convenience or pertain to other parts that are not functional before MegaminerAI starts. For testing and development, replace 'production' with 'development' in all commands.
 
 This will assume some basic information about linux, and git. 
-All testing and development for the arena is currently being done in a linux environment, the current arena nodes are using Ubuntu 14.04.5. (these should get upgraded to 16.X)
+All testing and development for the arena is currently being done in a linux environment, the current arena nodes are using Ubuntu 16.04
 If you do not know about git or wish to learn more about it I would suggest visiting try.github.com along with git-scm.com/documentation
 
 All steps will be done via terminal. Additionally I will refer to the base folder, octo-robot, as home directory.
