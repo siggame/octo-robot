@@ -62,7 +62,7 @@ sudo apt-get install lua5.1 luajit lua-socket
 For the Java client you will need:
 
 ```
-sudo apt-get install openjdk-7-jdk maven
+sudo apt-get install openjdk-8-jdk maven
 ```
 
 For the C++ client you will need:
