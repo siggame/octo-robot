@@ -148,6 +148,58 @@ def get_next_game_url_to_visualize(request):
         next_game_url = x.gamelog_url
     return HttpResponse(next_game_url)
 
+
+def get_next_chess_game_url_to_visualize(request):
+    found = False
+    for x in Game.objects.filter(score=6).filter(status='Complete').filter(been_vised=False).filter(claimed=True):
+        next_game_url = x.gamelog_url
+        x.been_vised = True
+        found = True
+        x.save()
+        break
+    if not found:
+        for x in Game.objects.filter(score=5).filter(status='Complete').filter(been_vised=False).filter(claimed=True):
+            found = True
+            x.been_vised = True
+            x.save()
+            next_game_url = x.gamelog_url
+            break
+    if not found:
+        for x in Game.objects.filter(score=3).filter(status='Complete').filter(been_vised=False).filter(claimed=True):
+            found = True
+            x.been_vised = True
+            x.save()
+            next_game_url = x.gamelog_url
+            break
+    if not found:
+        for x in Game.objects.filter(score=2).filter(status='Complete').filter(been_vised=False).filter(claimed=True):
+            found = True
+            x.been_vised = True
+            x.save()
+            next_game_url = x.gamelog_url
+            break
+    if not found:
+        for x in Game.objects.filter(score=1).filter(status='Complete').filter(been_vised=False).filter(claimed=True):
+            found = True
+            x.been_vised = True
+            x.save()
+            next_game_url = x.gamelog_url
+            break
+    if not found:
+        for x in Game.objects.filter(score=0).filter(status='Complete').filter(been_vised=False).filter(claimed=True):
+            found = True
+            x.been_vised = True
+            x.save()
+            next_game_url = x.gamelog_url
+            break
+    if not found:
+        x = Game.objects.filter(claimed=True).order_by('?').first()
+        while x.status != 'Complete':
+            x = Game.objects.filter(claimed=True).order_by('?').first()
+        next_game_url = x.gamelog_url
+    return HttpResponse(next_game_url)
+
+
 @login_required(login_url='/admin')
 def rate_game(request, game_id, rating):
     print 'rating game', game_id, 'with rating', rating
