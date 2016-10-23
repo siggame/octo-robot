@@ -45,10 +45,12 @@ def health(request):
     c = beanstalkc.Connection()
     c.use('game-requests-%s' % game_name)
     tube_status = c.stats_tube('game-requests-%s' % game_name)
-    (p['ready_requests'], p['running_requests'], p['current_tube']) = \
+    (p['ready_requests'], p['running_requests']) = \
         [tube_status[x] for x in ('current-jobs-ready',
-                                  'current-jobs-reserved',
-                                  'name')]
+                                  'current-jobs-reserved')]
+    c.use('game-results-%s' % game_name)
+    tube_status = c.stats_tube('game-results-%s' % game_name)
+    p['results_waiting'] = tube_status['current-jobs-ready']
     c.close()
     
     (p['scheduled_games'], p['running_games'],
