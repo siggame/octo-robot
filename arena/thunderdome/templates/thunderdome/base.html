@@ -17,13 +17,12 @@
 
 <body>
 <div class="content">
-<a href="{% url 'thunderdome.views.scoreboard' %}">Main</a>
+<a href='scoreboard'>Scoreboard</a>
 <a href='inject'>Inject</a>
 <a href='health'>Health</a>
 <a href='settings'>Settings</a>
 <a href='clients'>Clients</a>
-<a href='scores'>Chess Rankings</a>
-<a href='logout'>Logout</a>
+<a href='logout' style="float: right;">Logout</a>
 
 {% block content %}
 If you can see this, then the django template author forgot to put block

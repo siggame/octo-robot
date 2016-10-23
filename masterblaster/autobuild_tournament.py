@@ -17,6 +17,7 @@ import argparse
 
 tournament = 286241217
 
+
 def seed_or_bye(n):
     try:
         result = Client.objects.get(seed=n)

@@ -19,7 +19,7 @@ from django.http import HttpResponseRedirect, HttpResponse, JsonResponse
 from django.core.context_processors import csrf
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout
-from django.db.models import Max
+from django.db.models import Max, Q
 
 # My Imports
 from thunderdome.config import game_name, access_cred, secret_cred
@@ -30,8 +30,9 @@ from thunderdome.sked import sked
 from k_storage.models import DataPoint
 
 def index(request):
-    msg = "<html><body><p>Hello index page!</p></body></html>"
-    return HttpResponse(msg)
+    #msg = "<html><body><p>Hello index page!</p></body></html>"
+    #return HttpResponse(msg)
+    return render_to_response('thunderdome/welcome.html')
 
 def logout_view(request):
     logout(request)
@@ -67,7 +68,7 @@ def health(request):
     p['last'] = \
         Game.objects.all().aggregate(Max('completed'))['completed__max']
     
-    refs = Referee.objects.all().order_by('-pk')
+    refs = Referee.objects.filter(~Q(games_done=0) | Q(dead=False)).order_by('-pk')
     p['refs'] = refs
     return render_to_response('thunderdome/health.html', p)
 
@@ -101,40 +102,47 @@ def view_match(request, match_id):
 
 def get_next_game_url_to_visualize(request):
     found = False
-    best_possible = False
-    score_level = 0
-    current_game = 0
-    for x in Game.objects.all():
-        if x.been_vised == False and x.status == 'Complete' and x.score == 6:
-            next_game_url = x.gamelog_url
+    for x in Game.objects.filter(score=6).filter(status='Complete').filter(been_vised=False):
+        next_game_url = x.gamelog_url
+        x.been_vised = True
+        found = True
+        x.save()
+        break
+    if not found:
+        for x in Game.objects.filter(score=5).filter(status='Complete').filter(been_vised=False):
+            found = True
             x.been_vised = True
-            found = True
-            best_possible = True
             x.save()
+            next_game_url = x.gamelog_url
             break
-        if x.been_vised == False and x.status == 'Complete' and x.score == 5:
+    if not found:
+        for x in Game.objects.filter(score=3).filter(status='Complete').filter(been_vised=False):
             found = True
-            current_game = x
-            score_level = 5
-        if x.been_vised == False and x.status == 'Complete' and x.score == 3 and score_level < 3:
+            x.been_vised = True
+            x.save()
+            next_game_url = x.gamelog_url
+            break
+    if not found:
+        for x in Game.objects.filter(score=2).filter(status='Complete').filter(been_vised=False):
             found = True
-            current_game = x
-            score_level = 3
-        if x.been_vised == False and x.status == 'Complete' and x.score == 2 and score_level < 2:
+            x.been_vised = True
+            x.save()
+            next_game_url = x.gamelog_url
+            break
+    if not found:
+        for x in Game.objects.filter(score=1).filter(status='Complete').filter(been_vised=False):
             found = True
-            current_game = x
-            score_level = 2
-        if x.been_vised == False and x.status == 'Complete' and x.score == 1 and score_level == 0:
+            x.been_vised = True
+            x.save()
+            next_game_url = x.gamelog_url
+            break
+    if not found:
+        for x in Game.objects.filter(score=0).filter(status='Complete').filter(been_vised=False):
             found = True
-            current_game = x
-            score_level = 1
-        if x.been_vised == False and x.status == 'Complete' and x.score == 0 and score_level == 0:
-            found = True
-            current_game = x
-    if found and not best_possible:
-        current_game.been_vised = True
-        current_game.save()
-        next_game_url = current_game.gamelog_url
+            x.been_vised = True
+            x.save()
+            next_game_url = x.gamelog_url
+            break
     if not found:
         x = Game.objects.order_by('?').first()
         while x.status != 'Complete':
@@ -189,6 +197,8 @@ def pull_relevant_fields(i, c): #meant to pull client fields
 def display_clients(request):
     clients = list(Client.objects.all())
     clients.sort(key = lambda x: x.rating, reverse=True)
+    for x in clients:
+        x.rating = round(x.rating)
     return render_to_response('thunderdome/clients.html', {'clients':clients})
 
 @login_required(login_url='/admin')
