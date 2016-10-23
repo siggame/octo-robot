@@ -19,7 +19,7 @@ from django.http import HttpResponseRedirect, HttpResponse, JsonResponse
 from django.core.context_processors import csrf
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout
-from django.db.models import Max
+from django.db.models import Max, Q
 
 # My Imports
 from thunderdome.config import game_name, access_cred, secret_cred
@@ -66,7 +66,7 @@ def health(request):
     p['last'] = \
         Game.objects.all().aggregate(Max('completed'))['completed__max']
     
-    refs = Referee.objects.all().order_by('-pk')
+    refs = Referee.objects.filter(~Q(games_done=0) | Q(dead=False)).order_by('-pk')
     p['refs'] = refs
     return render_to_response('thunderdome/health.html', p)
 

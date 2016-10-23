@@ -99,6 +99,11 @@ def main():
                     game.lose_reason = request['lose_reason']
                     print request['winner']['name'], "beat", request['loser']['name'], "because", game.win_reason
                 handle_completion(request, game)
+            else:
+                for x in Referee.objects.filter(dead=False):
+                    if x.last_update < datetime.now() - timedelta(hours=1):
+                        x.dead = True
+                        x.save()
             game.save()
             print "Game", request['number'], "status", request['status']
         job.delete()
@@ -114,10 +119,6 @@ def main():
         r.games.add(game)
         r.save()
         request.update({'reporter': 'archiver'})
-        for x in Referee.objects.filter(dead=False):
-            if x.last_update < datetime.now() - timedelta(hours=1):
-                x.dead = True
-            x.save()
 
 
 def handle_completion(request, game):
@@ -179,7 +180,11 @@ def handle_completion(request, game):
             pass
         gd.client.save()
         gd.save()
-
+    for x in Referee.objects.filter(dead=False):
+        x.games_done = x.games_completed()
+        if x.last_update < datetime.now() - timedelta(hours=1):
+            x.dead = True
+        x.save()
 
 def assign_elo(winner, loser):
     delta = winner.rating - loser.rating
