@@ -12,6 +12,8 @@ urlpatterns = patterns(
     url(r'^accounts/login/$', 'django.contrib.auth.views.login'),
     url(r'^admin/', include(admin.site.urls)),
     url(r'^api/next_game/$', 'arena.thunderdome.views.get_next_game_url_to_visualize'),
+    url(r'^static/(?P<path>.*)$', 'django.views.static.serve',
+         {'document_root': settings.STATIC_ROOT}),
 )
 
 if settings.DEBUG:
