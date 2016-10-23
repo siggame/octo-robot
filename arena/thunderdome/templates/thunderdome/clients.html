@@ -8,10 +8,15 @@ ACM SIG-Game MegaMiner Arena (Thunderdome) Clients
 {% block content %}
 <h1>Clients</h1>
 
+<table border="1" style="width:100%">
+<tr><b><td>Rating</td><td>Client Name</td><td>Embargoed?</td><td>Embargo Reason</td><td>Missing?</td><td>Last Game Played</td><td>Current Version</td><td>Language</td></b></tr>
+
 {% for client in clients %}
-  {{ client.rating }} - {{ client.embargoed }} - {{ client.embargo_reason }} - {{ client.last_game_played }} - {{ client.current_version }} - {{ client.name }}
-  </br>
-
+   {% if forloop.counter|divisibleby:2 %}  
+      <tr bgcolor="#C6E7FE"><td>{{ client.rating }}</td><td>{{ client.name }}</td><td>{{ client.embargoed }}</td><td>{{ client.embargo_reason }}</td><td>{{client.missing }}</td><td>{{ client.last_game_played }}</td><td>{{ client.current_version }}</td><td>{{ client.language }}</td></tr>
+   {% else %}
+      <tr><td>{{ client.rating }}</td><td>{{ client.name }}</td><td>{{ client.embargoed }}</td><td>{{ client.embargo_reason }}</td><td>{{client.missing }}</td><td>{{ client.last_game_played }}</td><td>{{ client.current_version }}</td><td>{{ client.language }}</td></tr>
+   {% endif %}
 {% endfor %}
-
+</table>
 {% endblock %}

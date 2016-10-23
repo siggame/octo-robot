@@ -345,7 +345,7 @@ Then you'll have to start the nginx process by
          
  - cd octo-robot
  - `sudo service nginx restart`
- - `./bin/gunicorn --workers=<like 1.5 x number of cores on head node> arena.arena_wsgi:application`
+ - `./bin/gunicorn --workers=<like 1.5 x number of cores on head node> --max-requests 1 arena.arena_wsgi:application`
  
 After which the gladiators can be started, 
     - using `./bin/python masterblaster/spinup_arena_instance` (use --help to figure out what params you need). 
