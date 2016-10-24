@@ -222,7 +222,7 @@ After that file is set up:
 
 8) Checking out the website (Testing)
 
-Procced to the root directory, octo-robot, and run the command `./bin/development runserver` This will set it up on 127.0.0.1:8000. If you want to define the ip and port run it like `./bin/development runserver 0.0.0.0:8000`.
+Proceed to the root directory, octo-robot, and run the command `./bin/development runserver` This will set it up on 127.0.0.1:8000. If you want to define the ip and port run it like `./bin/development runserver 0.0.0.0:8000`.
 
 Then go to the website 127.0.0.1:8000/admin.
 This is the base url of the admin site that django provides. Here you'll need to enter the username and password that was provided in step 5. Then type go to 127.0.0.1:8000/mies/thunderdome, the site itself is very minimal. Click on the Settings button on the top left. On here you should see a Currently Active Settings, Select a config and an Available settings display.
