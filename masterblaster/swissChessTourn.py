@@ -43,7 +43,6 @@ eligible = True
 max_rounds = 0
 clientNum = 0
 valid_list = []
-scores_file = open('wins.txt', 'w')
 class Player():
     def __init__(self, name, score=0.0, rating=0):
         self.name = name
@@ -248,7 +247,6 @@ def main():
         f.write(str(x.num_black))
         f.write('\n')
     f.close()
-    scores_file.close()
     stalk.close()
     finish()
 
@@ -590,10 +588,10 @@ def score_games(competing_clients):
                                     x.num_white += 1
                                 elif i == 1:
                                     x.num_black += 1
-                    if x.name == c.client.name:
-                        print "%s's score goes from %s to" % (x.name, str(x.score)),
-                        x.score += 0.5
-                        print x.score
+                        if x.name == c.client.name:
+                            print "%s's score goes from %s to" % (x.name, str(x.score)),
+                            x.score += 0.5
+                            print x.score
             else:
                 for i, c in enumerate(game_clis):
                     for x in competing_clients:
@@ -967,10 +965,8 @@ def monrad_schedule(competing_clients, stalk, tie_breaker=False):
     for x in to_schedule:
         schedule_game(x.pop(0), x.pop(0), stalk)
     if odd and len(to_schedule) > 0:
-        c = Client.objects.get(name=y.name)
-        print c.name, "gets a bye"
-        c.score += 1
-        c.save()
+        print y.name, "gets a bye"
+        y.score += 1
     current_round += 1
     
 def recalc_colors(x):
