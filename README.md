@@ -3,12 +3,12 @@
 ![{octo-robot}](http://i.imgur.com/fXvKgah.jpg)
 
 
-How to run the arena (Ubuntu 14.04 - 15.10)
+How to run the arena (Ubuntu 16.04)
 
 These will be very specific instructions on how to setup the arena for an actual tournament. There might be some slight differences when running this as a "test" arena, but those are typically for either convenience or pertain to other parts that are not functional before MegaminerAI starts. For testing and development, replace 'production' with 'development' in all commands.
 
 This will assume some basic information about linux, and git. 
-All testing and development for the arena is currently being done in a linux environment, the current arena nodes are using Ubuntu 14.04.5. (these should get upgraded to 16.X)
+All testing and development for the arena is currently being done in a linux environment, the current arena nodes are using Ubuntu 16.04
 If you do not know about git or wish to learn more about it I would suggest visiting try.github.com along with git-scm.com/documentation
 
 All steps will be done via terminal. Additionally I will refer to the base folder, octo-robot, as home directory.
@@ -62,7 +62,7 @@ sudo apt-get install lua5.1 luajit lua-socket
 For the Java client you will need:
 
 ```
-sudo apt-get install openjdk-7-jdk maven
+sudo apt-get install openjdk-8-jdk maven
 ```
 
 For the C++ client you will need:
@@ -80,7 +80,7 @@ sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 3FA7E0328
 echo "deb http://download.mono-project.com/repo/debian wheezy main" | sudo tee /etc/apt/sources.list.d/mono-xamarin.list
 sudo apt-get update
 echo "deb http://download.mono-project.com/repo/debian wheezy-apache24-compat main" | sudo tee -a /etc/apt/sources.list.d/mono-xamarin.list
-sudo apt-get install mono-devel mono-complete referenceassemblies-pcl ca-certificates-mono
+sudo apt-get install mono-devel mono-complete referenceassemblies-pcl ca-certificates-mono mono-xsp4
 ```
 
 You need git so you can interface with GitHub
