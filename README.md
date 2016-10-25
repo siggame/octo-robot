@@ -149,7 +149,7 @@ You should get a prompt asking for information about setting up a test user.
 Fill all that information in.
 should be like user name, email and password its all for the admin account of the django website. 
 
-These steps are for running the database the very first time. If changes to the models in the thunderdome or k_storage app, you'll have to run the `migrate` appname command. These command will change depending on the django version
+These steps are for running the database the very first time. If changes to the models in the thunderdome or app, you'll have to run the `migrate` appname command. These command will change depending on the django version
 
 I highly suggest reading the django tutorial where it goes through making a small application for doing polls/questions. Just note that where they use python manage.py you'll use either ./bin/development or ./bin/production depending on which you are doing. 
 
