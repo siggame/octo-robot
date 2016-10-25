@@ -11,6 +11,7 @@ ACM SIG-Game MegaMiner Arena (Thunderdome)
 <h2>Queue's Eye View</h2>
 Game requests in the queue: {{ ready_requests }}<br>
 Game requests reserved: {{ running_requests }}<br>
+Game results waiting to be archived: {{ results_waiting }}<br>
 
 <h2>Database's View</h2>
 Scheduled Games: {{ scheduled_games }}</br>
@@ -46,7 +47,7 @@ Sanity: {% if sanity %}<font color="green">True</font>{% else %}<font color="red
 <tr>
   <td>{{ref.blaster_id}}/{{ref.referee_id}}</td>
   <td>{{ref.started}}</td>
-  <td>{{ref.games_completed}}</td>
+  <td>{{ref.games_done}}</td>
   <td>{{ref.compute_rate}}</td>
   <td>{{ref.last_match}}</td>
   <td>{{ref.last_match.status}}</td>
