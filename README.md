@@ -3,12 +3,12 @@
 ![{octo-robot}](http://i.imgur.com/fXvKgah.jpg)
 
 
-How to run the arena (Ubuntu 14.04 - 15.10)
+How to run the arena (Ubuntu 16.04)
 
 These will be very specific instructions on how to setup the arena for an actual tournament. There might be some slight differences when running this as a "test" arena, but those are typically for either convenience or pertain to other parts that are not functional before MegaminerAI starts. For testing and development, replace 'production' with 'development' in all commands.
 
 This will assume some basic information about linux, and git. 
-All testing and development for the arena is currently being done in a linux environment, the current arena nodes are using Ubuntu 14.04.5. (these should get upgraded to 16.X)
+All testing and development for the arena is currently being done in a linux environment, the current arena nodes are using Ubuntu 16.04
 If you do not know about git or wish to learn more about it I would suggest visiting try.github.com along with git-scm.com/documentation
 
 All steps will be done via terminal. Additionally I will refer to the base folder, octo-robot, as home directory.
@@ -62,7 +62,7 @@ sudo apt-get install lua5.1 luajit lua-socket
 For the Java client you will need:
 
 ```
-sudo apt-get install openjdk-7-jdk maven
+sudo apt-get install openjdk-8-jdk maven
 ```
 
 For the C++ client you will need:
@@ -80,7 +80,7 @@ sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 3FA7E0328
 echo "deb http://download.mono-project.com/repo/debian wheezy main" | sudo tee /etc/apt/sources.list.d/mono-xamarin.list
 sudo apt-get update
 echo "deb http://download.mono-project.com/repo/debian wheezy-apache24-compat main" | sudo tee -a /etc/apt/sources.list.d/mono-xamarin.list
-sudo apt-get install mono-devel mono-complete referenceassemblies-pcl ca-certificates-mono
+sudo apt-get install mono-devel mono-complete referenceassemblies-pcl ca-certificates-mono mono-xsp4
 ```
 
 You need git so you can interface with GitHub
@@ -166,23 +166,66 @@ There are some past configs that are available for the purpose of running old ga
 
 The selected config is denoted by which one is "active" check the database looking for which config is "active" if its not the one your look for it, switch that one to be the active one.
 
-8) Checking out the website.
-
-Production, o god this is complicated and requires setting up nginx and blah blah
-
+8) Checking out the website (Production)
 
 nginx is complicated and is not in the scope of explination of this document, thus I point you to the nginx website and some if its documentation. The main nginx website is located at https://www.nginx.com and a beginners guide is located at http://nginx.org/en/docs/beginners_guide.html. I would highly suggest reading the beginners guide.
 
 The main gist of nginx is that it is a process that should be running continuously that when someone types into the url of a web browser the webserver will process the requested link and return some data back.
 
-After installing nginx a config file will have to be made to let nginx know what/where you've located the website that it will need to serve. These files are typically stored in /etc/nginx/sites-available, but then require a system link to the folder /etc/nginx/site-enabled. See end of step 14 for more details.
+After installing nginx a config file will have to be made to let nginx know what/where you've located the website that it will need to serve. These files are typically stored in /etc/nginx/sites-available, but then require a system link to the folder /etc/nginx/site-enabled.
 
-Testing
+ - The file in /etc/nginx/sites-enabled (probably `arena` or something):
+      Should look something like this:
+```         
+         # -*- mode: nginx -*-
+         
+         upstream gunicorn {
+           server localhost:8000 fail_timeout=0;
+         }
+         
+         server {
+           listen 80;
+           listen 8080;
+           server_name 50.17.162.7;
+           root /user/share/nginx/www;
+         
+           client_max_body_size 0;
+         
+           location /gladiator {
+             root /home/ubuntu/octo-robot/var/static;
+             autoindex on;
+             try_files $uri $uri/ 404;
+           }
+         
+           location @gunicorn {
+             client_max_body_size 0;
+             proxy_pass http://gunicorn;
+             proxy_redirect off;
+             proxy_read_timeout 5m;
+             proxy_set_header Host        $host;
+             proxy_set_header X-Real-IP   $remote_addr;
+             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+             add_header 'Access-Control-Allow-Origin' 'http://vis.megaminerai.com';
+           }
+         
+           location / {T
+             try_files $uri @gunicorn;
+           }
+         }
+```
+After that file is set up:
+```
+ - cd octo-robot
+ - sudo service nginx restart
+ - ./bin/gunicorn --workers=<like 1.5 x number of cores on head node> --max-requests 1 arena.arena_wsgi:application
+```
 
-Procced to the root directory, octo-robot, and run the command `./bin/development runserver` This will set it up on 127.0.0.1:8000. I am running this in a vm so I choose to run it like `./bin/development runserver 0.0.0.0:8000` then I can access the website via my host machine. 
+8) Checking out the website (Testing)
+
+Proceed to the root directory, octo-robot, and run the command `./bin/development runserver` This will set it up on 127.0.0.1:8000. If you want to define the ip and port run it like `./bin/development runserver 0.0.0.0:8000`.
 
 Then go to the website 127.0.0.1:8000/admin.
-This is the base url of the admin site that django provides. Here you'll need to enter the username and password that was provided in step 5. Then type go to 127.0.0.1:8000/mies/thunderdome, the site itself is very minimal. Click on the Settings button on the top left, above Scoreboard. On here you should see a Currently Active Settings, Select a config and an Available settings display.
+This is the base url of the admin site that django provides. Here you'll need to enter the username and password that was provided in step 5. Then type go to 127.0.0.1:8000/mies/thunderdome, the site itself is very minimal. Click on the Settings button on the top left. On here you should see a Currently Active Settings, Select a config and an Available settings display.
 
 Create a new setting:
 
@@ -302,50 +345,6 @@ The folder that the generate_gladiator_package creates will have to be targed as
 Afterwhich the tar file has to be placed into the gladiator folder which may or may not exist in the static folder.
 Thus you should have var/static/gladiator/<tar_file>
 Then you'll need to make sure that you have nginx all configured to use that folder as its static folder to serve files. 
-Then you'll have to start the nginx process by 
- 
- - The file in /etc/nginx/sites-enabled (probably `arena` or something):
-      Should look something like this:
-         
-         # -*- mode: nginx -*-
-         
-         upstream gunicorn {
-           server localhost:8000 fail_timeout=0;
-         }
-         
-         server {
-           listen 80;
-           listen 8080;
-           server_name 50.17.162.7;
-           root /user/share/nginx/www;
-         
-           client_max_body_size 0;
-         
-           location /gladiator {
-             root /home/ubuntu/octo-robot/var/static;
-             autoindex on;
-             try_files $uri $uri/ 404;
-           }
-         
-           location @gunicorn {
-             client_max_body_size 0;
-             proxy_pass http://gunicorn;
-             proxy_redirect off;
-             proxy_read_timeout 5m;
-             proxy_set_header Host        $host;
-             proxy_set_header X-Real-IP   $remote_addr;
-             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-             add_header 'Access-Control-Allow-Origin' 'http://vis.megaminerai.com';
-           }
-         
-           location / {
-             try_files $uri @gunicorn;
-           }
-         }
-         
- - cd octo-robot
- - `sudo service nginx restart`
- - `./bin/gunicorn --workers=<like 1.5 x number of cores on head node> --max-requests 1 arena.arena_wsgi:application`
  
 After which the gladiators can be started, 
     - using `./bin/python masterblaster/spinup_arena_instance` (use --help to figure out what params you need). 

@@ -26,7 +26,7 @@ home_dir = os.path.dirname(file_path)
 octo_robot_dir = os.path.dirname(home_dir)
 
 
-living_corders = '/home/siggame/gladiator/' # this is identical to the gladiator's arena folder
+living_corders = '/home/arena/gladiator/' # this is identical to the gladiator's arena folder
 server_path = os.path.join(living_corders, 'Cerveau')
 gladiator_pck = os.path.join(octo_robot_dir, 'gladiator_package')
 
@@ -64,7 +64,7 @@ cd $LIVING_CORDERS
 mkdir 1
 ln referee.py 1/referee.py
 cd 1
-python referee.py 2> ref1.txt &
+python referee.py 2> ref.txt &
 cd ..
 
 """ % (str(access_cred), str(secret_cred), str(s3_prefix), game_name, client_prefix, 'localhost', server_path, 'localhost', living_corders)

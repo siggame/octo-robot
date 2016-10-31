@@ -1,0 +1,23 @@
+{% extends "thunderdome/base.html" %}
+{% load url from future %}
+
+{% block title %}
+ACM SIG-Game MegaMiner Arena (Thunderdome)
+{% endblock %}
+
+{% block content %}
+<h1>How to test your client in the Developer Arena</h1>
+
+1. Message @danielbolef on Slack with a git repo and optional client name <br>
+2. Go to http://r99acm.device.mst.edu:10000/mies/thunderdome/searchgames (or click Search Games if you're already in the arena api)<br>
+3. Select your client <br>
+4. Get a list of games your client has played in <br>
+5. Profit!! <br>
+
+<h2>Extra stuff</h2>
+
+1. If you're getting a server error that's been fixed, it's probably because the server updates need to be pulled into the dev arena.  Go yell @danielbolef to fix this. <br>
+2. Your client will NOT update automatically when you push changes, you will need to send your git repo to @danielbolef again. <br>
+3. If you're impatient and want to play against another player NOW, you can go to the Inject link and create a game yourself instead of waiting for the scheduler.
+
+{% endblock %}

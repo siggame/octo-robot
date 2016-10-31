@@ -182,7 +182,7 @@ def looping(stalk):
         if game['origin'] != "Tournament":
             print "Failing the game, only %d clients connected" % (len(game_server_status['clients']))
             game['status'] = "Failed"
-            game['complete'] = str(datetime.now())
+            game['completed'] = str(datetime.now())
             game['tied'] = False
             if len(game_server_status['clients']) == 0:
                 game['tie_reason'] = "Game failed to start, neither client connected."

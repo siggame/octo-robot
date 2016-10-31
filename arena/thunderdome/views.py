@@ -6,7 +6,7 @@
 import re
 import os
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 
 # Non-Django 3rd Party Imports
 import beanstalkc
@@ -23,8 +23,8 @@ from django.db.models import Max, Q
 
 # My Imports
 from thunderdome.config import game_name, access_cred, secret_cred
-from thunderdome.models import Client, Game, ArenaConfig
-from thunderdome.models import Match, Referee, InjectedGameForm, SettingsForm
+from thunderdome.models import Client, Game, ArenaConfig, GameData
+from thunderdome.models import Match, Referee, InjectedGameForm, SettingsForm, SearchGamesForm
 from thunderdome.sked import sked
 
 from k_storage.models import DataPoint
@@ -38,6 +38,9 @@ def logout_view(request):
     logout(request)
     return render_to_response('thunderdome/logout.html')
 
+def howtodev(request):
+    return render_to_response('thunderdome/howtodev.html')
+
 @login_required(login_url='/admin')
 def health(request):
     # Let's start by having this page show some arena health statistics
@@ -46,10 +49,12 @@ def health(request):
     c = beanstalkc.Connection()
     c.use('game-requests-%s' % game_name)
     tube_status = c.stats_tube('game-requests-%s' % game_name)
-    (p['ready_requests'], p['running_requests'], p['current_tube']) = \
+    (p['ready_requests'], p['running_requests']) = \
         [tube_status[x] for x in ('current-jobs-ready',
-                                  'current-jobs-reserved',
-                                  'name')]
+                                  'current-jobs-reserved')]
+    c.use('game-results-%s' % game_name)
+    tube_status = c.stats_tube('game-results-%s' % game_name)
+    p['results_waiting'] = tube_status['current-jobs-ready']
     c.close()
     
     (p['scheduled_games'], p['running_games'],
@@ -222,6 +227,27 @@ def inject(request):
     payload.update(csrf(request))
     return render_to_response('thunderdome/inject.html', payload)
 
+def searchgames(request):
+    if request.method == 'POST':
+        form = SearchGamesForm(request.POST)
+        if form.is_valid():
+            client = get_object_or_404(
+                Client, pk__iexact=form.cleaned_data['client'])
+
+            return HttpResponseRedirect('gameslist/%s' % client.name)
+    else:
+        form = SearchGamesForm()
+    payload = {'form': form}
+    payload.update(csrf(request))
+    return render_to_response('thunderdome/searchgames.html', payload)
+
+def gameslist(request, clientname):
+    time_deltta = datetime.now() - timedelta(hours=12)
+    games1 = list(Game.objects.filter(clients__name=clientname).filter(completed__gte=time_deltta).order_by('-pk'))
+    games2 = list(Game.objects.filter(clients__name=clientname).filter(status='Failed').order_by('-pk'))
+    gamedatas = list(GameData.objects.filter(client__name=clientname))
+    client = Client.objects.get(name=clientname)
+    return render_to_response('thunderdome/gameslist.html', {'games1':games1, 'games2':games2, 'client':client, 'gamedatas':gamedatas})
 
 @login_required(login_url='/admin')
 def settings(request):
@@ -234,8 +260,6 @@ def settings(request):
             arenaConfig = get_object_or_404(ArenaConfig, pk__iexact=form.cleaned_data['arenaConfig'])
             arenaConfig.active = True
             arenaConfig.save()
-            # TODO have a redirect to a page that indicates what must be done
-            # after settings have been changed
     else:
         form = SettingsForm()
     payload = {'arena_settings' : list(ArenaConfig.objects.all())}

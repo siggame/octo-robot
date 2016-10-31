@@ -1,3 +1,4 @@
+from datetime import datetime 
 from thunderdome.models import Game
 from thunderdome.config import game_name
 from empty_tube import empty_tube
@@ -30,12 +31,14 @@ def main():
         if x.status == 'Complete' or x.status == 'Failed':
             if x.status == 'Failed' and x.tie_reason == '':
                 x.tie_reason = 'Unknown reason'
+                x.completed = str(datetime.now())
         else:
             print "Game", x, "is marked", x.status, "so I'm marking it Failed"
             if x.status == 'Scheduled':
                 x.tie_reason = 'Game canceled'
             else:
                 x.tie_reason = 'Unknown reason'
+            x.completed = str(datetime.now())
             x.status = 'Failed'
             x.save()
     print "Database cleanup complete!"

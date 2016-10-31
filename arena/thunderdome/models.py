@@ -196,7 +196,6 @@ class GameData(models.Model):
 
 class InjectedGameForm(forms.Form):
     ### Used to manually inject a game into the queue
-    priority = forms.IntegerField(min_value=0, max_value=1000)
     clientOne = forms.ChoiceField()
     clientTwo = forms.ChoiceField()
     
@@ -206,6 +205,14 @@ class InjectedGameForm(forms.Form):
                                             Client.objects.all()]
         self.fields['clientTwo'].choices = [(x.pk, x.name) for x in
                                             Client.objects.all()]
+
+class SearchGamesForm(forms.Form):
+    client = forms.ChoiceField()
+
+    def __init__(self, *args, **kwargs):
+        super(SearchGamesForm, self).__init__(*args, **kwargs)
+        self.fields['client'].choices = [(x.pk, x.name) for x in
+                                         Client.objects.all()]
 
 class Match(models.Model):
     ### A multi-game match
