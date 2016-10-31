@@ -57,15 +57,9 @@ export SERVER_PATH='%s'
 export BEANSTALK_HOST='%s'
 export LIVING_CORDERS='%s'
 
-cd $SERVER_PATH
-node main.js --arena > ../server-output.txt &
 cd $LIVING_CORDERS
 
-mkdir 1
-ln referee.py 1/referee.py
-cd 1
-python referee.py 2> ref1.txt &
-cd ..
+python gladiator.py 1
 
 """ % (str(access_cred), str(secret_cred), str(s3_prefix), game_name, client_prefix, 'localhost', server_path, 'localhost', living_corders)
 
