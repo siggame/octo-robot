@@ -275,7 +275,7 @@ new_config.save()
 9) Get some test clients
    - Aow that the database is up the arena will need some clients
    - There is a file with some fake Spiders clients for testing purposes, 
-   - This file can be located at https://gist.githubusercontent.com/Daniel17sep/3b149607b25fa6d25411e35bb3d31cc8/raw/3ae6b1e1867cc077facd31eafa1ece3f22aa41af/Spiders_Test.txt
+   - This file can be located at https://gist.githubusercontent.com/Daniel17sep/3b149607b25fa6d25411e35bb3d31cc8/raw/ba46d161761da0196047f26e8fb35335b20ca3b9/Spiders_Test.txt
    - You can also make your own using whatever clients you like, just follow the format in test file
    - All that needs to be down now is to run `./bin/python masterblaster/utilities/update_clients_from_gist.py `and pass the url as parameter. 
    
