@@ -95,25 +95,26 @@ def looping(stalk):
     # compile the clients
     stalk.put(json.dumps(game))
     job.touch()
-    for client in game['clients']:
-        client['compiled'] = (compile_client(client) is 0)
-        job.touch()
-        print "result for make in %s was %s" % (client['name'],
-                                                client['compiled'])
-
+    
     # fail the game if someone didn't compile in arena mode.
     # tournament mode absolutely cannot have failed games.
     # ties are ok, but really annoying
-    if not all([x['compiled'] for x in game['clients']]):
-        print "Failing the game, someone didn't compile"
-        game['status'] = "Failed"
-	game['completed'] = str(datetime.now())
-	game['tied'] = False
-	game['tie_reason'] = "One or both of the clients didn't compile"
-	push_datablocks(game)
-	stalk.put(json.dumps(game))
-	job.delete()
-        return
+
+    for client in game['clients']:
+        client['compiled'] = (compile_client(client) is 0)
+        job.touch()
+        print "result for make in %s was %s" % (client['name'], client['compiled'])
+        if not client['compiled']:
+            print "Failing the game, someone didn't compile"
+            game['status'] = "Failed"
+            game['completed'] = str(datetime.now())
+            game['tied'] = False
+            game['tie_reason'] = "%s didn't compile" % client['name']
+            push_datablocks(game)
+            stalk.put(json.dumps(game))
+            job.delete()
+            return
+
 
     # start the clients
     server_host = os.environ['SERVER_HOST']
