@@ -38,7 +38,7 @@ def main():
     server_p = start_server()
     referees = [start_referee(i) for i in range(1, ref_count+1)]
     while True: 
-        if not server_p.poll():
+        if server_p.poll() is not None:
             server_p = start_server()
         for i in list(referees):
             if i.poll() is not None:
