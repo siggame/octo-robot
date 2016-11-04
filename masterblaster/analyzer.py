@@ -118,7 +118,7 @@ def analyse_game(game):
         game.score += 2
         print "No one in game", game, "disconnected!"
     for wumbo in gamestats.interesting_win_reasons:
-        if game.win_reason == wumbo:
+        if wumbo in game.win_reason:
             game.score += 3
             print "WUMBO!!!!"
             break

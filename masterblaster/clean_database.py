@@ -41,6 +41,7 @@ def main():
             x.completed = str(datetime.now())
             x.status = 'Failed'
             x.save()
+    empty_tube()
     print "Database cleanup complete!"
     return
 
