@@ -272,6 +272,10 @@ def looping(stalk):
 
     game_server_status = requests.get('http://%s:3080/status/%s/%s' %
                              (game_server_ip, game_name, game['number'])).json()
+    while game_server_status['gamelogFilename'] == None:
+        game_server_status = requests.get('http://%s:3080/status/%s/%s' %
+                                 (game_server_ip, game_name, game['number'])).json()
+        sleep(0.1)
     
     if 'disconnected' in game_server_status['clients'][0]:
         if game_server_status['clients'][0]['disconnected']:
