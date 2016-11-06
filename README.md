@@ -245,7 +245,7 @@ active_config.active = False
 active_config.save()
 
 new_config = ArenaConfig()
-new_config.name = "new_config"
+new_config.config_name = "new_config"
 new_config.game_name = "megaminerai-##-specific-name"
 new_config.active = True
 ```
