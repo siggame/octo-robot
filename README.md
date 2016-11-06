@@ -52,6 +52,7 @@ export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
 nvm install 6.4.0
 ```
+Note that Node.js may (probably) needs to be installed globally on Amazon EC2
 
 For the Lua client you will need:
 
