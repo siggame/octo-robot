@@ -128,6 +128,7 @@ def looping(stalk):
                                   'arenaRun', game_name,
                                   '-r', game['number'],
                                   '-s', external_ip,
+                                  '-p', os.environ['WEB_CLIENT_PORT'],
                                   '-i', str(i),
                                   '-n', cl['name'],
                                   '--chesser-master', 'r99acm.device.mst.edu:5454',
@@ -141,6 +142,7 @@ def looping(stalk):
                                   'arenaRun', game_name,
                                   '-r', game['number'],
                                   '-s', server_host,
+                                  '-p', os.environ['CLIENT_PORT'],
                                   '-i', str(i),
                                   '-n', cl['name']
                                  ],
@@ -155,8 +157,8 @@ def looping(stalk):
     
     # make sure both clients have connected
     game_server_ip        = os.environ['SERVER_HOST']
-    game_server_status    = requests.get('http://%s:3080/status/%s/%s' %
-                            (game_server_ip, game_name, game['number'])).json()
+    game_server_status    = requests.get('http://%s:%s/status/%s/%s' %
+                            (game_server_ip, os.environ['API_PORT'], game_name, game['number'])).json()
     start_time            = int(round(time.time() * 1000))
     current_time          = start_time
     if not humans_be_here:
@@ -172,8 +174,8 @@ def looping(stalk):
             job.touch()
             sleep(.1)
         current_time = int(round(time.time() * 1000))
-        game_server_status = requests.get('http://%s:3080/status/%s/%s' %
-                             (game_server_ip, game_name, game['number'])).json()
+        game_server_status = requests.get('http://%s:%s/status/%s/%s' %
+                             (game_server_ip, os.environ['API_PORT'], game_name, game['number'])).json()
 
     
     # check if we timed out waiting for clients to connect
@@ -237,8 +239,8 @@ def looping(stalk):
 
     
     # wait until the game is over
-    game_server_status = requests.get('http://%s:3080/status/%s/%s' %
-                         (game_server_ip, game_name, game['number'])).json()
+    game_server_status = requests.get('http://%s:%s/status/%s/%s' %
+                         (game_server_ip, os.environ['API_PORT'], game_name, game['number'])).json()
     start_time            = int(round(time.time() * 1000))
     current_time          = start_time
     MAX_TIME              = 2500000
@@ -247,8 +249,8 @@ def looping(stalk):
         job.touch()
         sleep(0.1)
         current_time = int(round(time.time() * 1000))
-        game_server_status = requests.get('http://%s:3080/status/%s/%s' %
-                             (game_server_ip, game_name, game['number'])).json()
+        game_server_status = requests.get('http://%s:%s/status/%s/%s' %
+                             (game_server_ip, os.environ['API_PORT'], game_name, game['number'])).json()
 	
 	
     if current_time - start_time > MAX_TIME:
@@ -268,13 +270,12 @@ def looping(stalk):
     
     kill_clients(players)
 
-
-
-    game_server_status = requests.get('http://%s:3080/status/%s/%s' %
-                             (game_server_ip, game_name, game['number'])).json()
+    game_server_status = requests.get('http://%s:%s/status/%s/%s' %
+                         (game_server_ip, os.environ['API_PORT'], game_name, game['number'])).json()
+    
     while game_server_status['gamelogFilename'] == 'null':
-        game_server_status = requests.get('http://%s:3080/status/%s/%s' %
-                                 (game_server_ip, game_name, game['number'])).json()
+        game_server_status = requests.get('http://%s:%s/status/%s/%s' %
+                             (game_server_ip, os.environ['API_PORT'], game_name, game['number'])).json()
         sleep(0.1)
     
     if 'disconnected' in game_server_status['clients'][0]:
@@ -296,28 +297,11 @@ def looping(stalk):
 
 
     if p0broke or p1broke:
-        #print "game %s early termination, broken client" % game['number']
-        #game['status'] = "Failed"
-        #game['completed'] = str(datetime.now())
-        #game['tied'] = False
         if p0broke:
             game['clients'][0]['discon'] = True
-            #reason = ("Early termination because", game_server_status['clients'][0]['name'], "disconnected unexpectedly.")
-            #game['tie_reason'] = ' '.join(reason)
         if p1broke:
             game['clients'][1]['discon'] = True
-            #reason = ("Early termination because", game_server_status['clients'][1]['name'], "disconnected unexpectedly.")
-            #game['tie_reason'] = ' '.join(reason)
-        """
-        push_datablocks(game)
-        try:
-            push_gamelog(game)
-        except:
-            pass
-        stalk.put(json.dumps(game))
-        job.delete()
-        return
-        """
+            
     # figure out who won
     print "determining winner..."
     if ('won' in game_server_status['clients'][0] and 'won' in game_server_status['clients'][1]) or ('lost' in game_server_status['clients'][0] and 'lost' in game_server_status['clients'][1]):
