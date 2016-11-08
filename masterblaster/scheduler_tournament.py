@@ -50,9 +50,10 @@ def main():
 		generate_speculative_game(random.choice(needy))
 	    except:
 		print "No needy matches to schedule speculative games for."
-    for g in Game.objects.filter(claimed=False):
-        g.claimed = True
-        g.save()
+    Game.objects.filter(claimed=False).update(claimed=True)
+    #for g in Game.objects.filter(claimed=False):
+        #g.claimed = True
+        #g.save()
     finish()
 
 def generate_speculative_game(match):
@@ -319,7 +320,8 @@ def finish():
     return
 
 if __name__ == "__main__":
-    for g in Game.objects.filter(claimed=False):
-        g.claimed = True
-        g.save()
+    Game.objects.filter(claimed=False).update(claimed=True)
+    #for g in Game.objects.filter(claimed=False):
+    #    g.claimed = True
+    #    g.save()
     main()

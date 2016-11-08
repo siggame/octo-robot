@@ -51,7 +51,7 @@ gladiator_image = conn.get_image(arena_ami)
 reservation = gladiator_image.run(min_count=count, max_count=count,
                                   user_data=user_data,
                                   instance_type=instanceType,
-                                  key_name='arena_head',
+                                  key_name='arena_headv2',
                                   security_group_ids=['sg-572ac82c'],
                                   subnet_id='subnet-de7cd0f5') 
 
