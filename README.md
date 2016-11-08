@@ -52,6 +52,7 @@ export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
 nvm install 6.4.0
 ```
+Note that Node.js may (probably) needs to be installed globally on Amazon EC2
 
 For the Lua client you will need:
 
@@ -347,7 +348,7 @@ Thus you should have var/static/gladiator/<tar_file>
 Then you'll need to make sure that you have nginx all configured to use that folder as its static folder to serve files. 
  
 After which the gladiators can be started, 
-    - using `./bin/python masterblaster/spinup_arena_instance` (use --help to figure out what params you need). 
+    - using `./bin/python masterblaster/spinup_arena_instances.py` (use --help to figure out what params you need). 
 These instructions have pretty much all assumed you are using the amazon ec2 instances, and have setup the proper permissions and have entered the correct keys and user names. 
 
 14) Monitoring 
