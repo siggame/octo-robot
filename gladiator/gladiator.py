@@ -37,7 +37,11 @@ def main():
        ref_count = 1
     time.sleep(10)
     server_p = start_server()
-    referees = [start_referee(i) for i in range(1, ref_count+1)]
+    referees = []
+    running_count = 0
+    for i in range(1, ref_count+1):
+        referees.append(start_referee(i))
+        running_count += 1
     while True: 
         if server_p.poll() is not None:
             server_p = start_server()
@@ -46,7 +50,10 @@ def main():
                 referees.remove(i)
         if len(referees) != ref_count:
             num_startrefs = ref_count - len(referees)
-            referees = [start_referee(i) for i in range(1, num_startrefs+1)]
+            count = running_count
+            for i in range(count+1, num_startrefs+count+1):
+                referees.append(start_referee(i))
+                running_count += 1
         else:
             time.sleep(10)
         
