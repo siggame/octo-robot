@@ -26,6 +26,7 @@ urlpatterns = patterns(
     url(r'^searchgames$', 'searchgames'),
     url(r'^gameslist/(?P<clientname>[\w\-]+)$', 'gameslist'),
     url(r'^get_next_game$', 'get_next_game_url_to_visualize'),
+    url(r'^get_next_chess_game$', 'get_next_chess_game_url_to_visualize'),
     url(r'^scoreboard$', 'scoreboard'),
     url(r'^logout$', 'logout_view'),
     url(r'^settings$', 'settings'),
