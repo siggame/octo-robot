@@ -162,7 +162,7 @@ def looping(stalk):
     if not humans_be_here:
         MAX_TIME          = 10000           # in milliseconds
     else:
-        MAX_TIME          = 2000000
+        MAX_TIME          = 1000000
 
     # block while at least one client is not connected
     while len(game_server_status['clients']) < 2 and (current_time - start_time <= MAX_TIME):
