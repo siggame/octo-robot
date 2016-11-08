@@ -8,7 +8,8 @@ import sys
 def start_server(current_server=None):
     if not current_server:
         print "Starting server"
-        return subprocess.Popen(['node', 'main.js', '--arena'], stdout=file('server-stdout.txt', 'w'), stderr=file('server-stderr.txt', 'w'), cwd=os.environ['SERVER_PATH'])
+        return subprocess.Popen(['node', 'main.js', '--arena', '--tcp-port', os.environ['CLIENT_PORT'], '--http-port', os.environ['API_PORT'], '--ws-port', os.environ['WEB_CLIENT_PORT']],
+                                 stdout=file('server-stdout.txt', 'w'), stderr=file('server-stderr.txt', 'w'), cwd=os.environ['SERVER_PATH'])
     else:
         print "Restarting server"
         current_server.kill()
@@ -36,7 +37,11 @@ def main():
        ref_count = 1
     time.sleep(10)
     server_p = start_server()
-    referees = [start_referee(i) for i in range(1, ref_count+1)]
+    referees = []
+    running_count = 0
+    for i in range(1, ref_count+1):
+        referees.append(start_referee(i))
+        running_count += 1
     while True: 
         if server_p.poll() is not None:
             server_p = start_server()
@@ -45,8 +50,10 @@ def main():
                 referees.remove(i)
         if len(referees) != ref_count:
             num_startrefs = ref_count - len(referees)
-           # server_p = start_server(server_p)
-            referees = [start_referee(i) for i in range(1, num_startrefs+1)]
+            count = running_count
+            for i in range(count+1, num_startrefs+count+1):
+                referees.append(start_referee(i))
+                running_count += 1
         else:
             time.sleep(10)
         
