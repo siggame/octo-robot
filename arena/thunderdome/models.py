@@ -212,7 +212,7 @@ class SearchGamesForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super(SearchGamesForm, self).__init__(*args, **kwargs)
         self.fields['client'].choices = [(x.pk, x.name) for x in
-                                         Client.objects.all()]
+                                         Client.objects.filter(missing=False)]
 
 class Match(models.Model):
     ### A multi-game match
