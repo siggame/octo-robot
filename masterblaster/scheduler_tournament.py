@@ -113,7 +113,7 @@ def generate_speculative_game(match):
             continue
         
         print "Speculatively",
-        sked(p0, p1, stalk, "Tournament", 2000)
+        sked(p0, p1, stalk, "Tournament", 2000, claimed=False)
 
         '''
         game = Game.objects.create()
