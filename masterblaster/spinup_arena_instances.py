@@ -39,7 +39,7 @@ cd /home/gladiator/arena
 wget http://arena.megaminerai.com/gladiator/gladiator_package.tgz
 tar -xf gladiator_package.tgz
 
-python gladiator.py '%s'
+python gladiator.py %s &> glad-stdout.txt
 
 EOF
 """ % (access_cred, secret_cred, s3_prefix, game_name, client_prefix, beanstalk_host, numRefs)
