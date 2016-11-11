@@ -294,7 +294,7 @@ def searchgames(request):
     return render_to_response('thunderdome/searchgames.html', payload)
 
 def gameslist(request, clientname):
-    time_deltta = datetime.now() - timedelta(hours=12)
+    time_deltta = datetime.now() - timedelta(hours=25)
     games1 = list(Game.objects.filter(clients__name=clientname).filter(completed__gte=time_deltta).order_by('-pk'))
     games2 = list(Game.objects.filter(clients__name=clientname).filter(status='Failed').order_by('-pk'))
     gamedatas = list(GameData.objects.filter(client__name=clientname))
