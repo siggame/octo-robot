@@ -12,9 +12,9 @@ ACM SIG-Game MegaMiner Arena (Thunderdome) Clients
 
 {% for client in clients %}
    {% if forloop.counter|divisibleby:2 %}  
-      <tr bgcolor="#C6E7FE"><td>{{ client.rating }}</td><td>{{ client.name }}</td><td>{{ client.embargoed }}</td><td>{{ client.embargo_reason }}</td><td>{{client.missing }}</td><td>{{ client.last_game_played }}</td><td>{{ client.current_version }}</td><td>{{ client.language }}</td></tr>
+      <tr bgcolor="#C6E7FE"><td>{{ client.rating }}</td><td>{{ client.name }}</td><td>{{ client.embargoed }}</td><td>{{ client.embargo_reason }}</td><td>{{client.missing }}</td><td>{{ client.last_game_played }}</td><td>{{ client.current_tag }}</td><td>{{ client.language }}</td></tr>
    {% else %}
-      <tr><td>{{ client.rating }}</td><td>{{ client.name }}</td><td>{{ client.embargoed }}</td><td>{{ client.embargo_reason }}</td><td>{{client.missing }}</td><td>{{ client.last_game_played }}</td><td>{{ client.current_version }}</td><td>{{ client.language }}</td></tr>
+      <tr><td>{{ client.rating }}</td><td>{{ client.name }}</td><td>{{ client.embargoed }}</td><td>{{ client.embargo_reason }}</td><td>{{client.missing }}</td><td>{{ client.last_game_played }}</td><td>{{ client.current_tag }}</td><td>{{ client.language }}</td></tr>
    {% endif %}
 {% endfor %}
 </table>

@@ -14,7 +14,7 @@ from seeder import seed_tournament
 import django
 django.setup()
 
-tournament = 20463217
+tournament = 20463219
 
 ### clear old stuff
 for m in Match.objects.all():

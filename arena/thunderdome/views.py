@@ -231,7 +231,7 @@ def scoreboard(request):
     return render_to_response('thunderdome/scoreboard.html')
 
 def get_scores(request):
-    clients = list(Client.objects.all().filter(embargoed=False).filter(missing=False))
+    clients = list(Client.objects.filter(missing=False))
     clients = sorted(clients, key = lambda x: x.rating, reverse=True)
     clients = sorted(clients, key = lambda x: x.num_black, reverse=True)
     clients = sorted(clients, key = lambda x: x.sumrate, reverse=True)
@@ -279,6 +279,7 @@ def inject(request):
     payload.update(csrf(request))
     return render_to_response('thunderdome/inject.html', payload)
 
+@login_required(login_url='/admin')
 def searchgames(request):
     if request.method == 'POST':
         form = SearchGamesForm(request.POST)
@@ -293,6 +294,7 @@ def searchgames(request):
     payload.update(csrf(request))
     return render_to_response('thunderdome/searchgames.html', payload)
 
+@login_required(login_url='/admin')
 def gameslist(request, clientname):
     time_deltta = datetime.now() - timedelta(hours=25)
     games1 = list(Game.objects.filter(clients__name=clientname).filter(completed__gte=time_deltta).order_by('-pk'))

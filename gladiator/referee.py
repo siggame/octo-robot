@@ -438,11 +438,11 @@ def update_local_repo(client, timeout, job):
     subprocess.call(['git', 'pull'], cwd=client['name'],
                     stdout=file('%s-gitout.txt' % client['name'], 'a'),
                     stderr=subprocess.STDOUT)
-    subprocess.call(['git', 'checkout', client['tag']],
+    subprocess.call(['git', 'checkout', client['hash']],
                     stdout=file('%s-gitout.txt' % client['name'], 'a'),
                     stderr=subprocess.STDOUT,
                     cwd=client['name'])
-    print "Checking out ", client['tag']
+    print "Checking out ", client['hash']
     return True
 
 if __name__ == "__main__":
