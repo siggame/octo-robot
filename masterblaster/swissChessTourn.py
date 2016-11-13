@@ -10,7 +10,6 @@ import json
 import time
 import pprint
 import math
-import csv
 import beanstalkc
 import gc
 import sys
@@ -35,8 +34,6 @@ uncompleted_games = []
 competing_clients = []
 current_round = 0
 start_game = 0
-monrad = False
-dutch = False
 include_humans = False
 pullScores = False
 eligible = True
@@ -93,9 +90,7 @@ def main():
     parser.add_argument('--r', type=int, default=-1, help='Number of rounds to run')
     parser.add_argument('--g', type=int, default=1, help='Starting game number for pulling in precompleted games')
     parser.add_argument('--s', action='store_true', help='Pull scores in and start on specified round')
-    swissType = parser.add_mutually_exclusive_group(required=True)
-    swissType.add_argument('--dutch', action='store_true', help='Run with Dutch Swiss (Currently broken)')
-    swissType.add_argument('--monrad', action='store_true', help='Run with Monrad Swiss')
+    parser.add_argument('--v', action='store_true', help='Reset visualization')
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("--eligible", help="Build a tournament with eligible clients only", action="store_true")
     group.add_argument("--everyone", help="Build a tournament with all clients", action="store_true")
@@ -104,8 +99,6 @@ def main():
     include_humans = args.h
     eligible = args.eligible
     start_game = args.g
-    monrad = args.monrad
-    dutch = args.dutch
     pullScores = args.s
     CD.main()
     WI.update_clients()
@@ -129,10 +122,12 @@ def main():
         x.save()
     print "Success!"
     print "Unclaiming games"
-    for x in Game.objects.all().filter(claimed=True):
-        x.claimed = False
-        x.save()
+    Game.objects.filter(claimed=True).update(claimed=False)
     print "Success!"
+    if args.v:
+        print "Reseting visualization"
+        Game.objects.filter(been_vised=True).update(been_vised=False)
+        print "Success!"
     print "Calculating number of rounds"
     round_calculate = clientNum
     while round_calculate > 1:
@@ -154,16 +149,13 @@ def main():
     while current_round <= max_rounds:
         if not uncompleted_games:
             print "Current Round:", current_round
-            if args.dutch:
-                schedule_volley(stalk, current_round)
-            elif args.monrad:
-                if current_round == 0:
-                    competing_clients = monrad_setup(cli)
-                else:
-                    calc_tie_break()
-                    sort_players()
-                    update_standings(competing_clients)
-                    monrad_schedule(stalk)
+            if current_round == 0:
+                competing_clients = monrad_setup(cli)
+            else:
+                calc_tie_break()
+                sort_players()
+                update_standings(competing_clients)
+                monrad_schedule(stalk)
         else:
             score_games()
         time.sleep(1)
@@ -183,10 +175,10 @@ def main():
                 print "There was a tie! Playing another round"
     while tied:
         print "Current Round:", current_round
-        if args.dutch:
-            schedule_volley(stalk, current_round, True)
-        elif args.monrad:
-            monrad_schedule(stalk, True)
+        calc_tie_break()
+        sort_players()
+        update_standings(competing_clients)
+        monrad_schedule(stalk, True)
         while uncompleted_games:
             time.sleep(1)
             score_games()
@@ -210,10 +202,10 @@ def main():
         play_again = raw_input('Play another round?(y/n): ')
         if play_again == 'y':
             print "Current Round:", current_round
-            if args.dutch:
-                schedule_volley(stalk, current_round)
-            elif args.monrad:
-                monrad_schedule(stalk)
+            calc_tie_break()
+            sort_players()
+            update_standings(competing_clients)
+            monrad_schedule(stalk)
             while uncompleted_games:
                 time.sleep(1)
                 score_games()
@@ -251,176 +243,6 @@ def main():
     stalk.close()
     finish()
 
-def hasAWinner(brackScores):
-    if not brackScores.keys():
-        return False
-    wins = max(brackScores.keys())
-    
-    if(wins >= math.ceil(math.log(len(competing_clients), 2))):
-        print "@@@@@@@@"
-        print "@@@@@@@@"
-        print "Winner is"
-        for i in brackScores[wins]:
-            print i.name
-        print "@@@@@@@@"
-        print "@@@@@@@@"
-        return True
-    else:
-        return False
-
-def game_status(g_id):
-    return Game.objects.get(pk=g_id).status
-
-def schedule_volley(stalk, sRound):
-    global competing_clients
-    global uncompleted_games
-    global current_round
-    global include_humans
-    if sRound == 0:
-        # uncomment next line to validate each ai, break embargoes probably needs to be ran first. 
-        # print "starting validation scheduling"
-        # print "swiss mustn't have any failed games"
-        # uncompleted_games.extend([i.pk for i in SV.validateSched(stalk)])
-        while uncompleted_games:
-            for c in list(uncompleted_games):
-                if game_status(c) in ["Complete", "Failed"]:
-                    uncompleted_games.remove(c)
-            print("games to go: %d" % len(uncompleted_games))
-            time.sleep(2)
-        
-        clients = list(Client.objects.exclude(name='bye').filter(embargoed=False))        
-
-        if not include_humans:
-            for i in list(clients):
-                if i.language == "Human":
-                    clients.remove(i)
-
-        for i in list(clients):
-            if i.missing:
-                clients.remove(i)
-
-        for i in clients:
-            print i.name
-
-        competing_clients = [Player(j.name, j.score, j.rating) for j in clients]
-        
-        # assign pairing numbers to each player
-        # sort the competitors by rank and elo obtained during the competition
-        # give numbers from 0 - len(competing_clients) these will be perminent and used
-        # lower means higher rank
-        # later in the scheduling
-        # for now just give random numbers
-
-        # for testing only
-        # sort clients alphabetically
-        #competing_clients.sort(lambda x, y: cmp(x.name.lower(), y.name.lower()))
-        
-        # sort clients by score ranking
-        competing_clients.sort(key=lambda x: x.score, reverse=True)        
-        # competing_clients = competing_clients[len(competing_clients)-9:]
-        #print "sorted clients"
-        #print("assigning pairing number")
-        #for i, j in enumerate(competing_clients):
-        #    print j.name, " is assigned", i
-        #    j.pairing_number = i
-    
-    schedule_brackets(create_score_brackets(), sRound, stalk)
-    scores_file.write("%d\n" % current_round)
-    current_round += 1
-
-def create_score_brackets():
-    # returns a dictionary where the key is the score of the players
-    # thus creating a seperate brackets
-    score_brackets = defaultdict(list)
-    for i in competing_clients:
-        score_brackets[i.score].append(i)
-    return score_brackets
-
-def schedule_brackets(score_brackets, sRound, stalk):
-    median_score = sRound/2.0
-    #print("Current scores")
-    #for i in score_brackets.keys():
-    #    for j in score_brackets[i]:
-    #        print j.name, j.score
-
-    print "current number of players:", len(competing_clients)
-    if len(competing_clients) % 2 != 0:
-        print "need to give bye to lowest scorer of lowest group"
-        # give lowest scoring person in the lowest score group a bye
-        # make sure the player has not been given a bye before
-        # 8.1
-        l_bracket = min(score_brackets.keys())
-        print "lowest score bracket:", l_bracket
-        l_group = score_brackets[l_bracket]
-        print "lowest score group"
-        # for i in l_group:
-        #    print i.name, i.rating
-        def player_comparison(x, y):
-            if x.recieved_bye:
-                return 1
-            elif y.recieved_bye:
-                return -1
-            else:
-                return x.rating - y.rating
-        l_group.sort(cmp=player_comparison)
-        l_p = l_group.pop(0)
-        print "bye given to:", l_p.name
-        # give bye this round to l_p
-        l_p.recieved_bye = True
-        l_p.score += 1
-
-    current_bracket = 0
-    print "Median score bracket value", median_score
-    while score_brackets:
-        bracket = max(score_brackets.keys())
-        temp = 0
-        if bracket < median_score:
-            bracket = min(score_brackets.keys())
-            temp = 1
-        m_group = score_brackets[bracket]
-        del score_brackets[bracket]
-        prepare_group(m_group, temp, score_brackets)
-        # the current proposed pairings are as listed in 9.4
-        if sRound != 0:
-            #round one is special and thus color setup differently
-            setup_group(m_group, score_brackets, temp)
-        else:
-            print "setup for round one"
-            # for i in m_group:
-            #    print i.name, i.pairing_number            
-            # white = 0, black = 1
-            # this is done as stated in 14.2 and what has been observed from swiss perfect
-            first_player_color = 0 # for now default is white, this should be in argv
-            pos = 0
-            t = [None, None]
-            while pos < len(m_group)/2:
-                t[0], t[1] = m_group[pos], m_group[len(m_group)/2 + pos]
-                if pos % 2 == 0:
-                    if first_player_color == 0:
-                        t[0], t[1] = m_group[pos], m_group[len(m_group)/2 + pos]
-                    else:
-                        t[0], t[1] = m_group[len(m_group)/2 + pos], m_group[pos]
-                else:
-                    if first_player_color == 0:
-                        t[0], t[1] = m_group[len(m_group)/2 + pos], m_group[pos]
-                    else:
-                        
-                        t[0], t[1] = m_group[pos], m_group[len(m_group)/2 + pos]
-                m_group[pos], m_group[len(m_group)/2 + pos] = t[0], t[1]
-                pos += 1
-        schedule_group(m_group, temp, stalk)
-
-def group_is_compatible(group):
-    pos = 0
-    print "Checking if group is compatible"
-    for i in group:
-        print i
-    while pos < len(group)/2:
-        if not compatible_players(group[pos], group[(len(group)/2) + pos]):
-            print "group is not compatible because of", group[pos].name, "and", group[(len(group)/2)+pos].name
-            return False
-    return True
-
 def compatible_players(p1, p2, should_print=True):
     if p1 in p2.past_competitors:
         if should_print:
@@ -428,150 +250,26 @@ def compatible_players(p1, p2, should_print=True):
         return False
     return True
 
-def prepare_group(group, sked_dir, score_brackets):
-    """
-    takes in a group and does checking and move players
-    to appropriate other score groups based on 9.3
-
-    This is effectivly just moving players around score groups thus
-    making sure everyone is in their correct group
-    """
-
-    if not score_brackets.keys():
-        return
-    
-    # if sked_dir == "down"
-    if sked_dir == 0:
-        max_brak = max(score_brackets.keys())
-    else:
-        max_brak = min(score_brackets.keys())
-        
-    #check for a player played everyone in group before
-    for i in list(group):
-        for c in i.past_competitors:
-            if not i == c:
-                break
-        else:
-            print "lists are equal"
-            group.remove(i)
-            score_brackets[max_brak].append(i)
-
-    # check for color compatability
-    #for i in list(group):
-    #    for c in list(group):
-    #        if 2 < i.color_pref + c.color_pref < -2:
-    #            pass
-    
-    group.sort()
-    # check for if group contains even number of players
-    if len(group) % 2 != 0:
-        if sked_dir == 0:
-            # remove lowest 
-            t = group.pop(0)
-            print "moving player down", t.name
-            score_brackets[max_brak].append(t)
-        else:
-            # remove highest
-            t = group.pop(len(group)-1)
-            print "moving player up", t.name
-            score_brackets[max_brak].append(t)
-    # the proposed pairings are now constructed and ready to be scrutinized
-    return
-
-def setup_group(group, score_brackets, sched_dir):
-    """
-    sets up the group for scheduling
-    by making sure that the pairings are compatible, if not
-    then makes the pairings compatible
-    """
-    # schedule direction 0 means downward
-    print "setting up pairings"
-    print "current pairings are"
-    #pos = 0
-    #while pos < len(group)/2:
-    #    print group[pos].name, "vs", group[(len(group)/2) + pos].name
-    #    pos += 1
-    pos = 0
-    
-    if sched_dir == 0:
-        pass
-    while pos < len(group)/2:
-        # print "checking", group[pos].name, group[(len(group)/2) + pos].name
-        if not compatible_players(group[pos], group[(len(group)/2) + pos]):
-            # a pairing is not compatible, find a new pairing for the higher player
-            temp_group = list(group)
-            temp_group.remove(group[(len(group)/2) + pos])
-            while temp_group:
-                j = min(temp_group)
-                temp_group.remove(j)
-                print "trying player", j.name, j.pairing_number
-                if compatible_players(group[pos], j):
-                    group[group.index(j)], group[(len(group)/2) + pos] = group[(len(group)/2) + pos], j
-                    break
-            else:
-                print "no compatible players found in this group"
-                exit()
-        pos += 1
-    
-    # color checking and setting
-    pos = 0
-    while pos < len(group)/2:
-        t = [group[pos], group[(len(group)/2) + pos]]
-        # print t[0].name, ":", t[0].color_pref, "vs", t[1].name, ":", t[1].color_pref
-        #if t[0].color_pref == 0 and t[1].color_pref == 0:
-        #    random.shuffle(t) 
-        if t[0].pref_power == 0:
-            if t[1].pref_power > 0:
-                t[0], t[1] = t[1], t[0]
-        elif t[1].pref_power == 0:
-            if t[0].pref_power < 0:
-                t[0], t[1] = t[1], t[0]
-        elif math.fabs(t[0].pref_power) == math.fabs(t[1].pref_power):
-            if t[0].pref_power < 0:
-                t[0], t[1] = t[1], t[0]
-        else:
-            white = min(t, key =lambda x:x.pref_power) 
-            black = max(t, key=lambda x:x.pref_power) 
-            # who ever has the higher magnitude color pref gets to pick the color they need
-            if math.fabs(white.pref_power) > math.fabs(black.pref_power):
-                if white.pref_power < 0:
-                    t = (black, white)
-                elif white.pref_power > 0:
-                    t = (white, black)
-            elif math.fabs(white.pref_power) < math.fabs(black.pref_power):
-                if black.pref_power < 0:
-                    t = (white, black)
-                elif black.pref_power > 0:
-                    t = (black, white)
-        
-        group[pos], group[(len(group)/2) + pos] = t[0], t[1]
-        # print t[0].name, ":", t[0].pref_power, "vs", t[1].name, ":", t[1].pref_power
-        pos += 1
-
-
 def score_games():
     '''go through the games and set the corresponding scores of each game'''
     global competing_clients
     global current_round
-    global monrad
-    global dutch
     for g in list(uncompleted_games):
-        if game_status(g) == "Complete":
-            try:
-                gameC = Game.objects.get(pk=g)
-                game_clis = list(gameC.gamedata_set.all())
-            except:
-                pass
+        try:
+            gameC = Game.objects.get(pk=g)
+            game_clis = list(gameC.gamedata_set.all())
+        except:
+            pass
+        if gameC.status == "Complete":
             if gameC.tied:
                 print "Game %d: Draw!" % (g)
                 for i, c in enumerate(game_clis):
                     for x in competing_clients:
-                        if monrad:
-                            if x.name == c.client.name:
-                                if i == 0:
-                                    x.num_white += 1
-                                elif i == 1:
-                                    x.num_black += 1
+                        if x.name == c.client.name:
+                            if i == 0:
+                                x.num_white += 1
+                            elif i == 1:
+                                x.num_black += 1
                         if x.name == c.client.name:
                             print "%s's score goes from %s to" % (x.name, str(x.score)),
                             x.score += 0.5
@@ -583,16 +281,15 @@ def score_games():
                             print x.name, "is the winner of game", g, "and their score goes from", x.score, "to",
                             x.score += 1.0
                             print x.score
-                        if monrad:
-                            if x.name == c.client.name:
-                                if i == 0:
-                                    x.num_white += 1
-                                elif i == 1:
-                                    x.num_black += 1
+                        if x.name == c.client.name:
+                            if i == 0:
+                                x.num_white += 1
+                            elif i == 1:
+                                x.num_black += 1
             gameC.claimed = True
             gameC.save()
             uncompleted_games.remove(g)
-        elif game_status(g) == "Failed":            
+        elif gameC.status == "Failed":            
             print "Game:", g, "failed, commiting suicide now."
             exit() # exit the game.
             # during competition just restart swiss
@@ -617,15 +314,8 @@ def update_standings(competing_clients):
         f.write("%s+%d+%d+%d+%d+%d+%d+%s\n" % (i.name, i.score, i.buchholz, i.sumrate, i.num_black, i.num_white, current_round, past))
     f.close()    
 
-def print_scoreBrackets(brackets):
-    for i, j in brackets.items():
-        for c in j:
-            print c
-
 def schedule_game(i, j, stalk):
     global start_game
-    global monrad
-    global dutch
     c1 = Client.objects.get(name=i.name)
     c2 = Client.objects.get(name=j.name)
     # first player is white
@@ -653,17 +343,16 @@ def schedule_game(i, j, stalk):
                                 print "%s's score goes from %s to" % (j.name, str(j.score)),
                                 j.score += 0.5
                                 print j.score
-                            if monrad:
-                                if i.name == c.client.name:
-                                    if k == 0:
-                                        i.num_white += 1
-                                    elif k == 1:
-                                        i.num_black += 1
-                                elif j.name == c.client.name:
-                                    if k == 0:
-                                        j.num_white += 1
-                                    elif k == 1:
-                                        j.num_black += 1
+                            if i.name == c.client.name:
+                                if k == 0:
+                                    i.num_white += 1
+                                elif k == 1:
+                                    i.num_black += 1
+                            elif j.name == c.client.name:
+                                if k == 0:
+                                    j.num_white += 1
+                                elif k == 1:
+                                    j.num_black += 1
 
                     else:
                         for k, c in enumerate(game_clients):
@@ -676,17 +365,16 @@ def schedule_game(i, j, stalk):
                                     print c.client.name, "won, their score goes from", j.score, "to",
                                     j.score += 1.0
                                     print j.score
-                            if monrad:
-                                if i.name == c.client.name:
-                                    if k == 0:
-                                        i.num_white += 1
-                                    elif k == 1:
-                                        i.num_black += 1
-                                elif j.name == c.client.name:
-                                    if k == 0:
-                                        j.num_white += 1
-                                    elif k == 1:
-                                        j.num_black += 1
+                            if i.name == c.client.name:
+                                if k == 0:
+                                    i.num_white += 1
+                                elif k == 1:
+                                    i.num_black += 1
+                            elif j.name == c.client.name:
+                                if k == 0:
+                                    j.num_white += 1
+                                elif k == 1:
+                                    j.num_black += 1
                     g.claimed = True
                     g.save()
                     score_game = True
@@ -703,9 +391,6 @@ def schedule_game(i, j, stalk):
     else:
         i = calc_tie_break([i])
         j = calc_tie_break([j])
-    if dutch:
-        i.pref_power -= 1
-        j.pref_power += 1
     for x in competing_clients:
         if x.name == i.name:
             x = i
@@ -1007,7 +692,7 @@ def calc_tie_break(clients=None):
             client.score = x.score
             client.num_black = x.num_black
             client.save()
-            return clients
+            return x
 
 def permute(xs, low=0):
     if low + 1 >= len(xs):
