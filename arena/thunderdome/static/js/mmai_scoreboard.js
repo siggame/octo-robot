@@ -11,14 +11,11 @@ $(document).ready(function() {
     scroller: true,
     dom: "<'row'<'col-sm-6'l><'col-sm-6'f>>" +
       "<'row'<'col-sm-12'tr>>",
-    ajax: "api/get_scores",
+    ajax: "api/get_mmai_scores",
     columns: [
       { data: "rank"},
       { data: "name"},
-      { data: "score"},
-      { data: "sum_of_opps_score"},
-      { data: "sum_of_opps_rat"},
-      { data: "num_black"}
+      { data: "rating"},
     ],
     drawCallback: function(settings) {
       $('.dataTables_scrollBody').addClass('hidden_scrollbar');
@@ -59,6 +56,3 @@ $(document).ready(function() {
     table.off('xhr.dt');
   });
 });
-
-
-
