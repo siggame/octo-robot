@@ -10,7 +10,6 @@ import json
 import time
 import pprint
 import math
-import csv
 import beanstalkc
 import gc
 import sys
@@ -256,12 +255,12 @@ def score_games():
     global competing_clients
     global current_round
     for g in list(uncompleted_games):
-        if game_status(g) == "Complete":
-            try:
-                gameC = Game.objects.get(pk=g)
-                game_clis = list(gameC.gamedata_set.all())
-            except:
-                pass
+        try:
+            gameC = Game.objects.get(pk=g)
+            game_clis = list(gameC.gamedata_set.all())
+        except:
+            pass
+        if gameC.status == "Complete":
             if gameC.tied:
                 print "Game %d: Draw!" % (g)
                 for i, c in enumerate(game_clis):
@@ -290,7 +289,7 @@ def score_games():
             gameC.claimed = True
             gameC.save()
             uncompleted_games.remove(g)
-        elif game_status(g) == "Failed":            
+        elif gameC.status == "Failed":            
             print "Game:", g, "failed, commiting suicide now."
             exit() # exit the game.
             # during competition just restart swiss
@@ -693,7 +692,7 @@ def calc_tie_break(clients=None):
             client.score = x.score
             client.num_black = x.num_black
             client.save()
-            return clients
+            return x
 
 def permute(xs, low=0):
     if low + 1 >= len(xs):
