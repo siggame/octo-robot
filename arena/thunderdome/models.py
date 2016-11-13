@@ -258,6 +258,7 @@ class Referee(models.Model):
     games = models.ManyToManyField(Game)
     dead = models.BooleanField(default=False)
     stats = models.TextField(default='') # holds extra stuff via JSON
+    games_done = models.IntegerField(default=0)
 
     def __unicode__(self):
         return u"Ref %s (Blaster %s) %s Games Per Hour" % (self.referee_id,
