@@ -52,7 +52,7 @@ $(document).ready(function() {
     params = {start: 0, end: json["data"].length-6};
     gen_maker = iter_mod;
     stopper = iter_mod(params.start, params.end);
-    scroll_meister = setTimeout(auto_scroll(stopper), 3000);
+    //scroll_meister = setTimeout(auto_scroll(stopper), 3000);
     table.off('xhr.dt');
   });
 });
