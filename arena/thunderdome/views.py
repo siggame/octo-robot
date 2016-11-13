@@ -228,7 +228,7 @@ def scoreboard(request):
 def mmai_scoreboard(request):
     return render_to_response('thunderdome/mmai_scoreboard.html')
 
-def get_scores(request):
+def get_chess_scores(request):
     clients = list(Client.objects.all().filter(embargoed=False).filter(missing=False))
     clients = sorted(clients, key = lambda x: x.rating, reverse=True)
     clients = sorted(clients, key = lambda x: x.num_black, reverse=True)

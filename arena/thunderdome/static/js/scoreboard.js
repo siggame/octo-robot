@@ -2,6 +2,8 @@ var iter, params, scroll_meister, stopper;
 
 $(document).ready(function() {
   var table = $("#scoreboard").DataTable({
+    searching: false,
+    ordering: false,
     lengthChange: false,
     deferRender: true,
     scrollY: 600,
@@ -34,10 +36,10 @@ $(document).ready(function() {
     return function(){
       if(next.value == 0)
         setTimeout(auto_scroll(iter), 1500);
-      if(next.value == 1)
-        setTimeout(auto_scroll(iter), 3000);
-      else
+      else if(next.value == 1)
         setTimeout(auto_scroll(iter), 2500);
+      else
+        setTimeout(auto_scroll(iter), 2250);
     };
   };
 
