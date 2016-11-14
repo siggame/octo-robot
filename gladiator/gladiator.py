@@ -8,7 +8,8 @@ import sys
 def start_server(current_server=None):
     if not current_server:
         print "Starting server"
-        return subprocess.Popen(['node', 'main.js', '--arena'], stdout=file('server-stdout.txt', 'w'), stderr=file('server-stderr.txt', 'w'), cwd=os.environ['SERVER_PATH'])
+        return subprocess.Popen(['node', 'main.js', '--arena', '--tcp-port', os.environ['CLIENT_PORT'], '--http-port', os.environ['API_PORT'], '--ws-port', os.environ['WEB_CLIENT_PORT']],
+                                 stdout=file('server-stdout.txt', 'w'), stderr=file('server-stderr.txt', 'w'), cwd=os.environ['SERVER_PATH'])
     else:
         print "Restarting server"
         current_server.kill()
@@ -17,7 +18,6 @@ def start_server(current_server=None):
 def make_ref_folder(ref_id):
     if os.path.exists(str(ref_id)):
         shutil.copyfile('referee.py', "%d/referee.py" % (ref_id))
-        shutil.copyfile('prep_for_bake.py', "%d/prep_for_bake.py" % (ref_id))
     else:
         os.mkdir(str(ref_id))
         make_ref_folder(ref_id)
@@ -37,17 +37,25 @@ def main():
        ref_count = 1
     time.sleep(10)
     server_p = start_server()
-    referees = [start_referee(i) for i in range(1, ref_count+1)]
-    while True: # Since there is no expectation for the referees to die, and that the server shouldn't be leaking memory
-        # seems okay to remove the server restarting business
-    #    for i in list(referees):
-    #        if i.poll() is not None:
-    #            referees.remove(i)
-    #    if not referees:
-    #        server_p = start_server(server_p)
-    #        referees = [start_referee(i) for i in range(1, ref_count+1)]
-    #    else:
-        time.sleep(10)
+    referees = []
+    running_count = 0
+    for i in range(1, ref_count+1):
+        referees.append(start_referee(i))
+        running_count += 1
+    while True: 
+        if server_p.poll() is not None:
+            server_p = start_server()
+        for i in list(referees):
+            if i.poll() is not None:
+                referees.remove(i)
+        if len(referees) != ref_count:
+            num_startrefs = ref_count - len(referees)
+            count = running_count
+            for i in range(count+1, num_startrefs+count+1):
+                referees.append(start_referee(i))
+                running_count += 1
+        else:
+            time.sleep(10)
         
 if __name__ == "__main__":
     main()

@@ -10,7 +10,6 @@ import json
 import time
 import pprint
 import math
-import csv
 import beanstalkc
 import gc
 import sys
@@ -256,12 +255,12 @@ def score_games():
     global competing_clients
     global current_round
     for g in list(uncompleted_games):
-        if game_status(g) == "Complete":
-            try:
-                gameC = Game.objects.get(pk=g)
-                game_clis = list(gameC.gamedata_set.all())
-            except:
-                pass
+        try:
+            gameC = Game.objects.get(pk=g)
+            game_clis = list(gameC.gamedata_set.all())
+        except:
+            pass
+        if gameC.status == "Complete":
             if gameC.tied:
                 print "Game %d: Draw!" % (g)
                 for i, c in enumerate(game_clis):
@@ -290,7 +289,7 @@ def score_games():
             gameC.claimed = True
             gameC.save()
             uncompleted_games.remove(g)
-        elif game_status(g) == "Failed":            
+        elif gameC.status == "Failed":            
             print "Game:", g, "failed, commiting suicide now."
             exit() # exit the game.
             # during competition just restart swiss
@@ -661,22 +660,39 @@ def recalc_colors(x):
     print x.name, "has played", x.num_white, "white games and", x.num_black, "black games, and their preference power is", x.pref_power
     return x
 
-def calc_tie_break():
+def calc_tie_break(clients=None):
     global competing_clients
-    for x in competing_clients:
-        client = Client.objects.get(name=x.name)
-        x.buchholz = 0
-        x.sumrate = 0
-        for c in competing_clients:
-            if c in x.past_competitors:
-                past_client = Client.objects.get(name=c.name)
-                x.buchholz += past_client.score
-                x.sumrate += past_client.rating
-        client.buchholz = x.buchholz
-        client.sumrate = x.sumrate
-        client.score = x.score
-        client.num_black = x.num_black
-        client.save()
+    if clients is None:
+        for x in competing_clients:
+            client = Client.objects.get(name=x.name)
+            x.buchholz = 0
+            x.sumrate = 0
+            for c in competing_clients:
+                if c in x.past_competitors:
+                    past_client = Client.objects.get(name=c.name)
+                    x.buchholz += past_client.score
+                    x.sumrate += past_client.rating
+            client.buchholz = x.buchholz
+            client.sumrate = x.sumrate
+            client.score = x.score
+            client.num_black = x.num_black
+            client.save()
+    else:
+        for x in clients:
+            client = Client.objects.get(name=x.name)
+            x.buchholz = 0
+            x.sumrate = 0
+            for c in competing_clients:
+                if c in x.past_competitors:
+                    past_client = Client.objects.get(name=c.name)
+                    x.buchholz += past_client.score
+                    x.sumrate += past_client.rating
+            client.buchholz = x.buchholz
+            client.sumrate = x.sumrate
+            client.score = x.score
+            client.num_black = x.num_black
+            client.save()
+            return x
 
 def permute(xs, low=0):
     if low + 1 >= len(xs):
