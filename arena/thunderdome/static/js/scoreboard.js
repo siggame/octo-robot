@@ -32,30 +32,29 @@ $(document).ready(function() {
   function auto_scroll(iter) {
     var next = iter.next();
     if(next.done) return function() {};
-    table.row(next.value).scrollTo();
+    console.log("next row: ", next.value);
     return function(){
       if(next.value == 0)
-        setTimeout(auto_scroll(iter), 1500);
-      else if(next.value == 1)
-        setTimeout(auto_scroll(iter), 2500);
+	setTimeout(auto_scroll(iter), 6000);
       else
-        setTimeout(auto_scroll(iter), 2250);
+        setTimeout(auto_scroll(iter), 1250);
+      table.row(next.value).scrollTo();
     };
   };
 
   function* iter_mod(start, mod) {
     var i = start, value = start;
     while(true) {
-      i = ++i % mod;
+      i = Math.floor(++i % mod);
       value = yield i;
     }
   };
 
   table.on('xhr.dt', function(e,settings,json,xhr) {
-    params = {start: 0, end: json["data"].length-6};
+    params = {start: 0, end: json["data"].length-13};
     gen_maker = iter_mod;
     stopper = iter_mod(params.start, params.end);
-    scroll_meister = setTimeout(auto_scroll(stopper), 3000);
+    scroll_meister = setTimeout(auto_scroll(stopper), 4000);
     table.off('xhr.dt');
   });
 });

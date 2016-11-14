@@ -302,8 +302,11 @@ def searchgames(request):
         if form.is_valid():
             client = get_object_or_404(
                 Client, pk__iexact=form.cleaned_data['client'])
+            start = form.cleaned_data['start']
+            end = form.cleaned_data['end']
+            showFailed = form.cleaned_data['showFailed']
 
-            return HttpResponseRedirect('gameslist/%s' % client.name)
+            return HttpResponseRedirect('gameslist/{0}/{1}/{2}/{3}'.format(client.name, str(start), str(end), showFailed))
     else:
         form = SearchGamesForm()
     payload = {'form': form}
@@ -311,10 +314,14 @@ def searchgames(request):
     return render_to_response('thunderdome/searchgames.html', payload)
 
 @login_required(login_url='/admin')
-def gameslist(request, clientname):
-    time_deltta = datetime.now() - timedelta(hours=25)
-    games1 = list(Game.objects.filter(clients__name=clientname).filter(completed__gte=time_deltta).order_by('-pk'))
-    games2 = list(Game.objects.filter(clients__name=clientname).filter(status='Failed').order_by('-pk'))
+def gameslist(request, clientname, start, end, showFailed):
+    time_delta_start = datetime.now() - timedelta(hours=float(start))
+    time_delta_end = datetime.now() - timedelta(hours=float(end))
+    games1 = list(Game.objects.filter(clients__name=clientname).filter(completed__gte=time_delta_start).filter(completed__lte=time_delta_end).order_by('-pk'))
+    if showFailed == "True":
+        games2 = list(Game.objects.filter(clients__name=clientname).filter(status='Failed').order_by('-pk'))
+    else:
+        games2 = {}
     gamedatas = list(GameData.objects.filter(client__name=clientname))
     client = Client.objects.get(name=clientname)
     return render_to_response('thunderdome/gameslist.html', {'games1':games1, 'games2':games2, 'client':client, 'gamedatas':gamedatas})

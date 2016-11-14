@@ -24,18 +24,9 @@ import beanstalkc
 import boto
 
 
-test_t = os.environ['GAME_NAME'].split("-")
+game_name = os.environ['GAME_NAME']
 
-if len(test_t) == 2:
-    game_name = test_t[0]
-elif len(test_t) == 3:
-    game_name = test_t[2]
-else:
-    print "Not sure which game to play"
-    game_name = test_t
-game_name = game_name[0].upper() + game_name[1:len(game_name)]
-
-print "Playing with game: ", game_name
+print "Playing with game slug: ", game_name
 
 while True:
     print "Getting external IP"
