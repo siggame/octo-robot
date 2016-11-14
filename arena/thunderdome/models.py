@@ -208,7 +208,10 @@ class InjectedGameForm(forms.Form):
 
 class SearchGamesForm(forms.Form):
     client = forms.ChoiceField()
-
+    start = forms.IntegerField(initial=6, min_value=0, label="Start Time (hours ago)")
+    end = forms.IntegerField(initial=0, min_value=0, label="End Time (hours ago)")
+    showFailed = forms.BooleanField(required=False, label="Show All Failed Games")
+    
     def __init__(self, *args, **kwargs):
         super(SearchGamesForm, self).__init__(*args, **kwargs)
         self.fields['client'].choices = [(x.pk, x.name) for x in

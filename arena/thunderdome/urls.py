@@ -24,7 +24,7 @@ urlpatterns = patterns(
     url(r'^represent/(?P<match_id>\d+)$', 'representative_game'),
     url(r'^inject$', 'inject'),
     url(r'^searchgames$', 'searchgames'),
-    url(r'^gameslist/(?P<clientname>[\w\-]+)$', 'gameslist'),
+    url(r'^gameslist/(?P<clientname>[\w\-]+)/(?P<start>\d+)/(?P<end>\d+)/(?P<showFailed>[\w\-]+)$', 'gameslist'),
     url(r'^get_next_game$', 'get_next_game_url_to_visualize'),
     url(r'^get_next_chess_game$', 'get_next_chess_game_url_to_visualize'),
     url(r'^scoreboard$', 'scoreboard'),
