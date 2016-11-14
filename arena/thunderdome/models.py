@@ -19,6 +19,7 @@ from django.contrib.postgres.fields import ArrayField
 class Client(models.Model):
     name = models.CharField(max_length=200)
     current_version = models.CharField(max_length=100, default='', null=True)
+    current_tag = models.CharField(max_length=200, default='', null=True)
     embargoed = models.BooleanField(default=False) # broke
     embargo_reason = models.CharField(max_length=255, default='')
     eligible = models.BooleanField(default=False) # able to compete for prizes

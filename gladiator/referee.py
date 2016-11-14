@@ -105,16 +105,34 @@ def looping(stalk):
         job.touch()
         print "result for make in %s was %s" % (client['name'], client['compiled'])
         if not client['compiled']:
-            print "Failing the game, someone didn't compile"
-            game['status'] = "Failed"
-            game['completed'] = str(datetime.now())
-            game['tied'] = False
-            game['tie_reason'] = "%s didn't compile" % client['name']
-            push_datablocks(game)
-            stalk.put(json.dumps(game))
-            job.delete()
-            return
-
+            if game['origin'] != "Tournament": 
+                print "Failing the game, someone didn't compile"
+                game['status'] = "Failed"
+                game['completed'] = str(datetime.now())
+                game['tied'] = False
+                game['tie_reason'] = "%s didn't compile" % client['name']
+                push_datablocks(game)
+                stalk.put(json.dumps(game))
+                job.delete()
+                return
+            else:
+                print client['name'], "didn't compile (lame)"
+                game['status'] = "Complete"
+                game['completed'] = str(datetime.now())
+                game['tied'] = False
+                if client['name'] == game['clients'][0]:
+                    game['winner'] = game['clients'][1]
+                    game['loser'] = game['clients'][0]
+                else:
+                    game['winner'] = game['clients'][0]
+                    game['loser'] = game['clients'][1]
+                reason = (client['name'], "didn't compile (lame).")
+                game['win_reason'] = ' '.join(reason)
+                game['lose_reason'] = ' '.join(reason)
+                push_datablocks(game)
+                stalk.put(json.dumps(game))
+                job.delete()
+                return
 
     # start the clients
     server_host = os.environ['SERVER_HOST']
@@ -199,7 +217,7 @@ def looping(stalk):
                         game['clients'][i]['noconnect'] = True
         else:
             game['status'] = "Complete"
-            game['complete'] = str(datetime.now())
+            game['completed'] = str(datetime.now())
             game['tied'] = False
             if len(game_server_status['clients']) == 0:
                 randomWinner = random.randint(0,1)
@@ -438,11 +456,11 @@ def update_local_repo(client, timeout, job):
     subprocess.call(['git', 'pull'], cwd=client['name'],
                     stdout=file('%s-gitout.txt' % client['name'], 'a'),
                     stderr=subprocess.STDOUT)
-    subprocess.call(['git', 'checkout', client['tag']],
+    subprocess.call(['git', 'checkout', client['hash']],
                     stdout=file('%s-gitout.txt' % client['name'], 'a'),
                     stderr=subprocess.STDOUT,
                     cwd=client['name'])
-    print "Checking out ", client['tag']
+    print "Checking out ", client['hash']
     return True
 
 if __name__ == "__main__":

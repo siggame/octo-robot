@@ -24,7 +24,8 @@ def sked(guy0, guy1, stalk, origin, priority=1000, ttr=400, claimed=True):
                'timeout'    : ttr,
                'clients'    : [{'name' : p.name,
                                 'repo' : p.repo,
-                                'tag'  : p.current_version,
+                                'hash' : p.current_version,
+                                'tag'  : p.current_tag,
                                 'language': p.language}
                                for p in (guy0, guy1)]}
 

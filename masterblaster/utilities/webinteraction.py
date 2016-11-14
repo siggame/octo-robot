@@ -70,10 +70,11 @@ def update_clients_from_data_block(data):
             client.embargoed = False # this is the only place an embargo can be broken
             client.embargo_reason = ''
             client.current_version = block['tag']['commit']
+            client.current_tag = block['tag']['name']
             client.language = block['language']
         else:
             if client.embargoed and client.rating > 500:
-                client.rating -= 1.0
+                client.rating -= 0.2
 
         client.save()
         updated_clients.append(client)

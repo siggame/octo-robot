@@ -227,26 +227,42 @@ def representative_game(request, match_id):
     game_id = 1
     return view_game(request, game_id)
 
+@login_required(login_url='/admin')
 def scoreboard(request):
     return render_to_response('thunderdome/scoreboard.html')
 
-def get_scores(request):
-    clients = list(Client.objects.all().filter(embargoed=False).filter(missing=False))
+@login_required(login_url='/admin')
+def mmai_scoreboard(request):
+    return render_to_response('thunderdome/mmai_scoreboard.html')
+
+def get_chess_scores(request):
+    clients = list(Client.objects.filter(embargoed=False).filter(missing=False))
     clients = sorted(clients, key = lambda x: x.rating, reverse=True)
     clients = sorted(clients, key = lambda x: x.num_black, reverse=True)
     clients = sorted(clients, key = lambda x: x.sumrate, reverse=True)
     clients = sorted(clients, key = lambda x: x.buchholz, reverse=True)
     clients = sorted(clients, key = lambda x: x.score, reverse=True)
-    client_data = [pull_relevant_fields(i,c) for i,c in enumerate(clients)]    
+    client_data = [pull_chess_fields(i,c) for i,c in enumerate(clients)]    
     return JsonResponse({"data": client_data})
 
-def pull_relevant_fields(i, c): #meant to pull client fields
+def get_mmai_scores(request):
+    clients = list(Client.objects.filter(missing=False))
+    clients = sorted(clients, key = lambda x: x.rating, reverse=True)
+    client_data = [pull_mmai_fields(i,c) for i,c in enumerate(clients)]    
+    return JsonResponse({"data": client_data})
+
+def pull_chess_fields(i, c): #meant to pull client fields
     return {"rank": i+1,
             "name": c.name,
             "score": c.score,
             "sum_of_opps_score": c.buchholz,
             "sum_of_opps_rat": c.sumrate,
             "num_black": c.num_black}
+
+def pull_mmai_fields(i, c): #meant to pull client fields
+    return {"rank": i+1,
+            "name": c.name,
+            "rating": c.rating}
 
 @login_required(login_url='/admin')
 def display_clients(request):
@@ -279,6 +295,7 @@ def inject(request):
     payload.update(csrf(request))
     return render_to_response('thunderdome/inject.html', payload)
 
+@login_required(login_url='/admin')
 def searchgames(request):
     if request.method == 'POST':
         form = SearchGamesForm(request.POST)
@@ -293,6 +310,7 @@ def searchgames(request):
     payload.update(csrf(request))
     return render_to_response('thunderdome/searchgames.html', payload)
 
+@login_required(login_url='/admin')
 def gameslist(request, clientname):
     time_deltta = datetime.now() - timedelta(hours=25)
     games1 = list(Game.objects.filter(clients__name=clientname).filter(completed__gte=time_deltta).order_by('-pk'))
