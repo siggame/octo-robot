@@ -286,6 +286,8 @@ def looping(stalk):
         game_server_status = requests.get('http://%s:%s/status/%s/%s' %
                              (game_server_ip, os.environ['API_PORT'], game_name, game['number'])).json()
         sleep(0.1)
+
+    glog_location = game_server_status['gamelogFilename']
     
     if 'disconnected' in game_server_status['clients'][0]:
         if game_server_status['clients'][0]['disconnected']:
@@ -336,7 +338,7 @@ def looping(stalk):
     print "pushing data blocks...", game['number']
     push_datablocks(game)
     print "pushing gamelog..."
-    push_gamelog(game)
+    push_gamelog(game, glog_location)
     game['status'] = "Complete"
     game['completed'] = str(datetime.now())
     stalk.put(json.dumps(game))
@@ -398,13 +400,13 @@ def push_datablocks(game):
         os.remove(in_name)
 
 
-def push_gamelog(game):
+def push_gamelog(game, glog_location):
     '''Push gamelog to S3'''
     server_path = os.environ['SERVER_PATH']
-    gamelog_filename = "%s/output/gamelogs/%s-%s.json.gz" % (server_path, game_name, game['number'])
+    gamelog_filename = "%s/output/gamelogs/%s.json.gz" % (server_path, glog_location)
     # salt exists to stop people from randomly probing for files
     salt = md5.md5(str(random.random())).hexdigest()[:5]
-    remote = "%s-%s-%s.json.gz" % (game['number'], game_name, salt)
+    remote = "%s-%s.json.gz" % (glog_location, salt)
     game['gamelog_url'] = push_file(gamelog_filename, remote, True)
     os.remove(gamelog_filename)
 
