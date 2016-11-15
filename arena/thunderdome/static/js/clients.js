@@ -1,5 +1,3 @@
-var iter, params, scroll_meister, stopper;
-
 $(document).ready(function() {
   var table = $("#clients").DataTable({
     lengthChange: false,
@@ -19,9 +17,6 @@ $(document).ready(function() {
       { data: "current_version"},
       { data: "language"},
     ],
-    drawCallback: function(settings) {
-      $('.dataTables_scrollBody').addClass('hidden_scrollbar');
-    }
   });
                   
   setInterval(function() {
