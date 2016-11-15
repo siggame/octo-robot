@@ -259,11 +259,23 @@ def pull_mmai_fields(i, c): #meant to pull client fields
 
 @login_required(login_url='/admin')
 def display_clients(request):
+    return render_to_response('thunderdome/clients.html')
+
+def get_clients(request):
     clients = list(Client.objects.all())
-    clients.sort(key = lambda x: x.rating, reverse=True)
-    for x in clients:
-        x.rating = round(x.rating)
-    return render_to_response('thunderdome/clients.html', {'clients':clients})
+    clients = sorted(clients, key = lambda x: x.rating, reverse=True)
+    client_data = [pull_client_fields(i,c) for i,c in enumerate(clients)]
+    return JsonResponse({"data": client_data})
+
+def pull_client_fields(i, c):
+    return {"rank": i+1,
+            "client_name": c.name,
+            "embargoed?": str(c.embargoed),
+            "embargo_reason": c.embargo_reason,
+            "missing?": str(c.missing),
+            "last_game_played": c.last_game_played,
+            "current_version": c.current_version,
+            "language": c.language}
 
 @login_required(login_url='/admin')
 def inject(request):

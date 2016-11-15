@@ -25,14 +25,15 @@ urlpatterns = patterns(
     url(r'^inject$', 'inject'),
     url(r'^get_next_game$', 'get_next_game_url_to_visualize'),
     url(r'^get_next_chess_game$', 'get_next_chess_game_url_to_visualize'),
+    url(r'^clients$', 'display_clients'),
     url(r'^scoreboard$', 'scoreboard'),
     url(r'^mmai_scoreboard$', 'mmai_scoreboard'),
     url(r'^logout$', 'logout_view'),
     url(r'^settings$', 'settings'),
 
-    url(r'^clients$', 'display_clients'),
     url(r'^swissTurn$', 'human_swiss'),
     url(r'^api/', include(v1_api.urls)),
+    url(r'^api/get_clients$', 'get_clients'),
     url(r'^api/get_scores$', 'get_chess_scores'),
     url(r'^api/get_mmai_scores$', 'get_mmai_scores'),
 )
