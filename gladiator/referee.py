@@ -24,18 +24,9 @@ import beanstalkc
 import boto
 
 
-test_t = os.environ['GAME_NAME'].split("-")
+game_name = os.environ['GAME_NAME']
 
-if len(test_t) == 2:
-    game_name = test_t[0]
-elif len(test_t) == 3:
-    game_name = test_t[2]
-else:
-    print "Not sure which game to play"
-    game_name = test_t
-game_name = game_name[0].upper() + game_name[1:len(game_name)]
-
-print "Playing with game: ", game_name
+print "Playing with game slug: ", game_name
 
 while True:
     print "Getting external IP"
@@ -95,25 +86,44 @@ def looping(stalk):
     # compile the clients
     stalk.put(json.dumps(game))
     job.touch()
-    for client in game['clients']:
-        client['compiled'] = (compile_client(client) is 0)
-        job.touch()
-        print "result for make in %s was %s" % (client['name'],
-                                                client['compiled'])
-
+    
     # fail the game if someone didn't compile in arena mode.
     # tournament mode absolutely cannot have failed games.
     # ties are ok, but really annoying
-    if not all([x['compiled'] for x in game['clients']]):
-        print "Failing the game, someone didn't compile"
-        game['status'] = "Failed"
-	game['completed'] = str(datetime.now())
-	game['tied'] = False
-	game['tie_reason'] = "One or both of the clients didn't compile"
-	push_datablocks(game)
-	stalk.put(json.dumps(game))
-	job.delete()
-        return
+
+    for client in game['clients']:
+        client['compiled'] = (compile_client(client) is 0)
+        job.touch()
+        print "result for make in %s was %s" % (client['name'], client['compiled'])
+        if not client['compiled']:
+            if game['origin'] != "Tournament": 
+                print "Failing the game, someone didn't compile"
+                game['status'] = "Failed"
+                game['completed'] = str(datetime.now())
+                game['tied'] = False
+                game['tie_reason'] = "%s didn't compile" % client['name']
+                push_datablocks(game)
+                stalk.put(json.dumps(game))
+                job.delete()
+                return
+            else:
+                print client['name'], "didn't compile (lame)"
+                game['status'] = "Complete"
+                game['completed'] = str(datetime.now())
+                game['tied'] = False
+                if client['name'] == game['clients'][0]:
+                    game['winner'] = game['clients'][1]
+                    game['loser'] = game['clients'][0]
+                else:
+                    game['winner'] = game['clients'][0]
+                    game['loser'] = game['clients'][1]
+                reason = (client['name'], "didn't compile (lame).")
+                game['win_reason'] = ' '.join(reason)
+                game['lose_reason'] = ' '.join(reason)
+                push_datablocks(game)
+                stalk.put(json.dumps(game))
+                job.delete()
+                return
 
     # start the clients
     server_host = os.environ['SERVER_HOST']
@@ -123,43 +133,47 @@ def looping(stalk):
         print "Client", cl['name'], "is a", cl['language'], "client"
         if cl['language'] == 'Human':
             humans_be_here = True
-            players.append(
-                subprocess.Popen(['bash',
+            pla = subprocess.Popen(['bash',
                                   'arenaRun', game_name,
                                   '-r', game['number'],
                                   '-s', external_ip,
+                                  '-p', os.environ['WEB_CLIENT_PORT'],
                                   '-i', str(i),
                                   '-n', cl['name'],
                                   '--chesser-master', 'r99acm.device.mst.edu:5454',
                                   '--printIO'
                                  ],
-                                 stdout=file('%s-stdout.txt' % cl['name'], 'w'),
+                                 stdout=subprocess.PIPE,
                                  stderr=file('%s-stderr.txt' % cl['name'], 'w'),
-                                 cwd=cl['name']))
+                                 cwd=cl['name'])
         else:
-            players.append(
-                subprocess.Popen(['bash',
+            pla = subprocess.Popen(['bash',
                                   'arenaRun', game_name,
                                   '-r', game['number'],
                                   '-s', server_host,
+                                  '-p', os.environ['CLIENT_PORT'],
                                   '-i', str(i),
                                   '-n', cl['name']
                                  ],
-                                 stdout=file('%s-stdout.txt' % cl['name'], 'w'),
+                                 stdout=subprocess.PIPE,
                                  stderr=file('%s-stderr.txt' % cl['name'], 'w'),
-                                 cwd=cl['name']))
-
+                                 cwd=cl['name'])
+        players.append(pla)
+        limit = 5242880 #5MB
+        subprocess.Popen(['tail', '-c', str(limit)],
+                        stdin=pla.stdout,
+                        stdout=file('%s-stdout.txt' % cl['name'], 'w'))
     
     # make sure both clients have connected
     game_server_ip        = os.environ['SERVER_HOST']
-    game_server_status    = requests.get('http://%s:3080/status/%s/%s' %
-                            (game_server_ip, game_name, game['number'])).json()
+    game_server_status    = requests.get('http://%s:%s/status/%s/%s' %
+                            (game_server_ip, os.environ['API_PORT'], game_name, game['number'])).json()
     start_time            = int(round(time.time() * 1000))
     current_time          = start_time
     if not humans_be_here:
         MAX_TIME          = 10000           # in milliseconds
     else:
-        MAX_TIME          = 2000000
+        MAX_TIME          = 1000000
 
     # block while at least one client is not connected
     while len(game_server_status['clients']) < 2 and (current_time - start_time <= MAX_TIME):
@@ -169,8 +183,8 @@ def looping(stalk):
             job.touch()
             sleep(.1)
         current_time = int(round(time.time() * 1000))
-        game_server_status = requests.get('http://%s:3080/status/%s/%s' %
-                             (game_server_ip, game_name, game['number'])).json()
+        game_server_status = requests.get('http://%s:%s/status/%s/%s' %
+                             (game_server_ip, os.environ['API_PORT'], game_name, game['number'])).json()
 
     
     # check if we timed out waiting for clients to connect
@@ -179,7 +193,7 @@ def looping(stalk):
         if game['origin'] != "Tournament":
             print "Failing the game, only %d clients connected" % (len(game_server_status['clients']))
             game['status'] = "Failed"
-            game['complete'] = str(datetime.now())
+            game['completed'] = str(datetime.now())
             game['tied'] = False
             if len(game_server_status['clients']) == 0:
                 game['tie_reason'] = "Game failed to start, neither client connected."
@@ -194,7 +208,7 @@ def looping(stalk):
                         game['clients'][i]['noconnect'] = True
         else:
             game['status'] = "Complete"
-            game['complete'] = str(datetime.now())
+            game['completed'] = str(datetime.now())
             game['tied'] = False
             if len(game_server_status['clients']) == 0:
                 randomWinner = random.randint(0,1)
@@ -234,8 +248,8 @@ def looping(stalk):
 
     
     # wait until the game is over
-    game_server_status = requests.get('http://%s:3080/status/%s/%s' %
-                         (game_server_ip, game_name, game['number'])).json()
+    game_server_status = requests.get('http://%s:%s/status/%s/%s' %
+                         (game_server_ip, os.environ['API_PORT'], game_name, game['number'])).json()
     start_time            = int(round(time.time() * 1000))
     current_time          = start_time
     MAX_TIME              = 2500000
@@ -244,8 +258,8 @@ def looping(stalk):
         job.touch()
         sleep(0.1)
         current_time = int(round(time.time() * 1000))
-        game_server_status = requests.get('http://%s:3080/status/%s/%s' %
-                             (game_server_ip, game_name, game['number'])).json()
+        game_server_status = requests.get('http://%s:%s/status/%s/%s' %
+                             (game_server_ip, os.environ['API_PORT'], game_name, game['number'])).json()
 	
 	
     if current_time - start_time > MAX_TIME:
@@ -265,10 +279,13 @@ def looping(stalk):
     
     kill_clients(players)
 
-
-
-    game_server_status = requests.get('http://%s:3080/status/%s/%s' %
-                             (game_server_ip, game_name, game['number'])).json()
+    game_server_status = requests.get('http://%s:%s/status/%s/%s' %
+                         (game_server_ip, os.environ['API_PORT'], game_name, game['number'])).json()
+    
+    while game_server_status['gamelogFilename'] == 'null':
+        game_server_status = requests.get('http://%s:%s/status/%s/%s' %
+                             (game_server_ip, os.environ['API_PORT'], game_name, game['number'])).json()
+        sleep(0.1)
     
     if 'disconnected' in game_server_status['clients'][0]:
         if game_server_status['clients'][0]['disconnected']:
@@ -289,28 +306,11 @@ def looping(stalk):
 
 
     if p0broke or p1broke:
-        #print "game %s early termination, broken client" % game['number']
-        #game['status'] = "Failed"
-        #game['completed'] = str(datetime.now())
-        #game['tied'] = False
         if p0broke:
             game['clients'][0]['discon'] = True
-            #reason = ("Early termination because", game_server_status['clients'][0]['name'], "disconnected unexpectedly.")
-            #game['tie_reason'] = ' '.join(reason)
         if p1broke:
             game['clients'][1]['discon'] = True
-            #reason = ("Early termination because", game_server_status['clients'][1]['name'], "disconnected unexpectedly.")
-            #game['tie_reason'] = ' '.join(reason)
-        """
-        push_datablocks(game)
-        try:
-            push_gamelog(game)
-        except:
-            pass
-        stalk.put(json.dumps(game))
-        job.delete()
-        return
-        """
+            
     # figure out who won
     print "determining winner..."
     if ('won' in game_server_status['clients'][0] and 'won' in game_server_status['clients'][1]) or ('lost' in game_server_status['clients'][0] and 'lost' in game_server_status['clients'][1]):
@@ -447,11 +447,11 @@ def update_local_repo(client, timeout, job):
     subprocess.call(['git', 'pull'], cwd=client['name'],
                     stdout=file('%s-gitout.txt' % client['name'], 'a'),
                     stderr=subprocess.STDOUT)
-    subprocess.call(['git', 'checkout', client['tag']],
+    subprocess.call(['git', 'checkout', client['hash']],
                     stdout=file('%s-gitout.txt' % client['name'], 'a'),
                     stderr=subprocess.STDOUT,
                     cwd=client['name'])
-    print "Checking out ", client['tag']
+    print "Checking out ", client['hash']
     return True
 
 if __name__ == "__main__":

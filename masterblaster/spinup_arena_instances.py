@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
 from thunderdome.config import arena_ami, access_cred, secret_cred, \
-    s3_prefix, beanstalk_host, game_name, client_prefix
+    s3_prefix, beanstalk_host, game_name, client_prefix, client_port, \
+    web_client_port, api_port
 
 import argparse
 import boto
@@ -30,6 +31,9 @@ export CLIENT_PREFIX='%s'
 export SERVER_HOST='localhost'
 export SERVER_PATH='/home/gladiator/arena/Cerveau'
 export BEANSTALK_HOST='%s'
+export CLIENT_PORT='%d'
+export WEB_CLIENT_PORT='%d'
+export API_PORT='%d'
 
 rm -rf /home/gladiator/arena
 mkdir /home/gladiator/arena
@@ -39,10 +43,10 @@ cd /home/gladiator/arena
 wget http://arena.megaminerai.com/gladiator/gladiator_package.tgz
 tar -xf gladiator_package.tgz
 
-python gladiator.py '%s'
+python gladiator.py %s &> glad-stdout.txt
 
 EOF
-""" % (access_cred, secret_cred, s3_prefix, game_name, client_prefix, beanstalk_host, numRefs)
+""" % (access_cred, secret_cred, s3_prefix, game_name, client_prefix, beanstalk_host, client_port, web_client_port, api_port, numRefs)
 
 conn = boto.connect_ec2(access_cred, secret_cred)
 
@@ -51,7 +55,7 @@ gladiator_image = conn.get_image(arena_ami)
 reservation = gladiator_image.run(min_count=count, max_count=count,
                                   user_data=user_data,
                                   instance_type=instanceType,
-                                  key_name='arena_head',
+                                  key_name='arena_headv2',
                                   security_group_ids=['sg-572ac82c'],
                                   subnet_id='subnet-de7cd0f5') 
 

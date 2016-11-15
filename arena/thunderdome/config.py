@@ -16,6 +16,9 @@ beanstalk_host = a.beanstalk_host
 client_prefix = a.client_prefix
 req_queue_len = a.req_queue_length
 api_url_template = a.api_url_template
+client_port = a.client_port
+web_client_port = a.web_client_port
+api_port = a.api_port
 
-arena_ami = 'ami-ed7d6687' # current gladiator image id
+arena_ami = 'ami-25517132' # current gladiator image id
 tournament_ami = 'ami-55e9f13f' #'ami-a221a9ca' # old touranment

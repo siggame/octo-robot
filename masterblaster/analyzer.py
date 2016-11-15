@@ -60,12 +60,13 @@ def main():
     gamestats.save()
     while gamestats.numPlayed < 100:
         for x in Game.objects.all().filter(score=-1).filter(status="Complete"):
-            if x.gamelog_url == '':
+            url = x.gamelog_url
+            try:
+                u = urllib2.urlopen(url)
+            except:
                 x.score = -2
                 x.save()
                 continue
-            url = x.gamelog_url
-            u = urllib2.urlopen(url)
             meta = u.info()
             file_size = int(meta.getheaders("Content-Length")[0])
             print "Game", x, "is", file_size, "bytes"
@@ -94,12 +95,14 @@ def main():
 
 def analyse_game(game):
     gamestats = GameStats.objects.get(game=game_name)
-    if game.gamelog_url == '':
+    url = game.gamelog_url
+    try:
+        u = urllib2.urlopen(url)
+    except:
         game.score = -2
         game.save()
+        print "Invalid gamelog url"
         return
-    url = game.gamelog_url
-    u = urllib2.urlopen(url)
     meta = u.info()
     file_size = int(meta.getheaders("Content-Length")[0])
     if file_size > gamestats.maxSize:
@@ -115,7 +118,7 @@ def analyse_game(game):
         game.score += 2
         print "No one in game", game, "disconnected!"
     for wumbo in gamestats.interesting_win_reasons:
-        if game.win_reason == wumbo:
+        if wumbo in game.win_reason:
             game.score += 3
             print "WUMBO!!!!"
             break

@@ -1,5 +1,5 @@
 ### Brief overview of this file and how it works.
-### As of right now 24-Dec-13 12:30PM this file will create a complete gladiator folder.
+### Create a local gladiator
 ### This is done by copying the gladiator folder in the octo-robot git repo and copying
 ### the server folder from the megaminer_repo location which is specified below. 
 ### Make sure that the MegaMinerAI git repo is located at the megaminer_repo specified below.
@@ -11,7 +11,7 @@
 
 
 from arena.settings.aws_secrets import access_cred, secret_cred, s3_prefix
-from thunderdome.config import game_name, client_prefix, beanstalk_host
+from thunderdome.config import game_name, client_prefix, beanstalk_host, client_port, web_client_port, api_port
 from masterblaster.generate_gladiator_package import generate_package
 
 
@@ -26,7 +26,7 @@ home_dir = os.path.dirname(file_path)
 octo_robot_dir = os.path.dirname(home_dir)
 
 
-living_corders = '/home/siggame/gladiator/' # this is identical to the gladiator's arena folder
+living_corders = '/home/daniel/gladiator/' # this is identical to the gladiator's arena folder
 server_path = os.path.join(living_corders, 'Cerveau')
 gladiator_pck = os.path.join(octo_robot_dir, 'gladiator_package')
 
@@ -56,19 +56,15 @@ export SERVER_HOST='%s'
 export SERVER_PATH='%s'
 export BEANSTALK_HOST='%s'
 export LIVING_CORDERS='%s'
+export CLIENT_PORT='%d'
+export WEB_CLIENT_PORT='%d'
+export API_PORT='%d'
 
-cd $SERVER_PATH
-node main.js --arena > ../server-output.txt &
 cd $LIVING_CORDERS
 
-mkdir 1
-ln referee.py 1/referee.py
-ln prep_for_bake.py 1/prep_for_bake.py
-cd 1
-python referee.py 2> ref1.txt &
-cd ..
+python gladiator.py 1
 
-""" % (str(access_cred), str(secret_cred), str(s3_prefix), game_name, client_prefix, 'localhost', server_path, 'localhost', living_corders)
+""" % (str(access_cred), str(secret_cred), str(s3_prefix), game_name, client_prefix, 'localhost', server_path, 'localhost', living_corders, client_port, web_client_port, api_port)
 
 writer.write(bash_mesg)
 writer.close()

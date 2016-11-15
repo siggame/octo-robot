@@ -19,6 +19,7 @@ from django.contrib.postgres.fields import ArrayField
 class Client(models.Model):
     name = models.CharField(max_length=200)
     current_version = models.CharField(max_length=100, default='', null=True)
+    current_tag = models.CharField(max_length=200, default='', null=True)
     embargoed = models.BooleanField(default=False) # broke
     embargo_reason = models.CharField(max_length=255, default='')
     eligible = models.BooleanField(default=False) # able to compete for prizes
@@ -196,7 +197,6 @@ class GameData(models.Model):
 
 class InjectedGameForm(forms.Form):
     ### Used to manually inject a game into the queue
-    priority = forms.IntegerField(min_value=0, max_value=1000)
     clientOne = forms.ChoiceField()
     clientTwo = forms.ChoiceField()
     
@@ -206,6 +206,17 @@ class InjectedGameForm(forms.Form):
                                             Client.objects.all()]
         self.fields['clientTwo'].choices = [(x.pk, x.name) for x in
                                             Client.objects.all()]
+
+class SearchGamesForm(forms.Form):
+    client = forms.ChoiceField()
+    start = forms.IntegerField(initial=6, min_value=0, label="Start Time (hours ago)")
+    end = forms.IntegerField(initial=0, min_value=0, label="End Time (hours ago)")
+    showFailed = forms.BooleanField(required=False, label="Show All Failed Games")
+    
+    def __init__(self, *args, **kwargs):
+        super(SearchGamesForm, self).__init__(*args, **kwargs)
+        self.fields['client'].choices = [(x.pk, x.name) for x in
+                                         Client.objects.filter(missing=False)]
 
 class Match(models.Model):
     ### A multi-game match
@@ -318,10 +329,12 @@ class ArenaConfig(models.Model):
     config_name = models.CharField(max_length=200, default='')
     game_name = models.CharField(max_length=200, default='')
     beanstalk_host = models.CharField(max_length=200, default='')
-    # is the prefix url to where clients are stored
-    client_prefix = models.CharField(max_length=200, default='ssh://webserver@megaminerai.com')
-    req_queue_length = models.IntegerField(default=5)
+    client_prefix = models.CharField(max_length=200, default='ssh://webserver@megaminerai.com') # is the prefix url to where clients are stored
+    req_queue_length = models.IntegerField(default=5) # Number of games to keep queued
     api_url_template = models.CharField(max_length=200, default='http://megaminerai.com/api/repo/tags/')
+    client_port = models.IntegerField(default=3000) # Port that the clients will connect to
+    web_client_port = models.IntegerField(default=3088) # Port that the web clients will connect to
+    api_port = models.IntegerField(default=3080) # Port that the gameserver status will be at
     
     parameters = {'active' : active,
                   'config_game' : config_name,
@@ -329,7 +342,10 @@ class ArenaConfig(models.Model):
                   'beanstalk_host' : beanstalk_host,
                   'client_prefix' : client_prefix,
                   'req_queue_length' : req_queue_length,
-                  'api_url_template' : api_url_template}
+                  'api_url_template' : api_url_template,
+                  'client_port' : client_port,
+                  'web_client_port' : web_client_port,
+                  'api_port' : api_port}
     
     def __unicode__(self):
         return "Active" + str(self.active) + "\n Config name " + str(self.config_name) + \
