@@ -31,7 +31,7 @@ urlpatterns = patterns(
     url(r'^mmai_scoreboard$', 'mmai_scoreboard'),
     url(r'^logout$', 'logout_view'),
     url(r'^settings$', 'settings'),
-
+    url(r'^scoreboards$', 'scoreboards'),
     url(r'^howtodev$', 'howtodev'),
     url(r'^clients$', 'display_clients'),
     url(r'^swissTurn$', 'human_swiss'),

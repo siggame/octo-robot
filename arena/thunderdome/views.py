@@ -227,11 +227,12 @@ def representative_game(request, match_id):
     game_id = 1
     return view_game(request, game_id)
 
-@login_required(login_url='/admin')
+def scoreboards(request):
+    return render_to_response('thunderdome/scoreboards.html')
+
 def scoreboard(request):
     return render_to_response('thunderdome/scoreboard.html')
 
-@login_required(login_url='/admin')
 def mmai_scoreboard(request):
     return render_to_response('thunderdome/mmai_scoreboard.html')
 
