@@ -12,6 +12,7 @@ $(document).ready(function() {
       { data: "embargoed?"},
       { data: "embargo_reason"},
       { data: "missing?"},
+      { data: "eligible?"},
       { data: "last_game_played"},
       { data: "current_version"},
       { data: "language"},

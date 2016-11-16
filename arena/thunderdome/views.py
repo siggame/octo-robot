@@ -281,8 +281,9 @@ def pull_client_fields(i, c):
             "embargoed?": str(c.embargoed),
             "embargo_reason": c.embargo_reason,
             "missing?": str(c.missing),
+            "eligible?": str(c.eligible),
             "last_game_played": c.last_game_played,
-            "current_version": c.current_version,
+            "current_version": c.current_tag,
             "language": c.language}
 
 @login_required(login_url='/admin')
