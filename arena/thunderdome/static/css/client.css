@@ -1,0 +1,21 @@
+table.dataTable thead .sorting, 
+table.dataTable thead .sorting_asc, 
+table.dataTable thead .sorting_desc {
+    background : none;
+}
+
+table.dataTable thead .sorting:after {
+    content: "\21c5";
+}
+
+table.dataTable thead .sorting_asc:after {
+    content: "\2191";
+}
+
+table.dataTable thead .sorting_desc:after {
+    content: "\2193";
+}
+
+.row {
+    max-width: none;
+}

@@ -1,21 +1,45 @@
 {% extends "thunderdome/base.html" %}
 
+{% load staticfiles %}
+
 {% block title %}
 ACM SIG-Game MegaMiner Arena (Thunderdome) Clients
+{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{% static 'css/datatables.min.css' %}" type="text/css">
+<link rel="stylesheet" href="{% static 'css/dataTables.bootstrap.min.css' %}" type="text/css">
+<link rel="stylesheet" href="{% static 'css/client.css' %}" type="text/css">
 {% endblock %}
 
 {% block content %}
 <h1>Clients</h1>
 
-<table border="1" style="width:100%">
-<tr><b><td>Rating</td><td>Client Name</td><td>Embargoed?</td><td>Embargo Reason</td><td>Missing?</td><td>Last Game Played</td><td>Current Version</td><td>Language</td></b></tr>
+<div id="clients-container">
+  <table id="clients" class="container-fluid stripe cell-border" cellspacing="0">
+    <thead>
+      <tr>
+        <th>Rank</th>
+        <th>Rating</th>
+        <th>Client Name</th>
+        <th>Embargoed?</th>
+        <th>Embargo Reason</th>
+        <th>Missing?</th>
+        <th>Eligible?</th>
+        <th>Last Game Played</th>
+        <th>Current Version</th>
+        <th>Language</th>
+      </tr>
+    </thead>
+  </table>
+</div>
 
-{% for client in clients %}
-   {% if forloop.counter|divisibleby:2 %}  
-      <tr bgcolor="#C6E7FE"><td>{{ client.rating }}</td><td>{{ client.name }}</td><td>{{ client.embargoed }}</td><td>{{ client.embargo_reason }}</td><td>{{client.missing }}</td><td>{{ client.last_game_played }}</td><td>{{ client.current_tag }}</td><td>{{ client.language }}</td></tr>
-   {% else %}
-      <tr><td>{{ client.rating }}</td><td>{{ client.name }}</td><td>{{ client.embargoed }}</td><td>{{ client.embargo_reason }}</td><td>{{client.missing }}</td><td>{{ client.last_game_played }}</td><td>{{ client.current_tag }}</td><td>{{ client.language }}</td></tr>
-   {% endif %}
-{% endfor %}
-</table>
+{% endblock %}
+
+{% block scripts %}
+<script src="http://code.jquery.com/jquery-3.1.1.min.js" type="text/javascript"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" type="text/javascript"></script>
+<script src="{% static 'js/jquery.dataTables.min.js' %}" type="text/javascript"></script>
+<script src="{% static 'js/dataTables.bootstrap.min.js' %}" type="text/javascript"></script>
+<script src="{% static 'js/clients.js' %}" type="text/javascript"></script>
 {% endblock %}

@@ -31,10 +31,12 @@ urlpatterns = patterns(
     url(r'^mmai_scoreboard$', 'mmai_scoreboard'),
     url(r'^logout$', 'logout_view'),
     url(r'^settings$', 'settings'),
+
     url(r'^howtodev$', 'howtodev'),
     url(r'^clients$', 'display_clients'),
     url(r'^swissTurn$', 'human_swiss'),
     url(r'^api/', include(v1_api.urls)),
+    url(r'^api/get_clients$', 'get_clients'),
     url(r'^api/get_scores$', 'get_chess_scores'),
     url(r'^api/get_mmai_scores$', 'get_mmai_scores'),
 )
