@@ -16,6 +16,7 @@ import socket
 import md5
 import zipfile
 import sys
+import multiprocessing
 from time import sleep
 from datetime import datetime 
 
@@ -91,9 +92,24 @@ def looping(stalk):
     # tournament mode absolutely cannot have failed games.
     # ties are ok, but really annoying
 
-    for client in game['clients']:
-        client['compiled'] = (compile_client(client) is 0)
-        job.touch()
+    for i, client in enumerate(game['clients']):
+        if i == 0:
+            compileProcess0 = multiprocessing.Process(target=compile_client, args=(client,))
+            compileProcess0.start()
+        else:
+            compileProcess1 = multiprocessing.Process(target=compile_client, args=(client,))
+            compileProcess1.start()
+
+    compileProcess0.join()
+    job.touch()
+    compileProcess1.join()
+    job.touch()
+    
+    for i, client in enumerate(game['clients']):
+        if i == 0:
+            client['compiled'] = (compileProcess0.exitcode is 0)
+        else:
+            client['compiled'] = (compileProcess1.exitcode is 0)
         print "result for make in %s was %s" % (client['name'], client['compiled'])
         if not client['compiled']:
             if game['origin'] != "Tournament": 
@@ -360,9 +376,9 @@ def kill_clients(players):
 def compile_client(client):
     ''' Compile the client and return the code returned by make '''
     print 'Making %s/%s' % (os.getcwd(), client['name'])
-    return subprocess.call(['make'], cwd=client['name'],
+    exit(subprocess.call(['make'], cwd=client['name'],
                            stdout=file("%s-makeout.txt" % client['name'], "w"),
-                           stderr=subprocess.STDOUT)
+                           stderr=subprocess.STDOUT))
 
 
 def push_file(local_filename, remote_filename, is_glog):
