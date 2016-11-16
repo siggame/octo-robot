@@ -15,3 +15,7 @@ table.dataTable thead .sorting_asc:after {
 table.dataTable thead .sorting_desc:after {
     content: "\2193";
 }
+
+.row {
+    max-width: none;
+}

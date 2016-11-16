@@ -276,6 +276,7 @@ def get_clients(request):
 
 def pull_client_fields(i, c):
     return {"rank": i+1,
+            "rating": c.rating,
             "client_name": c.name,
             "embargoed?": str(c.embargoed),
             "embargo_reason": c.embargo_reason,

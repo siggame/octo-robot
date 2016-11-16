@@ -9,18 +9,18 @@ ACM SIG-Game MegaMiner Arena (Thunderdome) Clients
 {% block head %}
 <link rel="stylesheet" href="{% static 'css/datatables.min.css' %}" type="text/css">
 <link rel="stylesheet" href="{% static 'css/dataTables.bootstrap.min.css' %}" type="text/css">
-<link rel="stylesheet" href="{% static 'css/hiddenscrollbar.css' %}" type="text/css">
-<link rel="stylesheet" href="{% static 'css/hiddenSortIcon.css' %}" type="text/css">
+<link rel="stylesheet" href="{% static 'css/client.css' %}" type="text/css">
 {% endblock %}
 
 {% block content %}
 <h1>Clients</h1>
 
 <div id="clients-container">
-  <table id="clients" class="stripe cell-border" cellspacing="0" width="100%">
+  <table id="clients" class="container-fluid stripe cell-border" cellspacing="0">
     <thead>
       <tr>
         <th>Rank</th>
+        <th>Rating</th>
         <th>Client Name</th>
         <th>Embargoed?</th>
         <th>Embargo Reason</th>
