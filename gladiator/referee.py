@@ -298,7 +298,7 @@ def looping(stalk):
     game_server_status = requests.get('http://%s:%s/status/%s/%s' %
                          (game_server_ip, os.environ['API_PORT'], game_name, game['number'])).json()
     
-    while game_server_status['gamelogFilename'] == 'null':
+    while game_server_status['gamelogFilename'] is None:
         game_server_status = requests.get('http://%s:%s/status/%s/%s' %
                              (game_server_ip, os.environ['API_PORT'], game_name, game['number'])).json()
         sleep(0.1)
