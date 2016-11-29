@@ -94,6 +94,7 @@ def makeClient(block):
     client = Client.objects.create()
     client.name = block['team']['slug']
     client.current_version = block['tag']['commit']
+    client.current_tag = block['tag']['name']
     client.repo = block['repository']['path']    
     client.stats = ''
     client.embargoed = False
