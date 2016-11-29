@@ -40,7 +40,7 @@ while True:
         break
     except:
         print "Too many requests, trying again"
-        sleepInterval = random.randint(10, 40)
+        sleepInterval = random.randint(10, 60)
         sleep(sleepInterval)
 
 
