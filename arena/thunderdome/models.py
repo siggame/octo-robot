@@ -304,7 +304,7 @@ class Referee(models.Model):
         if game.count() < 1:
             return None
         else:
-            return game.order_by('-pk')[0]
+            return game.order_by('-completed')[0]
 
     def games_completed(self):
         return self.games.filter(status='Complete').count()
