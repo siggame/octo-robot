@@ -311,7 +311,7 @@ def update_standings(competing_clients):
         for k in i.past_competitors:
             past += str(k.name)
             past += "<>"
-        f.write("%s+%d+%d+%d+%d+%d+%d+%s\n" % (i.name, i.score, i.buchholz, i.sumrate, i.num_black, i.num_white, current_round, past))
+        f.write("%s+%s+%d+%d+%d+%d+%d+%s\n" % (i.name, str(i.score), i.buchholz, i.sumrate, i.num_black, i.num_white, current_round, past))
     f.close()    
 
 def schedule_game(i, j, stalk):
@@ -435,6 +435,7 @@ def monrad_setup(clients):
                 if scoresin[0] == i.name:
                     client = Client.objects.get(name=scoresin[0])
                     client.score = float(scoresin[1])
+                    i.score = float(scoresin[1])
                     client.num_black = int(scoresin[4])
                     client.save()
                     i.num_white = int(scoresin[5])

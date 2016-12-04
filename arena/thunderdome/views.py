@@ -38,6 +38,7 @@ def logout_view(request):
     logout(request)
     return render_to_response('thunderdome/logout.html')
 
+@login_required(login_url='/admin')
 def howtodev(request):
     return render_to_response('thunderdome/howtodev.html')
 
@@ -258,7 +259,8 @@ def pull_chess_fields(i, c): #meant to pull client fields
             "score": c.score,
             "sum_of_opps_score": c.buchholz,
             "sum_of_opps_rat": c.sumrate,
-            "num_black": c.num_black}
+            "num_black": c.num_black,
+            "language": c.language}
 
 def pull_mmai_fields(i, c): #meant to pull client fields
     return {"rank": i+1,

@@ -31,7 +31,7 @@ ACM SIG-Game MegaMiner Arena (Thunderdome)
     <td>{{ game.winner.name }}</td>
   {% endif %}
   <td>{{ game.win_reason }}</td><td>{{ game.lose_reason }}</td><td>{{ game.tie_reason }}</td>
-  <td><a href="http://r99acm.device.mst.edu:8018/visualizer/?log={{ game.gamelog_url }}"> A link that probably works </a></td>
+  <td><a href="http://vis.megaminerai.com/?log={{ game.gamelog_url }}"> A link that probably works </a></td>
   {% for data in gamedatas %}
     {% if data.game == game %}
       {% if client.name == data.client.name %}

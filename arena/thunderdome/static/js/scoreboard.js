@@ -18,7 +18,8 @@ $(document).ready(function() {
       { data: "score"},
       { data: "sum_of_opps_score"},
       { data: "sum_of_opps_rat"},
-      { data: "num_black"}
+      { data: "num_black"},
+      { data: "language"}
     ],
     drawCallback: function(settings) {
       $('.dataTables_scrollBody').addClass('hidden_scrollbar');
