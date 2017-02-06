@@ -18,9 +18,9 @@ def skedRoundRobin(group, numGames, stalk):
     for (guy, otherguy) in combinations(group, 2):
         for counter in range(numGames):
             if (counter % 2):
-                g = sked(guy, otherguy, stalk, 'skedRoundRobin')
+                g = sked(guy, otherguy, stalk, 'Tournament')
             else:
-                g = sked(otherguy, guy, stalk, 'skedRoundRobin')
+                g = sked(otherguy, guy, stalk, 'Tournament')
             result.append(g)
     return result
 
