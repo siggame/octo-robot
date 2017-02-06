@@ -306,12 +306,16 @@ def score_games():
 def update_standings(competing_clients):
     global current_round
     f = open("scores.txt", 'w')
+    r = open("scores%s.txt" % (current_round), 'w')
+    b = open("scores%sBackup.txt" % (current_round), 'w')
     for i in competing_clients:
         past = ""
         for k in i.past_competitors:
             past += str(k.name)
             past += "<>"
         f.write("%s+%s+%d+%d+%d+%d+%d+%s\n" % (i.name, str(i.score), i.buchholz, i.sumrate, i.num_black, i.num_white, current_round, past))
+        r.write("%s+%s+%d+%d+%d+%d+%d+%s\n" % (i.name, str(i.score), i.buchholz, i.sumrate, i.num_black, i.num_white, current_round, past))
+        b.write("%s+%s+%d+%d+%d+%d+%d+%s\n" % (i.name, str(i.score), i.buchholz, i.sumrate, i.num_black, i.num_white, current_round, past))
     f.close()    
 
 def schedule_game(i, j, stalk):
