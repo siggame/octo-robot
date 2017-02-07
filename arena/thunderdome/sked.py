@@ -14,6 +14,8 @@ def sked(guy0, guy1, stalk, origin, priority=1000, ttr=400, claimed=True):
     game = Game.objects.create()
     game.status = "Scheduled"
     game.claimed = claimed
+    if origin == 'Tournament':
+        game.tournament = True
     for guy in (guy0, guy1):
         GameData(game=game, client=guy).save()
 
