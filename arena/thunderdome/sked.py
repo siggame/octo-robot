@@ -8,6 +8,7 @@ import time
 
 # My Imports
 from thunderdome.models import Game, GameData
+from thunderdome.config import persistent
 
 def sked(guy0, guy1, stalk, origin, priority=1000, ttr=400, claimed=True):
     '''Schedule these guys for a game'''
@@ -24,6 +25,7 @@ def sked(guy0, guy1, stalk, origin, priority=1000, ttr=400, claimed=True):
                'time_scheduled' : str(time.time()),
                'origin'     : origin,
                'timeout'    : ttr,
+               'persistent' : persistent,
                'clients'    : [{'name' : p.name,
                                 'repo' : p.repo,
                                 'hash' : p.current_version,

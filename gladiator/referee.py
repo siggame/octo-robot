@@ -64,25 +64,55 @@ def looping(stalk):
     game['status'] = "Building"
     # make empty files for all the output files
     for prefix in [x['name'] for x in game['clients']]:
-        for suffix in ['stdout', 'stderr', 'makeout', 'gitout']:
-            with file('%s-%s.txt' % (prefix, suffix), 'w') as f:
-                f.write('empty')
+        if game['persistent']:
+            for suffix in ['stdout', 'stderr']:
+                with file('%s-%s.txt' % (prefix, suffix), 'w') as f:
+                    f.write('empty')
+        else:
+            for suffix in ['stdout', 'stderr', 'makeout', 'gitout']:
+                with file('%s-%s.txt' % (prefix, suffix), 'w') as f:
+                    f.write('empty')
     
     # get latest client code in arena mode.
     # tournament mode will not fail games that clients fail to connect to
-    for client in game['clients']:
+    i0 = False
+    i1 = False
+    for i, client in enumerate(game['clients']):
         stalk.put(json.dumps(game))
         job.touch()
-        if not update_local_repo(client, game['timeout'], job):
-            print "Failing the game, someone didn't clone"
-            game['status'] = "Failed"
-            game['completed'] = str(datetime.now())
-            game['tied'] = False
-            game['tie_reason'] = "The arena was unable to communicate with the webserver"
-            push_datablocks(game)
-            stalk.put(json.dumps(game))
-            job.delete()
-            return
+        if game['persistent']:
+            if not os.path.isdir('./%s' % client['name']):
+                if i == 0:
+                    i0 = True
+                else:
+                    i1 = True
+                if not update_local_repo(client, game['timeout'], job):
+                    print "Failing the game, someone didn't clone"
+                    game['status'] = "Failed"
+                    game['completed'] = str(datetime.now())
+                    game['tied'] = False
+                    game['tie_reason'] = "The arena was unable to communicate with the webserver"
+                    push_datablocks(game)
+                    stalk.put(json.dumps(game))
+                    job.delete()
+                    return
+            else:
+                print "Repo for %s already exists" % client['name']
+        else:
+            if i == 0:
+                i0 = True
+            else:
+                i1 = True
+            if not update_local_repo(client, game['timeout'], job):
+                print "Failing the game, someone didn't clone"
+                game['status'] = "Failed"
+                game['completed'] = str(datetime.now())
+                game['tied'] = False
+                game['tie_reason'] = "The arena was unable to communicate with the webserver"
+                push_datablocks(game)
+                stalk.put(json.dumps(game))
+                job.delete()
+                return
       
     # compile the clients
     stalk.put(json.dumps(game))
@@ -93,24 +123,33 @@ def looping(stalk):
     # ties are ok, but really annoying
 
     for i, client in enumerate(game['clients']):
-        if i == 0:
+        if i == 0 and i0:
             compileProcess0 = multiprocessing.Process(target=compile_client, args=(client,))
             compileProcess0.start()
-        else:
+        elif i1:
             compileProcess1 = multiprocessing.Process(target=compile_client, args=(client,))
             compileProcess1.start()
 
-    compileProcess0.join()
+    if i0:        
+        compileProcess0.join()
     job.touch()
-    compileProcess1.join()
+    if i1:
+        compileProcess1.join()
     job.touch()
     
     for i, client in enumerate(game['clients']):
         if i == 0:
-            client['compiled'] = (compileProcess0.exitcode is 0)
+            if i0:
+                client['compiled'] = (compileProcess0.exitcode is 0)
+                print "result for make in %s was %s" % (client['name'], client['compiled'])
+            else:
+                client['compiled'] = True
         else:
-            client['compiled'] = (compileProcess1.exitcode is 0)
-        print "result for make in %s was %s" % (client['name'], client['compiled'])
+            if i1:
+                client['compiled'] = (compileProcess1.exitcode is 0)
+                print "result for make in %s was %s" % (client['name'], client['compiled'])
+            else:
+                client['compiled'] = True
         if not client['compiled']:
             if game['origin'] != "Tournament": 
                 print "Failing the game, someone didn't compile"

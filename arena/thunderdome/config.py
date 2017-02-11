@@ -19,6 +19,7 @@ api_url_template = a.api_url_template
 client_port = a.client_port
 web_client_port = a.web_client_port
 api_port = a.api_port
+persistent = a.persistent
 
 arena_ami = 'ami-25517132' # current gladiator image id
 tournament_ami = 'ami-55e9f13f' #'ami-a221a9ca' # old touranment
