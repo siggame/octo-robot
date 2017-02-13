@@ -16,6 +16,7 @@ import socket
 import md5
 import zipfile
 import sys
+import shutil
 import multiprocessing
 from time import sleep
 from datetime import datetime 
@@ -64,14 +65,9 @@ def looping(stalk):
     game['status'] = "Building"
     # make empty files for all the output files
     for prefix in [x['name'] for x in game['clients']]:
-        if game['persistent']:
-            for suffix in ['stdout', 'stderr']:
-                with file('%s-%s.txt' % (prefix, suffix), 'w') as f:
-                    f.write('empty')
-        else:
-            for suffix in ['stdout', 'stderr', 'makeout', 'gitout']:
-                with file('%s-%s.txt' % (prefix, suffix), 'w') as f:
-                    f.write('empty')
+        for suffix in ['stdout', 'stderr', 'makeout', 'gitout']:
+            with file('%s-%s.txt' % (prefix, suffix), 'w') as f:
+                f.write('empty')
     
     # get latest client code in arena mode.
     # tournament mode will not fail games that clients fail to connect to
@@ -80,40 +76,18 @@ def looping(stalk):
     for i, client in enumerate(game['clients']):
         stalk.put(json.dumps(game))
         job.touch()
-        if game['persistent']:
-            if not os.path.isdir('./%s' % client['name']):
-                if i == 0:
-                    i0 = True
-                else:
-                    i1 = True
-                if not update_local_repo(client, game['timeout'], job):
-                    print "Failing the game, someone didn't clone"
-                    game['status'] = "Failed"
-                    game['completed'] = str(datetime.now())
-                    game['tied'] = False
-                    game['tie_reason'] = "The arena was unable to communicate with the webserver"
-                    push_datablocks(game)
-                    stalk.put(json.dumps(game))
-                    job.delete()
-                    return
-            else:
-                print "Repo for %s already exists" % client['name']
-        else:
-            if i == 0:
-                i0 = True
-            else:
-                i1 = True
-            if not update_local_repo(client, game['timeout'], job):
-                print "Failing the game, someone didn't clone"
-                game['status'] = "Failed"
-                game['completed'] = str(datetime.now())
-                game['tied'] = False
-                game['tie_reason'] = "The arena was unable to communicate with the webserver"
-                push_datablocks(game)
-                stalk.put(json.dumps(game))
-                job.delete()
-                return
-      
+        if not update_local_repo(client, game['timeout'], job, game['persistent']):
+            print "Failing the game, someone didn't clone"
+            game['status'] = "Failed"
+            game['completed'] = str(datetime.now())
+            game['tied'] = False
+            game['tie_reason'] = "The arena was unable to communicate with the webserver"
+            push_datablocks(game)
+            stalk.put(json.dumps(game))
+            job.delete()
+            return
+        subprocess.call(['mkdir', 'arenaupload/'], cwd=client['name'])
+    
     # compile the clients
     stalk.put(json.dumps(game))
     job.touch()
@@ -123,33 +97,25 @@ def looping(stalk):
     # ties are ok, but really annoying
 
     for i, client in enumerate(game['clients']):
-        if i == 0 and i0:
+        if i == 0:
             compileProcess0 = multiprocessing.Process(target=compile_client, args=(client,))
             compileProcess0.start()
-        elif i1:
+        else:
             compileProcess1 = multiprocessing.Process(target=compile_client, args=(client,))
             compileProcess1.start()
 
-    if i0:        
-        compileProcess0.join()
+    compileProcess0.join()
     job.touch()
-    if i1:
-        compileProcess1.join()
+    compileProcess1.join()
     job.touch()
     
     for i, client in enumerate(game['clients']):
         if i == 0:
-            if i0:
-                client['compiled'] = (compileProcess0.exitcode is 0)
-                print "result for make in %s was %s" % (client['name'], client['compiled'])
-            else:
-                client['compiled'] = True
+            client['compiled'] = (compileProcess0.exitcode is 0)
+            print "result for make in %s was %s" % (client['name'], client['compiled'])
         else:
-            if i1:
-                client['compiled'] = (compileProcess1.exitcode is 0)
-                print "result for make in %s was %s" % (client['name'], client['compiled'])
-            else:
-                client['compiled'] = True
+            client['compiled'] = (compileProcess1.exitcode is 0)
+            print "result for make in %s was %s" % (client['name'], client['compiled'])
         if not client['compiled']:
             if game['origin'] != "Tournament": 
                 print "Failing the game, someone didn't compile"
@@ -415,6 +381,7 @@ def kill_clients(players):
 def compile_client(client):
     ''' Compile the client and return the code returned by make '''
     print 'Making %s/%s' % (os.getcwd(), client['name'])
+    subprocess.call(['make', 'clean'], cwd=client['name'])
     exit(subprocess.call(['make'], cwd=client['name'],
                            stdout=file("%s-makeout.txt" % client['name'], "w"),
                            stderr=subprocess.STDOUT))
@@ -444,11 +411,40 @@ def push_file(local_filename, remote_filename, is_glog):
 
 def push_datablocks(game):
     ''' Make zip files containing client data and push them to s3 '''
+    Size = 0
     for client in game['clients']:
         in_name = "%s-data.zip" % client['name']
+        theirStuff = './%s/arenaupload/' % client['name']
+        theirStuffName = 'yourstuff.zip'
+        maxSize = 314572800
+        tooBig = False
+        with zipfile.ZipFile(theirStuffName, 'w', zipfile.ZIP_DEFLATED, allowZip64 = True) as y:
+            for root, dirs, files in os.walk(theirStuff):
+                for file in files:
+                    y.write(os.path.join(root, file))
+        if os.path.getsize('./%s' % theirStuffName) * 1024 > maxSize: #os measures in KB
+            os.remove(theirStuffName)
+            with open('toobig.txt', 'w') as x:
+                x.write('The contents of your arenaupload folder exceeded %s bytes.' % maxSize)
+            tooBig = True
+            print "%s tried to upload too much" % client['name']
+        else:
+            tooBig = False
         with zipfile.ZipFile(in_name, 'w', zipfile.ZIP_DEFLATED, allowZip64 = True) as z:
             for suffix in ['stdout', 'stderr', 'makeout', 'gitout']:
                 z.write('%s-%s.txt' % (client['name'], suffix))
+            if tooBig:
+                z.write('toobig.txt')
+            else:
+                z.write(theirStuffName)
+        try:
+            os.remove(theirStuffName)
+        except:
+            pass
+        try:
+            shutil.rmtree(theirStuff)
+        except:
+            pass
         salt = md5.md5(str(random.random())).hexdigest()[:5]
         remote = "%s-%s-%s-data.zip" % (game['number'], salt, client['name'])
         client['output_url'] = push_file(in_name, remote, False)
@@ -466,40 +462,41 @@ def push_gamelog(game, glog_location):
     os.remove(gamelog_filename)
 
 
-def update_local_repo(client, timeout, job):
+def update_local_repo(client, timeout, job, persistent):
     '''Get the appropriate code and version from the repository'''
     base_path = os.environ['CLIENT_PREFIX']
     subprocess.call(['rm', '-rf', client['name']],
                     stdout=file('/dev/null'),
                     stderr=subprocess.STDOUT)
-    
-    numFailed = 0
-    max_tries = int(round(timeout / 4))
-    while numFailed < max_tries:        #try to clone max_tries times
-        sys.stderr.write('Clone failed %s times\n' % numFailed)
-        try:
-            print "git clone %s%s client: %s" % (base_path, client['repo'], client['name'])
-            subprocess.call(['git', 'clone',
-                    '%s%s' % (base_path, client['repo']), client['name']],
-                    stdout=file('%s-gitout.txt' % client['name'], 'w'),
-                    stderr=subprocess.STDOUT)
+    if not persistent or not os.path.isdir('./%s' % client['name']):
+        numFailed = 0
+        max_tries = int(round(timeout / 4))
+        while numFailed < max_tries:        #try to clone max_tries times
+            if numFailed != 0:
+                sys.stderr.write('Clone failed %s times\n' % numFailed)
+            try:
+                print "git clone %s%s client: %s" % (base_path, client['repo'], client['name'])
+                subprocess.call(['git', 'clone',
+                        '%s%s' % (base_path, client['repo']), client['name']],
+                        stdout=file('%s-gitout.txt' % client['name'], 'w'),
+                        stderr=subprocess.STDOUT)
 
 
-            subprocess.call(['git', 'checkout', 'master'], cwd=client['name'],
-                    stdout=file('%s-gitout.txt' % client['name'], 'a'),
-                    stderr=subprocess.STDOUT)
-            print "Clone successful!"
-            break
-        except OSError:
-            numFailed += 1      #keep track of how many times
-            print "Clone failed, retrying"
-            if numFailed <= 15:
-                sleep(0.01)         #Wait 10ms before attempting to clone again
-            elif numFailed > 15:
-                sleep(.5)
-        job.touch()
-    if numFailed >= max_tries:
-        return False
+                subprocess.call(['git', 'checkout', 'master'], cwd=client['name'],
+                        stdout=file('%s-gitout.txt' % client['name'], 'a'),
+                        stderr=subprocess.STDOUT)
+                print "Clone successful!"
+                break
+            except OSError:
+                numFailed += 1      #keep track of how many times
+                print "Clone failed, retrying"
+                if numFailed <= 15:
+                    sleep(0.01)         #Wait 10ms before attempting to clone again
+                elif numFailed > 15:
+                    sleep(.5)
+            job.touch()
+        if numFailed >= max_tries:
+            return False
     
     subprocess.call(['git', 'pull'], cwd=client['name'],
                     stdout=file('%s-gitout.txt' % client['name'], 'a'),
