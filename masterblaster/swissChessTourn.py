@@ -288,19 +288,27 @@ def score_games():
                                 x.num_black += 1
             gameC.claimed = True
             gameC.save()
+            for x in competing_clients:
+                if x.name == game_clis[0].client.name:
+                    for y in competing_clients:
+                        if y.name == game_clis[1].client.name:
+                            x.past_competitors.append(y)
+                            y.past_competitors.append(x)
+                            break
+                    break
             uncompleted_games.remove(g)
         elif gameC.status == "Failed":            
             print "Game:", g, "failed, commiting suicide now."
-            exit() # exit the game.
-            # during competition just restart swiss
-            uncompleted_games.remove(g)
-            for x in Game.objects.all():
-                x.claimed = False
-                x.save()
-            for x in Client.objects.all():
-                x.score = 0.0
-                x.save()
-            current_round = 0
+            sys.exit() # exit the game.
+            
+            #uncompleted_games.remove(g)
+            #for x in Game.objects.all():
+            #    x.claimed = False
+            #    x.save()
+            #for x in Client.objects.all():
+            #    x.score = 0.0
+            #    x.save()
+            #current_round = 0
     calc_tie_break()
             
 def update_standings(competing_clients):
@@ -383,14 +391,14 @@ def schedule_game(i, j, stalk):
                     g.claimed = True
                     g.save()
                     score_game = True
+                    i.past_competitors.append(j)
+                    j.past_competitors.append(i)
                     break
             except:
                 print "Found an invalid game, marking failed"
                 g.status = 'Failed'
                 g.save()
                     
-    i.past_competitors.append(j)
-    j.past_competitors.append(i)
     if not score_game:
         uncompleted_games.append(sked(c1, c2, stalk, "Tournament").pk)
     else:
