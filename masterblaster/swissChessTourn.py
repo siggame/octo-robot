@@ -313,9 +313,10 @@ def update_standings(competing_clients):
         for k in i.past_competitors:
             past += str(k.name)
             past += "<>"
-        f.write("%s+%s+%d+%d+%d+%d+%d+%s\n" % (i.name, str(i.score), i.buchholz, i.sumrate, i.num_black, i.num_white, current_round, past))
-        r.write("%s+%s+%d+%d+%d+%d+%d+%s\n" % (i.name, str(i.score), i.buchholz, i.sumrate, i.num_black, i.num_white, current_round, past))
-        b.write("%s+%s+%d+%d+%d+%d+%d+%s\n" % (i.name, str(i.score), i.buchholz, i.sumrate, i.num_black, i.num_white, current_round, past))
+        this_client = Client.objects.get(name=i.name)
+        f.write("%s+%s+%d+%d+%d+%d+%d+%d+%s\n" % (i.name, str(i.score), i.buchholz, i.sumrate, i.num_black, i.num_white, this_client.rating, current_round, past))
+        r.write("%s+%s+%d+%d+%d+%d+%d+%d+%s\n" % (i.name, str(i.score), i.buchholz, i.sumrate, i.num_black, i.num_white, this_client.rating, current_round, past))
+        b.write("%s+%s+%d+%d+%d+%d+%d+%d+%s\n" % (i.name, str(i.score), i.buchholz, i.sumrate, i.num_black, i.num_white, this_client.rating, current_round, past))
     f.close()    
 
 def schedule_game(i, j, stalk):
@@ -437,14 +438,14 @@ def monrad_setup(clients):
             print "Reading in", scoresin[0]
             for i in competing_clients:
                 if scoresin[0] == i.name:
-                    client = Client.objects.get(name=scoresin[0])
-                    client.score = float(scoresin[1])
+                    client = Client.objects.get(name=i.name)
                     i.score = float(scoresin[1])
-                    client.num_black = int(scoresin[4])
-                    client.save()
+                    i.num_black = int(scoresin[4])
                     i.num_white = int(scoresin[5])
-                    current_round = int(scoresin[6])
-                    past_cli = str(scoresin[7]).split("<>")
+                    client.rating = int(scoresin[6])
+                    client.save()
+                    current_round = int(scoresin[7])
+                    past_cli = str(scoresin[8]).split("<>")
                     for x in past_cli:
                         for k in competing_clients:
                             if x == k.name:
