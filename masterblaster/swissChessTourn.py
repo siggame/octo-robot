@@ -40,6 +40,8 @@ eligible = True
 max_rounds = 0
 clientNum = 0
 valid_list = []
+round_games = []
+stalk = None
 class Player():
     def __init__(self, name, score=0.0, rating=0):
         self.name = name
@@ -85,6 +87,8 @@ def main():
     global pullScores
     global clientNum
     global competing_clients
+    global round_games
+    global stalk
     parser = argparse.ArgumentParser(description='Swiss Chess scheduler')
     parser.add_argument('--h', action='store_true', help='Whether to include humans, mainly for the chess tournament')
     parser.add_argument('--r', type=int, default=-1, help='Number of rounds to run')
@@ -101,7 +105,7 @@ def main():
     start_game = args.g
     pullScores = args.s
     CD.main()
-    WI.update_clients()
+    #WI.update_clients()
     print "Include humans", include_humans
     print "Removing non-eligible clients"
     if eligible:
@@ -148,20 +152,123 @@ def main():
     stalk.use(req_tube)
     while current_round <= max_rounds:
         if not uncompleted_games:
-            print "Current Round:", current_round
             if current_round == 0:
                 competing_clients = monrad_setup(cli)
             else:
+                print "Next Round:", current_round
+                calc_tie_break()
+                sort_players()
+                for x in competing_clients:
+                    print x.name, x.score
+                while current_round > 1:
+                    result = raw_input('Would you like to: continue (y), replay game (r) or abort (a): ')
+                    if result == 'y':
+                        break
+                    elif result == 'a':
+                        sys.exit()
+                    elif result == 'r':
+                        print "Games available for replay:"
+                        for x in round_games:
+                            print x
+                        game_choice = -1
+                        try:
+                            game_choice = int(raw_input('What game would you like to replay? '))
+                        except ValueError:
+                            pass
+                        found = False
+                        for x in round_games:
+                            if x == game_choice:
+                                replay(game_choice)
+                                round_games.remove(x)
+                                found = True
+                                break
+                        if not found:
+                            print "That game is not available for replay"
+                        continue
+                    else:
+                        print "Invaild input"
+                if current_round > 1:
+                    replayedGames = False
+                    while uncompleted_games:
+                        time.sleep(1)
+                        score_games()
+                        replayedGames = True
+                    if replayedGames:
+                        result = raw_input('Did those darn kids break something else? (y/n) ')
+                        if result == 'n':
+                            print "Kool let's go then"
+                            del round_games[:]
+                        elif result == 'y':
+                            print "Those darn whippersnappers"
+                            continue
+                        else:
+                            print "I'm gonna take that as a yes"
+                            continue
+                    else:
+                        del round_games[:]
                 calc_tie_break()
                 sort_players()
                 update_standings(competing_clients)
-                monrad_schedule(stalk)
+                print "Beginning Round:", current_round
+                monrad_schedule()
         else:
             score_games()
         time.sleep(1)
     while uncompleted_games:
         time.sleep(1)
         score_games()
+    calc_tie_break()
+    sort_players()
+    for x in competing_clients:
+        print x.name, x.score
+    whippersnappers = True
+    while whippersnappers:
+        while True:  #Hold here until the user says continue
+            result = raw_input('Would you like to: continue (y), replay game (r) or abort (a): ')
+            if result == 'y':
+                break
+            elif result == 'a':
+                sys.exit()
+            elif result == 'r':
+                print "Games available for replay:"
+                for x in round_games:
+                    print x
+                game_choice = -1
+                try:
+                    game_choice = int(raw_input('What game would you like to replay? '))
+                except ValueError:
+                    pass
+                found = False
+                for x in round_games:
+                    if x == game_choice:
+                        replay(game_choice)
+                        round_games.remove(x)
+                        found = True
+                        break
+                if not found:
+                    print "That game is not available for replay"
+            else:
+                print "Invaild input"
+        replayedGames = False
+        while uncompleted_games:
+            time.sleep(1)
+            score_games()
+            replayedGames = True
+        if replayedGames:
+            result = raw_input('So did you guys manage to break more games? (y/n) ')
+            if result == 'n':
+                print "Good, lets get going shall we?"
+                del round_games[:]
+                whippersnappers = False
+            elif result == 'y':
+                print "*Tries to think of a movie reference to make fun of you, fails* Let's try this again"
+                whippersnappers = True
+            else:
+                print "You're trying to crash me aren't you, well you can't (btw I'm taking that as a yes)"
+                whippersnappers = True
+        else:
+            del round_games[:]
+            whippersnappers = False
     calc_tie_break()
     sort_players()
     update_standings(competing_clients)
@@ -173,15 +280,122 @@ def main():
             if x.score == c.score and x.buchholz == c.buchholz and x.sumrate == c.sumrate and x.num_black == c.num_black:
                 tied = True
                 print "There was a tie! Playing another round"
+    first = True
     while tied:
-        print "Current Round:", current_round
+        print "Next Round:", current_round
         calc_tie_break()
         sort_players()
-        update_standings(competing_clients)
-        monrad_schedule(stalk, True)
+        for x in competing_clients:
+            print x.name, x.score
+        if first:
+            result = 'y'
+            first = False
+        else:
+            result = raw_input('Would you like to: continue (y), replay game (r) or abort (a): ')
+        if result == 'y':
+            pass
+        elif result == 'a':
+            sys.exit()
+        elif result == 'r':
+            print "Games available for replay:"
+            for x in round_games:
+                print x
+            game_choice = -1
+            try:
+                game_choice = int(raw_input('What game would you like to replay? '))
+            except ValueError:
+                pass
+            found = False
+            for x in round_games:
+                if x == game_choice:
+                    replay(game_choice)
+                    round_games.remove(x)
+                    found = True
+                    break
+            if not found:
+                print "That game is not available for replay"
+            continue
+        else:
+            print "Invalid input"
+            continue
+        replayedGames = False
         while uncompleted_games:
             time.sleep(1)
             score_games()
+            replayedGames = True
+        if replayedGames:
+            result = raw_input('Your games are scored, we good? (y/n) ')
+            if result == 'n':
+                print "WOW"
+                continue
+            elif result == 'y':
+                print "Good, let's get back on track"
+                del round_games[:]
+            else:
+                print "All I wanted was y or n, now you have to answer more prompts"
+                continue
+        else:
+            del round_games[:]
+        calc_tie_break()
+        sort_players()
+        update_standings(competing_clients)
+        print "Beginning Round:", current_round
+        monrad_schedule(True)
+        while uncompleted_games:
+            time.sleep(1)
+            score_games()
+        calc_tie_break()
+        sort_players()
+        whippersnappers = True
+        while whippersnappers:
+            while True:  #Hold here until user says continue
+                for x in competing_clients:
+                    print x.name, x.score
+                result = raw_input('Would you like to: continue (y), replay game (r) or abort (a): ')
+                if result == 'y':
+                    break
+                elif result == 'a':
+                    sys.exit()
+                elif result == 'r':
+                    print "Games available for replay:"
+                    for x in round_games:
+                        print x
+                    game_choice = -1
+                    try:
+                        game_choice = int(raw_input('What game would you like to replay? '))
+                    except ValueError:
+                        pass
+                    found = False
+                    for x in round_games:
+                        if x == game_choice:
+                            replay(game_choice)
+                            round_games.remove(x)
+                            found = True
+                            break
+                    if not found:
+                        print "That game is not available for replay"
+                else:
+                    print "Invalid input"
+            replayedGames = False
+            while uncompleted_games:
+                time.sleep(1)
+                score_games()
+                replayedGames = True
+            if replayedGames:
+                result = raw_input('Games are scored, you need to replay any more? (y/n) ')
+                if result == 'y':
+                    print "Kool, let try that again"
+                    whippersnappers = True
+                elif result == 'n':
+                    print "OK, gotta go fast *sanic noise*"
+                    del round_games[:]
+                    whippersnappers = False
+                else:
+                    print "You know I did list the valid choices. I'm assuming you wanted to replay more"
+                    whippersnappers = True
+            else:
+                del round_games[:]
+                whippersnappers = False
         calc_tie_break()
         sort_players()
         update_standings(competing_clients)
@@ -194,7 +408,62 @@ def main():
                     tied = True
                     print "There was a tie! Playing another round"
     do_another = True
+    first = True
     while do_another:
+        for x in competing_clients:
+            print x.name, x.score
+        if first:
+            result = 'y'
+            first = False
+        else:
+            result = raw_input('Would you like to: continue (y), replay game (r) or abort (a): ')
+        if result == 'y':
+            pass
+        elif result == 'a':
+            sys.exit()
+        elif result == 'r':
+            print "Games available for replay:"
+            for x in round_games:
+                print x
+            game_choice = -1
+            try:
+                game_choice = int(raw_input('What game would you like to replay? '))
+            except ValueError:
+                pass
+            found = False
+            for x in round_games:
+                if x == game_choice:
+                    replay(game_choice)
+                    round_games.remove(x)
+                    found = True
+                    break
+            if not found:
+                print "That game is not available for replay"
+            continue
+        else:
+            print "Invaild input"
+            continue
+        replayedGames = False
+        while uncompleted_games:
+            time.sleep(1)
+            score_games()
+            replayedGames = True
+        if replayedGames:
+            result = raw_input('Your games are scored, we good? (y/n) ')
+            if result == 'n':
+                print "WOW"
+                continue
+            elif result == 'y':
+                print "Oh boy! I think we're almost done!"
+                del round_games[:]
+            else:
+                print "All I wanted was y or n, now you have to answer more prompts"
+                continue
+        else:
+            del round_games[:]
+        calc_tie_break()
+        sort_players()
+        update_standings(competing_clients)
         print 'Current rankings:'
         for x in competing_clients:
             print x.name, x.score, x.buchholz, x.sumrate, x.num_black
@@ -202,16 +471,12 @@ def main():
         play_again = raw_input('Play another round?(y/n): ')
         if play_again == 'y':
             print "Current Round:", current_round
-            calc_tie_break()
-            sort_players()
-            update_standings(competing_clients)
-            monrad_schedule(stalk)
+            monrad_schedule()
             while uncompleted_games:
                 time.sleep(1)
                 score_games()
             calc_tie_break()
             sort_players()
-            update_standings(competing_clients)
             for x in competing_clients:
                 for c in competing_clients:
                     if x.name == c.name:
@@ -254,6 +519,7 @@ def score_games():
     '''go through the games and set the corresponding scores of each game'''
     global competing_clients
     global current_round
+    global round_games
     for g in list(uncompleted_games):
         try:
             gameC = Game.objects.get(pk=g)
@@ -288,6 +554,7 @@ def score_games():
                                 x.num_black += 1
             gameC.claimed = True
             gameC.save()
+            #round_games.append(gameC.pk) #Shouldn't do here b/c it's done in schedule_game?
             for x in competing_clients:
                 if x.name == game_clis[0].client.name:
                     for y in competing_clients:
@@ -299,8 +566,10 @@ def score_games():
             uncompleted_games.remove(g)
         elif gameC.status == "Failed":            
             print "Game:", g, "failed, commiting suicide now."
-            sys.exit() # exit the game.
-            
+            #sys.exit() # exit the game.
+            #Attempt to reschedule the game
+            replay(int(g))
+            uncompleted_games.remove(g)
             #uncompleted_games.remove(g)
             #for x in Game.objects.all():
             #    x.claimed = False
@@ -327,8 +596,10 @@ def update_standings(competing_clients):
         b.write("%s+%s+%d+%d+%d+%d+%d+%d+%s\n" % (i.name, str(i.score), i.buchholz, i.sumrate, i.num_black, i.num_white, this_client.rating, current_round, past))
     f.close()    
 
-def schedule_game(i, j, stalk):
+def schedule_game(i, j):
     global start_game
+    global round_games
+    global stalk
     c1 = Client.objects.get(name=i.name)
     c2 = Client.objects.get(name=j.name)
     # first player is white
@@ -345,6 +616,7 @@ def schedule_game(i, j, stalk):
                 if game_clients[0].client.name == c1.name and game_clients[1].client.name == c2.name:
                     print "Found game", g, "already played, using that"
                     print game_clients[0].client.name, "vs", game_clients[1].client.name
+                    round_games.append(g.pk)
                     if g.tied:
                         print "Draw!"
                         for k, c in enumerate(game_clients):
@@ -400,7 +672,9 @@ def schedule_game(i, j, stalk):
                 g.save()
                     
     if not score_game:
-        uncompleted_games.append(sked(c1, c2, stalk, "Tournament").pk)
+        new_game = sked(c1, c2, stalk, "Tournament").pk
+        uncompleted_games.append(new_game)
+        round_games.append(new_game)
     else:
         i = calc_tie_break([i])
         j = calc_tie_break([j])
@@ -466,7 +740,7 @@ def monrad_setup(clients):
     return competing_clients
 
 
-def monrad_schedule(stalk, tie_breaker=False):
+def monrad_schedule(tie_breaker=False):
     global current_round
     global clientNum
     global competing_clients
@@ -475,8 +749,6 @@ def monrad_schedule(stalk, tie_breaker=False):
     a = []
     calc_tie_break()
     sort_players()
-    for x in competing_clients:
-        print x.name, x.score
     hold = False
     for i, x in enumerate(competing_clients):
         if i % 2 == 0 and not hold:
@@ -658,7 +930,7 @@ def monrad_schedule(stalk, tie_breaker=False):
         to_schedule = valid_list.pop(0)
 
     for x in to_schedule:
-        schedule_game(x.pop(0), x.pop(0), stalk)
+        schedule_game(x.pop(0), x.pop(0))
     if odd and len(to_schedule) > 0:
         print y.name, "gets a bye"
         y.score += 1
@@ -757,6 +1029,44 @@ def try_matchup(p):
     if not try_again:
         valid_list.append(to_schedule)
 
+def replay(game_number):
+    #ALRIGHT people lets figure out how to unscore a game and then reschedule it
+    global competing_clients
+    game = Game.objects.get(pk=game_number)
+    game_clients = list(game.gamedata_set.all())
+    p0 = game_clients[0].client.name
+    p1 = game_clients[1].client.name
+    #remove clients from previously played list and decrimente black and white counts approprately
+    if game.status == "Complete":
+        for x in competing_clients:
+            for y in competing_clients:
+                if x.name == p0 and y.name == p1:
+                    x.past_competitors.remove(y)
+                    y.past_competitors.remove(x)
+                    x.num_white -= 1
+                    y.num_black -= 1
+                    break
+    #subtract scores
+    if not game.tied and game.status == "Complete":
+        for x in competing_clients:
+            if x.name == game.winner.name:
+                x.score -= 1
+                break
+    elif game.status == "Complete":
+        for x in competing_client:
+            if x.name == p0 or x.name == p1:
+                x.score -= 0.5
+    #make sure the game is not reused
+    game.status = 'Failed'
+    game.save()
+    #reschedule the game
+    for x in competing_clients:
+        for y in competing_clients:
+            if x.name == p0 and y.name == p1:
+                print "Rescheduling game %d" % game_number
+                schedule_game(x, y)
+                return
+        
 if __name__ == "__main__":
     main()
 
