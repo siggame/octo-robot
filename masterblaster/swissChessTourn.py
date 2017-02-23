@@ -105,7 +105,7 @@ def main():
     start_game = args.g
     pullScores = args.s
     CD.main()
-    #WI.update_clients()
+    #WI.update_clients() Should not update clients as this is a tournament
     print "Include humans", include_humans
     print "Removing non-eligible clients"
     if eligible:

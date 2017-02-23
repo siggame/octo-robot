@@ -46,7 +46,7 @@ def main():
     stalk = beanstalkc.Connection()
     req_tube = "game-requests-%s" % game_name
     stalk.use(req_tube)
-    update_clients()
+    #update_clients()  #Should not update clients as this is a tournament
     clients = list(Client.objects.filter(eligible=True).filter(embargoed=False).filter(missing=False))
     
     # remove humans
