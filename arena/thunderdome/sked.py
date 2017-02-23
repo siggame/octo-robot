@@ -8,12 +8,15 @@ import time
 
 # My Imports
 from thunderdome.models import Game, GameData
+from thunderdome.config import persistent
 
 def sked(guy0, guy1, stalk, origin, priority=1000, ttr=400, claimed=True):
     '''Schedule these guys for a game'''
     game = Game.objects.create()
     game.status = "Scheduled"
     game.claimed = claimed
+    if origin == 'Tournament':
+        game.tournament = True
     for guy in (guy0, guy1):
         GameData(game=game, client=guy).save()
 
@@ -22,6 +25,7 @@ def sked(guy0, guy1, stalk, origin, priority=1000, ttr=400, claimed=True):
                'time_scheduled' : str(time.time()),
                'origin'     : origin,
                'timeout'    : ttr,
+               'persistent' : persistent,
                'clients'    : [{'name' : p.name,
                                 'repo' : p.repo,
                                 'hash' : p.current_version,

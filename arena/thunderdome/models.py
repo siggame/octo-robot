@@ -335,6 +335,7 @@ class ArenaConfig(models.Model):
     client_port = models.IntegerField(default=3000) # Port that the clients will connect to
     web_client_port = models.IntegerField(default=3088) # Port that the web clients will connect to
     api_port = models.IntegerField(default=3080) # Port that the gameserver status will be at
+    persistent = models.BooleanField(default=False)
     
     parameters = {'active' : active,
                   'config_game' : config_name,
@@ -345,7 +346,8 @@ class ArenaConfig(models.Model):
                   'api_url_template' : api_url_template,
                   'client_port' : client_port,
                   'web_client_port' : web_client_port,
-                  'api_port' : api_port}
+                  'api_port' : api_port,
+                  'persistent' : persistent}
     
     def __unicode__(self):
         return "Active" + str(self.active) + "\n Config name " + str(self.config_name) + \
