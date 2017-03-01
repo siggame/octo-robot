@@ -19,9 +19,9 @@ def skedRoundRobin(group, numGames, stalk):
     for (guy, otherguy) in combinations(group, 2):
         for counter in range(numGames):
             if (counter % 2):
-                g = sked(guy, otherguy, stalk, 'Tournament')
+                g = sked(guy, otherguy, stalk, 'Tournament', 10000)
             else:
-                g = sked(otherguy, guy, stalk, 'Tournament')
+                g = sked(otherguy, guy, stalk, 'Tournament', 10000)
             results.append(g)
     return
 
@@ -33,7 +33,7 @@ def validateResults(stalk):
         if i.status == "Failed":
             print "Game ", i, "Failed"
             game_clients = list(i.gamedata_set.all())
-            g = sked(game_clients[0].client, game_clients[1].client, stalk, 'Tournament')
+            g = sked(game_clients[0].client, game_clients[1].client, stalk, 'Tournament', 10000)
             results.append(g)
             results.remove(i)
             return False

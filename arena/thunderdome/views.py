@@ -303,7 +303,7 @@ def inject(request):
             stalk = beanstalkc.Connection()
             stalk.use('game-requests-%s' % game_name)
             game = sked(clientOne, clientTwo, stalk,
-                        "Priorty Game Request", 0)
+                        "Priority Game Request", 0)
             stalk.close()
             return HttpResponseRedirect('view/%s' % game.pk)
     else:
