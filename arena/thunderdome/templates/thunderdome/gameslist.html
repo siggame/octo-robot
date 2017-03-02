@@ -63,6 +63,7 @@ ACM SIG-Game MegaMiner Arena (Thunderdome)
     {% if data.game == game %}
       {% if client.name == data.client.name %}
         <td><a href="{{ data.output_url }}"> A link that probably works</a></td>
+	<td>{{ data.version }}</td>
       {% endif %}
     {% endif %}
   {% endfor %}
