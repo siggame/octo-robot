@@ -27,6 +27,7 @@ from utilities import webinteraction as WI
 
 import scheduler_validating as SV
 import clean_database as CD
+import embargo_shellai as ESAI
 from scheduler_tournament import finish
 from collections import defaultdict
 
@@ -116,6 +117,7 @@ def main():
         for i in Client.objects.all():
             if i.language == "Human":
                 i.delete()
+    ESAI.embargo_shellai()  #Embargo all shell ai clients
     print "Success!"
     print "Reseting scores"
     cli = Client.objects.filter(embargoed=False).filter(missing=False)
