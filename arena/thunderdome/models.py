@@ -203,9 +203,9 @@ class InjectedGameForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super(InjectedGameForm, self).__init__(*args, **kwargs)
         self.fields['clientOne'].choices = [(x.pk, x.name) for x in 
-                                            Client.objects.all()]
+                                            Client.objects.all().order_by('name')]
         self.fields['clientTwo'].choices = [(x.pk, x.name) for x in
-                                            Client.objects.all()]
+                                            Client.objects.all().order_by('name')]
 
 class SearchGamesForm(forms.Form):
     client = forms.ChoiceField()
@@ -216,7 +216,7 @@ class SearchGamesForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super(SearchGamesForm, self).__init__(*args, **kwargs)
         self.fields['client'].choices = [(x.pk, x.name) for x in
-                                         Client.objects.filter(missing=False)]
+                                         Client.objects.filter(missing=False).order_by('name')]
 
 class Match(models.Model):
     ### A multi-game match

@@ -176,6 +176,9 @@ def handle_completion(request, game):
         if x.last_update < datetime.now() - timedelta(hours=1):
             x.dead = True
         x.save()
+    for x in Referee.objects.filter(dead=True):
+        if x.last_update < datetime.now() - timedelta(hours=4):
+            x.delete()
 
 def assign_elo(winner, loser):
     delta = winner.rating - loser.rating
