@@ -210,7 +210,8 @@ def looping(stalk):
     
     # check if we timed out waiting for clients to connect
     if current_time - start_time > MAX_TIME:
-        kill_clients(players)
+        killDaPlayers = multiprocessing.Process(target=kill_clients, args=(players,))
+        killDaPlayers.start()
         if game['origin'] != "Tournament":
             print "Failing the game, only %d clients connected" % (len(game_server_status['clients']))
             game['status'] = "Failed"
@@ -282,9 +283,10 @@ def looping(stalk):
         game_server_status = requests.get('http://%s:%s/status/%s/%s' %
                              (game_server_ip, os.environ['API_PORT'], game_name, game['number'])).json()
 	
-	
+    killDaPlayers = multiprocessing.Process(target=kill_clients, args=(players,))
+    killDaPlayers.start()
+        
     if current_time - start_time > MAX_TIME:
-        kill_clients(players)
         print "Failing game, took to long"
 	game['clients'][0]['gamservdied'] = True
 	game['clients'][1]['gamservdied'] = True
@@ -297,9 +299,6 @@ def looping(stalk):
 	job.delete()
         return
     
-    
-    kill_clients(players)
-
     game_server_status = requests.get('http://%s:%s/status/%s/%s' %
                          (game_server_ip, os.environ['API_PORT'], game_name, game['number'])).json()
     
@@ -369,6 +368,7 @@ def looping(stalk):
 
 
 def kill_clients(players):
+    sleep(40)
     for x in players:
 	try:
 	    print "*************************************** die", x.pid
