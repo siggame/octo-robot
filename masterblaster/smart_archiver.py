@@ -175,9 +175,11 @@ def handle_completion(request, game):
         x.games_done = x.games_completed()
         if x.last_update < datetime.now() - timedelta(hours=1):
             x.dead = True
+            print "Referee %s/%s has not been heard from for an hour, marking dead" % (x.blaster_id, x.referee_id)
         x.save()
     for x in Referee.objects.filter(dead=True):
         if x.last_update < datetime.now() - timedelta(hours=4):
+            print "Referee %s/%s has not been heard from for 4 hours, deleting" % (x.blaster_id, x.referee_id)
             x.delete()
 
 def assign_elo(winner, loser):
