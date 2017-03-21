@@ -1,0 +1,12 @@
+{% extends "thunderdome/base.html" %}
+{% block title %}
+View Statistics for a Client
+{% endblock %}
+
+{% block content %}
+<form method='POST' action="{% url 'thunderdome.views.gamestatistics' %}">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <input type='submit' value='Submit' />
+</form>
+{% endblock %}

@@ -23,8 +23,8 @@ from django.db.models import Max, Q
 
 # My Imports
 from thunderdome.config import game_name, access_cred, secret_cred
-from thunderdome.models import Client, Game, ArenaConfig, GameData
-from thunderdome.models import Match, Referee, InjectedGameForm, SettingsForm, SearchGamesForm
+from thunderdome.models import Client, Game, ArenaConfig, GameData, WinRatePrediction
+from thunderdome.models import Match, Referee, InjectedGameForm, SettingsForm, SearchGamesForm, GameStatisticsForm
 from thunderdome.sked import sked
 
 from k_storage.models import DataPoint
@@ -311,6 +311,27 @@ def inject(request):
     payload = {'form': form}
     payload.update(csrf(request))
     return render_to_response('thunderdome/inject.html', payload)
+
+@login_required(login_url='/admin')
+def gamestatistics(request):
+    ### Used for showing win predictions
+    if request.method == 'POST':
+        form = GameStatisticsForm(request.POST)
+        if form.is_valid():
+            client = get_object_or_404(
+                Client, pk__iexact=form.cleaned_data['client'])
+            return HttpResponseRedirect('clientstatistics/%s' % client.name)
+    else:
+        form = GameStatisticsForm()
+    payload = {'form': form}
+    payload.update(csrf(request))
+    return render_to_response('thunderdome/winpredictions.html', payload)
+
+@login_required(login_url='/admin')
+def clientstatistics(request, clientname):
+    client = Client.objects.get(name=clientname)
+    winstats = WinRatePrediction.objects.filter(winner=client).order_by('-prediction')
+    return render_to_response('thunderdome/clientstatistics.html', {'client':client, 'winstats':winstats})
 
 @login_required(login_url='/admin')
 def searchgames(request):

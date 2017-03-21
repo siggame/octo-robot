@@ -35,6 +35,8 @@ urlpatterns = patterns(
     url(r'^howtodev$', 'howtodev'),
     url(r'^clients$', 'display_clients'),
     url(r'^swissTurn$', 'human_swiss'),
+    url(r'^gamestatistics$', 'gamestatistics'),
+    url(r'^clientstatistics/(?P<clientname>[\w\-]+)$', 'clientstatistics'),
     url(r'^api/', include(v1_api.urls)),
     url(r'^api/get_clients$', 'get_clients'),
     url(r'^api/get_scores$', 'get_chess_scores'),

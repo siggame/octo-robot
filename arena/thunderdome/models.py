@@ -218,6 +218,15 @@ class SearchGamesForm(forms.Form):
         self.fields['client'].choices = [(x.pk, x.name) for x in
                                          Client.objects.filter(missing=False).order_by('name')]
 
+class GameStatisticsForm(forms.Form):
+    ### Used to view win preditions
+    client = forms.ChoiceField()
+
+    def __init__(self, *args, **kwargs):
+        super(GameStatisticsForm, self).__init__(*args, **kwargs)
+        self.fields['client'].choices = [(x.pk, x.name) for x in
+                                            Client.objects.all().order_by('name')]
+    
 class Match(models.Model):
     ### A multi-game match
     p0 = models.ForeignKey(Client, null=True, blank=True,
