@@ -35,6 +35,7 @@ class Client(models.Model):
     buchholz = models.FloatField(default=0.0)
     sumrate = models.FloatField(default=0.0)
     num_black = models.FloatField(default=0.0)
+    winrate = models.FloatField(default=0.0)
 
     def inc_score(self, delta):
         # wishing for an atomic increment
