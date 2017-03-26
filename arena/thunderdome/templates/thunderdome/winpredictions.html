@@ -1,0 +1,42 @@
+{% extends "thunderdome/base.html" %}
+{% load forloopinterate %}
+
+{% block title %}
+View Statistics for a Client
+{% endblock %}
+
+{% block content %}
+
+<h1>Client Statistics</h1>
+
+<form method='POST' action="{% url 'thunderdome.views.gamestatistics' %}">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <input type='submit' value='Submit' />
+</form>
+
+<table border="0">
+  <tr><td style="text-align:right"><b>Team</b></td></tr>
+  {% for x in clients %}
+    <tr>
+      <td style="text-align:right">{{ x.name }}</td>
+      {% for y in colors|index:forloop.counter0 %}
+        {% if y == "#ffffff" %}
+          <td style="valign:middle;text-align:center;">X</td>
+        {% else %}
+          <td bgcolor="{{ y }}"></td>
+        {% endif %}
+      
+      {% endfor %}
+    </tr>
+  {% endfor %}
+  <tr>
+    <td style="vertical-align:middle"><p style="height:225px;text-align:right;"><b>Opponent</b></p></td>
+    {% for x in clients %}
+      <td style="vertical-align:top;"><p style="-webkit-transform:rotate(45deg);width:18px;white-space:nowrap;text-align:right;font-size:17px;">{{ x.name }}</p></td>
+    {% endfor %}
+  </tr>
+  <tr><td></td><td bgcolor="#5656ff" align="center" colspan="{{ clients|length }}"><b><font style=color:#15ff00>100-95%</font><font style=color:#7fff00>  95-90%</font><font style=color:#bfff00>  90-75%</font><font style=color:#fff200>  75-50%</font><font style=color:#ff9000>  50-25%</font><font style=color:#ff0000>  25-0%</font></b></td></tr>
+</table>
+
+{% endblock %}

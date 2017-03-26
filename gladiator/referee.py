@@ -422,7 +422,7 @@ def push_datablocks(game):
             for root, dirs, files in os.walk(theirStuff):
                 for file in files:
                     y.write(os.path.join(root, file))
-        if os.path.getsize('./%s' % theirStuffName) * 1024 > maxSize: #os measures in KB
+        if os.path.getsize('./%s' % theirStuffName) > maxSize:
             os.remove(theirStuffName)
             with open('toobig.txt', 'w') as x:
                 x.write('The contents of your arenaupload folder exceeded %s bytes.' % maxSize)

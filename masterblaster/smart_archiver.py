@@ -19,6 +19,7 @@ from collections import defaultdict
 # Non-Django 3rd Party Imports
 import beanstalkc
 import json
+from bulk_update.helper import bulk_update
 
 # My Imports
 from thunderdome.config import game_name
@@ -175,9 +176,11 @@ def handle_completion(request, game):
         x.games_done = x.games_completed()
         if x.last_update < datetime.now() - timedelta(hours=1):
             x.dead = True
+            print "Referee %s/%s has not been heard from for an hour, marking dead" % (x.blaster_id, x.referee_id)
         x.save()
     for x in Referee.objects.filter(dead=True):
         if x.last_update < datetime.now() - timedelta(hours=4):
+            print "Referee %s/%s has not been heard from for 4 hours, deleting" % (x.blaster_id, x.referee_id)
             x.delete()
 
 def assign_elo(winner, loser):
@@ -208,7 +211,16 @@ def adjust_win_rate(w, l, alpha=0.15):
     print "Prediction Updated:", l.name, old_lose.prediction, "to", lose_p.prediction
     win_p.save()
     lose_p.save()
-
+    clients = Client.objects.filter(missing=False).exclude(current_tag__iexact='shellai')
+    winpredicts = WinRatePrediction.objects.exclude(winner__current_tag__iexact='shellai').exclude(loser__current_tag__iexact='shellai')
+    wins = 0.0
+    for client in clients:
+        wins = 0.0
+        for w in winpredicts:
+            if w.winner == client:
+                wins += w.prediction
+        client.winrate = wins
+    bulk_update(clients)
 
 if __name__ == "__main__":
     main()

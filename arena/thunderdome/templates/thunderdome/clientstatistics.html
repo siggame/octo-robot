@@ -1,0 +1,37 @@
+{% extends "thunderdome/base.html" %}
+{% load url from future %}
+
+{% block title %}
+ACM SIG-Game MegaMiner Arena (Thunderdome)
+{% endblock %}
+
+{% block content %}
+<h1>{{ client.name }}'s Win Statistics</h1>
+
+
+<table border="2" style="width:100%">
+<tr><b><td>Opponent</td><td>Win Rate</td></b></tr>
+
+{% for prediction in winstats %}
+  {% if prediction.prediction >= 0.95 %}
+    <tr bgcolor="#15ff00">
+  {% elif prediction.prediction >= 0.9 %}
+    <tr bgcolor="#7fff00">
+  {% elif prediction.prediction >= 0.75 %}
+    <tr bgcolor="#bfff00">
+  {% elif prediction.prediction >= 0.5 %}
+    <tr bgcolor="#fff200">
+  {% elif prediction.prediction >= 0.25 %}
+    <tr bgcolor="#ff9000">
+  {% else %}
+    <tr bgcolor="#ff0000">    
+  {% endif %}
+  <td>{{ prediction.loser.name }}</td>
+  <td>{{ prediction.prediction }}</td>
+  </tr>
+{% endfor %}
+
+
+</table>
+
+{% endblock %}
