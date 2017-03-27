@@ -32,9 +32,7 @@ def main():
     args = parser.parse_args()
     print args
     if args.r:
-        for x in Game.objects.all():
-            x.score = -1
-            x.save()
+        Game.objects.all().update(score=-1)
         for x in GameStats.objects.all():
             x.delete()
     try:
@@ -50,8 +48,10 @@ def main():
     win_reasons = []
     try:
         f = open('win_reasons.txt', 'r')
+        print 'Analyzing with win reasons:'
         for line in f:
             win_reasons.append(line.strip())
+            print line.strip()
         f.close()
     except:
         print "Couldn't read in win_reasons.txt"
