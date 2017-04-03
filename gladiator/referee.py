@@ -287,7 +287,7 @@ def looping(stalk):
     killDaPlayers.start()
         
     if current_time - start_time > MAX_TIME:
-        print "Failing game, took to long"
+        print "Failing game, took too long"
 	game['clients'][0]['gamservdied'] = True
 	game['clients'][1]['gamservdied'] = True
 	game['status'] = "Failed"

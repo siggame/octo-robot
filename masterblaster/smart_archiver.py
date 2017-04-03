@@ -59,7 +59,7 @@ def main():
 
     while True:
         job = stalk.reserve()
-        request = json.loads(job.body)
+        request = json.loads(job.body, strict=False)
         try:
             game = Game.objects.get(id=int(request['number']))
         except:
