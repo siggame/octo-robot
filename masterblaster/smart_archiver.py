@@ -19,7 +19,6 @@ from collections import defaultdict
 # Non-Django 3rd Party Imports
 import beanstalkc
 import json
-from bulk_update.helper import bulk_update
 
 # My Imports
 from thunderdome.config import game_name
@@ -59,7 +58,7 @@ def main():
 
     while True:
         job = stalk.reserve()
-        request = json.loads(job.body)
+        request = json.loads(job.body, strict=False)
         try:
             game = Game.objects.get(id=int(request['number']))
         except:
@@ -220,7 +219,7 @@ def adjust_win_rate(w, l, alpha=0.15):
             if w.winner == client:
                 wins += w.prediction
         client.winrate = wins
-    bulk_update(clients)
+        client.save()
 
 if __name__ == "__main__":
     main()

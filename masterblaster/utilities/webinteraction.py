@@ -4,7 +4,7 @@ import json
 
 from thunderdome.config import api_url_template, game_name
 from thunderdome.config import WEBSITE_USER_NAME, WEBSITE_ARENA_PASSWORD
-from thunderdome.models import Client
+from thunderdome.models import Client, WinRatePrediction
 
 # requests.packages.urllib3.disable_warnings()
 
@@ -104,6 +104,10 @@ def makeClient(block):
     client.game_name = game_name
     client.language = block['language']
     client.save()
+    for x in Client.objects.all():
+        if client.name != x.name:
+            a = WinRatePrediction.objects.get_or_create(winner=x, loser=client)
+            b = WinRatePrediction.objects.get_or_create(winner=client, loser=x)
     return client
 
 
