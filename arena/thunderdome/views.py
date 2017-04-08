@@ -323,8 +323,8 @@ def gamestatistics(request):
             return HttpResponseRedirect('clientstatistics/%s' % client.name)
     else:
         form = GameStatisticsForm()
-    winpredicts = WinRatePrediction.objects.exclude(winner__current_tag__iexact='shellai').exclude(loser__current_tag__iexact='shellai')
-    clients = Client.objects.filter(missing=False).exclude(current_tag__iexact='shellai').order_by('-winrate')
+    winpredicts = WinRatePrediction.objects.exclude(winner__current_tag__iexact='shellai').exclude(loser__current_tag__iexact='shellai').exclude(winner__embargo_reason__icontains='cheat').exclude(loser__embargo_reason__icontains='cheat')
+    clients = Client.objects.filter(missing=False).exclude(current_tag__iexact='shellai').exclude(embargo_reason__icontains='cheat').order_by('-winrate')
     colors = []
     for i, x in enumerate(clients):
         colors.append([])
