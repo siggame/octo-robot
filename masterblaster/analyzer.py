@@ -111,7 +111,7 @@ def analyse_game(game):
     gamestats.save()
     
     #Begin scoring
-    if file_size > (gamestats.maxSize * 0.2) and file_size < (gamestats.maxSize * 0.7):
+    if file_size > (gamestats.maxSize * 0.2) and file_size < (gamestats.maxSize * 0.6):
         game.score += 1
         print "Game", game, "is an interesting length!"
     if not game.discon_happened:

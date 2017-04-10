@@ -36,24 +36,36 @@ def main():
     else:
        ref_count = 1
     time.sleep(10)
-    server_p = start_server()
+    try:
+        server_p = start_server()
+    except:
+        print sys.exc_info()[0]
     referees = []
     running_count = 0
-    for i in range(1, ref_count+1):
-        referees.append(start_referee(i))
-        running_count += 1
+    try:
+        for i in range(1, ref_count+1):
+            referees.append(start_referee(i))
+            running_count += 1
+    except:
+        print sys.exc_info()[0]
     while True: 
         if server_p.poll() is not None:
-            server_p = start_server()
+            try:
+                server_p = start_server()
+            except:
+                print sys.exc_info()[0]
         for i in list(referees):
             if i.poll() is not None:
                 referees.remove(i)
         if len(referees) != ref_count:
             num_startrefs = ref_count - len(referees)
             count = running_count
-            for i in range(count+1, num_startrefs+count+1):
-                referees.append(start_referee(i))
-                running_count += 1
+            try:
+                for i in range(count+1, num_startrefs+count+1):
+                    referees.append(start_referee(i))
+                    running_count += 1
+            except:
+                print sys.exc_info()[0]
         else:
             time.sleep(10)
         

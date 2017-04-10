@@ -315,6 +315,7 @@ def inject(request):
 #@login_required(login_url='/admin')
 def gamestatistics(request):
     ### Used for showing win predictions
+    print "Loading client statistics page"
     if request.method == 'POST':
         form = GameStatisticsForm(request.POST)
         if form.is_valid():
@@ -377,8 +378,16 @@ def searchgames(request):
 
 @login_required(login_url='/admin')
 def gameslist(request, clientname, start, end, showFailed):
-    time_delta_start = datetime.now() - timedelta(hours=float(start))
-    time_delta_end = datetime.now() - timedelta(hours=float(end))
+    floatingStart = float(start)
+    floatingEnd = float(end)
+    if floatingStart < 0.0:
+        time_delta_start = datetime.now() + timedelta(hours=(floatingStart * -1))
+    else:
+        time_delta_start = datetime.now() - timedelta(hours=floatingStart)
+    if floatingEnd < 0.0:
+        time_delta_end = datetime.now() + timedelta(hours=(floatingEnd * -1))
+    else:
+        time_delta_end = datetime.now() - timedelta(hours=floatingEnd)
     games1 = list(Game.objects.filter(clients__name=clientname).filter(completed__gte=time_delta_start).filter(completed__lte=time_delta_end).order_by('-pk'))
     if showFailed == "True":
         games2 = list(Game.objects.filter(clients__name=clientname).filter(status='Failed').order_by('-pk'))
