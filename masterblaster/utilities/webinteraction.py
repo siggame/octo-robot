@@ -66,7 +66,7 @@ def update_clients_from_data_block(data):
                 client.rating = 1800.0
                 client.missing = False
             client.repo = block['repository']['path']
-        if client.current_version != block['tag']['commit']:
+        if client.current_version != block['tag']['commit'] or client.current_tag != block['tag']['name']:
             client.embargoed = False # this is the only place an embargo can be broken
             client.embargo_reason = ''
             client.current_version = block['tag']['commit']
