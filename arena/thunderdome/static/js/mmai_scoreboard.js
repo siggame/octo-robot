@@ -1,5 +1,15 @@
 var iter, params, scroll_meister, stopper;
 
+function getParameterByName(name, url) {
+  if (!url) url = window.location.href;
+  name = name.replace(/[\[\]]/g, "\\$&");
+  var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)");
+  var results = regex.exec(url);
+  if (!results) return null;
+  if (!results[2]) return '';
+  return decodeURIComponent(results[2].replace(/\+/g, " "));
+}
+
 $(document).ready(function() {
   var table = $("#scoreboard").DataTable({
     searching: false,
@@ -8,7 +18,7 @@ $(document).ready(function() {
     deferRender: true,
     scrollY: 600,
     scrollCollapse: true,
-    scroller: true,
+    scroller: getParameterByName("autoscroll") !== null,
     dom: "<'row'<'col-sm-6'l><'col-sm-6'f>>" +
       "<'row'<'col-sm-12'tr>>",
     ajax: "api/get_mmai_scores",
