@@ -117,7 +117,7 @@ def main():
         for i in Client.objects.all():
             if i.language == "Human":
                 i.delete()
-    ESAI.embargo_shellai()  #Embargo all shell ai clients
+    #ESAI.embargo_shellai()  #Embargo all shell ai clients
     print "Success!"
     print "Reseting scores"
     cli = Client.objects.filter(embargoed=False).filter(missing=False)
