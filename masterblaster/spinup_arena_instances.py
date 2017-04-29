@@ -40,7 +40,7 @@ mkdir /home/gladiator/arena
 cd /home/gladiator/arena
 
 # gather up the fixed components
-wget http://arena.megaminerai.com/gladiator/gladiator_package.tgz
+wget http://arena.siggame.io/gladiator/gladiator_package.tgz
 tar -xf gladiator_package.tgz
 
 python gladiator.py %s &> glad-stdout.txt

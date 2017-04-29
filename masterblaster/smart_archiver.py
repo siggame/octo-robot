@@ -36,6 +36,7 @@ tourny_time = True
 
 games = Game.objects.filter(tournament=False).filter(status='Complete')
 
+loopnum = 0
 
 # will not be using k-means clustering this competition
 #if tourny_time:
@@ -113,6 +114,7 @@ def main():
 
 
 def handle_completion(request, game):
+    global loopnum
     if 'winner' in request:
         game.winner = Client.objects.get(name=request['winner']['name'])
     if 'loser' in request:
@@ -171,16 +173,17 @@ def handle_completion(request, game):
             pass
         gd.client.save()
         gd.save()
-    for x in Referee.objects.filter(dead=False):
-        x.games_done = x.games_completed()
-        if x.last_update < datetime.now() - timedelta(hours=1):
-            x.dead = True
-            print "Referee %s/%s has not been heard from for an hour, marking dead" % (x.blaster_id, x.referee_id)
-        x.save()
-    for x in Referee.objects.filter(dead=True):
-        if x.last_update < datetime.now() - timedelta(hours=4):
-            print "Referee %s/%s has not been heard from for 4 hours, deleting" % (x.blaster_id, x.referee_id)
-            x.delete()
+    if loopnum == 1:
+        for x in Referee.objects.filter(dead=False):
+            x.games_done = x.games_completed()
+            if x.last_update < datetime.now() - timedelta(hours=1):
+                x.dead = True
+                print "Referee %s/%s has not been heard from for an hour, marking dead" % (x.blaster_id, x.referee_id)
+            x.save()
+        for x in Referee.objects.filter(dead=True):
+            if x.last_update < datetime.now() - timedelta(hours=4):
+                print "Referee %s/%s has not been heard from for 4 hours, deleting" % (x.blaster_id, x.referee_id)
+                x.delete()
 
 def assign_elo(winner, loser):
     delta = winner.rating - loser.rating
@@ -200,6 +203,7 @@ def assign_elo(winner, loser):
 
 
 def adjust_win_rate(w, l, alpha=0.15):
+    global loopnum
     win_p, w_created = WinRatePrediction.objects.get_or_create(winner=w, loser=l)
     old_win = copy(win_p)
     lose_p, l_created = WinRatePrediction.objects.get_or_create(winner=l, loser=w)
@@ -213,13 +217,19 @@ def adjust_win_rate(w, l, alpha=0.15):
     clients = Client.objects.filter(missing=False).exclude(current_tag__iexact='shellai')
     winpredicts = WinRatePrediction.objects.exclude(winner__current_tag__iexact='shellai').exclude(loser__current_tag__iexact='shellai')
     wins = 0.0
-    for client in clients:
-        wins = 0.0
-        for w in winpredicts:
-            if w.winner == client:
-                wins += w.prediction
-        client.winrate = wins
-        client.save()
-
+    if loopnum == 0:
+        print "Calculating client order"
+        for client in clients:
+            wins = 0.0
+            for w in winpredicts:
+                if w.winner == client:
+                    wins += w.prediction
+            client.winrate = wins
+            client.save()
+    if loopnum < 10:
+        loopnum += 1
+    else:
+        loopnum = 0
+        
 if __name__ == "__main__":
     main()
