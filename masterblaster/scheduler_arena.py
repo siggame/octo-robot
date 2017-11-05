@@ -45,7 +45,8 @@ def main():
         stats = stalk.stats_tube(req_tube)
         if stats['current-jobs-ready'] < req_queue_len:
             try:
-                wi.update_clients()
+                #wi.update_clients()
+                pass
             except:
                 pass
             print "schedule a game"

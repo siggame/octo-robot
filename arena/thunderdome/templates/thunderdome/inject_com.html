@@ -1,0 +1,14 @@
+{% extends "thunderdome/base.html" %}
+{% block title %}
+Manually Inject a Game
+{% endblock %}
+
+{% block content %}
+<h2>Schedule a Custom Game</h2>
+<form method='POST' action="{% url 'thunderdome.views.inject_com' %}">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <p><i>You can't play a game versus yourself</i></p>
+  <input type='submit' value='Submit' />
+</form>
+{% endblock %}

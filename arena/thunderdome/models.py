@@ -198,14 +198,14 @@ class GameData(models.Model):
 
 class InjectedGameForm(forms.Form):
     ### Used to manually inject a game into the queue
-    clientOne = forms.ChoiceField()
-    clientTwo = forms.ChoiceField()
+    client_One = forms.ChoiceField()
+    client_Two = forms.ChoiceField()
     
     def __init__(self, *args, **kwargs):
         super(InjectedGameForm, self).__init__(*args, **kwargs)
-        self.fields['clientOne'].choices = [(x.pk, x.name) for x in 
+        self.fields['client_One'].choices = [(x.pk, x.name) for x in 
                                             Client.objects.all().order_by('name')]
-        self.fields['clientTwo'].choices = [(x.pk, x.name) for x in
+        self.fields['client_Two'].choices = [(x.pk, x.name) for x in
                                             Client.objects.all().order_by('name')]
 
 class SearchGamesForm(forms.Form):

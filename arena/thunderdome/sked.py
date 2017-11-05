@@ -12,6 +12,10 @@ from thunderdome.config import persistent
 
 def sked(guy0, guy1, stalk, origin, priority=1000, ttr=400, claimed=True):
     '''Schedule these guys for a game'''
+    if(origin == "Priority Game Request"):
+        if(Game.objects.filter(priority=1).filter(status="Scheduled").count() >= 300):
+            print 'Custom game not scheduled as there are more than 300 custom games scheduled'
+            return
     game = Game.objects.create()
     game.status = "Scheduled"
     game.claimed = claimed
@@ -37,7 +41,10 @@ def sked(guy0, guy1, stalk, origin, priority=1000, ttr=400, claimed=True):
     game.stats = json.dumps(payload)
     stalk.put(game.stats, priority=priority, ttr=ttr)
     game.save()
-    print 'scheduled', game, guy0, payload['clients'][0]['tag'], guy1, payload['clients'][1]['tag']
+    if(origin == "Priority Game Request"):
+        print 'scheduled', game, guy0, payload['clients'][0]['tag'], guy1, payload['clients'][1]['tag'], 'Current Custom Game Count:', Game.objects.filter(priority=1).filter(status="Scheduled").count()
+    else:
+        print 'scheduled', game, guy0, payload['clients'][0]['tag'], guy1, payload['clients'][1]['tag']
     payload.update({'reporter':origin})
     # log.info(json.dumps(payload))
     return game

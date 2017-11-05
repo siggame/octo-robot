@@ -295,14 +295,14 @@ def inject(request):
     if request.method == 'POST':
         form = InjectedGameForm(request.POST)
         if form.is_valid():
-            clientOne = get_object_or_404(
-                Client, pk__iexact=form.cleaned_data['clientOne'])
-            clientTwo = get_object_or_404(
-                Client, pk__iexact=form.cleaned_data['clientTwo'])
+            client_One = get_object_or_404(
+                Client, pk__iexact=form.cleaned_data['client_One'])
+            client_Two = get_object_or_404(
+                Client, pk__iexact=form.cleaned_data['client_Two'])
             
             stalk = beanstalkc.Connection()
             stalk.use('game-requests-%s' % game_name)
-            game = sked(clientOne, clientTwo, stalk,
+            game = sked(client_One, client_Two, stalk,
                         "Priority Game Request", 0)
             stalk.close()
             return HttpResponseRedirect('view/%s' % game.pk)
@@ -311,6 +311,30 @@ def inject(request):
     payload = {'form': form}
     payload.update(csrf(request))
     return render_to_response('thunderdome/inject.html', payload)
+
+def inject_com(request):
+    ### Handle manual inject of a game into the system
+    if request.method == 'POST':
+        form = InjectedGameForm(request.POST)
+        if form.is_valid():
+            if form.cleaned_data['client_One'] == form.cleaned_data['client_Two']:
+                return HttpResponseRedirect('inject_com')
+            client_One = get_object_or_404(
+                Client, pk__iexact=form.cleaned_data['client_One'])
+            client_Two = get_object_or_404(
+                Client, pk__iexact=form.cleaned_data['client_Two'])
+            
+            stalk = beanstalkc.Connection()
+            stalk.use('game-requests-%s' % game_name)
+            game = sked(client_One, client_Two, stalk,
+                        "Priority Game Request", 1)
+            stalk.close()
+            return HttpResponseRedirect('inject_com')
+    else:
+        form = InjectedGameForm()
+    payload = {'form': form}
+    payload.update(csrf(request))
+    return render_to_response('thunderdome/inject_com.html', payload)
 
 #@login_required(login_url='/admin')
 def gamestatistics(request):
@@ -376,7 +400,7 @@ def searchgames(request):
     payload.update(csrf(request))
     return render_to_response('thunderdome/searchgames.html', payload)
 
-@login_required(login_url='/admin')
+#@login_required(login_url='/admin')
 def gameslist(request, clientname, start, end, showFailed):
     floatingStart = float(start)
     floatingEnd = float(end)
