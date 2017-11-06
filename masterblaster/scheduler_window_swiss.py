@@ -1,5 +1,5 @@
 #### Window Swiss Scheduler
-#### Golman's algorithm
+#### Goldman's algorithm
 #### Brandon Phelps's implmentation
 
 
