@@ -27,6 +27,7 @@ import boto
 
 
 game_name = os.environ['GAME_NAME']
+mode = os.environ['MODE']
 
 print "Playing with game slug: ", game_name
 
@@ -77,7 +78,7 @@ def looping(stalk):
         stalk.put(json.dumps(game))
         job.touch()
         if not update_local_repo(client, game['timeout'], job, game['persistent']):
-            print "Failing the game, someone didn't clone"
+            print "Failing the game, someone didn't download"
             game['status'] = "Failed"
             game['completed'] = str(datetime.now())
             game['tied'] = False
@@ -169,7 +170,7 @@ def looping(stalk):
                                  cwd=cl['name'])
         else:
             pla = subprocess.Popen(['bash',
-                                  'arenaRun', game_name,
+                                  'run', game_name,
                                   '-r', game['number'],
                                   '-s', server_host,
                                   '-p', os.environ['CLIENT_PORT'],
@@ -335,7 +336,7 @@ def looping(stalk):
             
     # figure out who won
     print "determining winner..."
-    if ('won' in game_server_status['clients'][0] and 'won' in game_server_status['clients'][1]) or ('lost' in game_server_status['clients'][0] and 'lost' in game_server_status['clients'][1]):
+    if (game_server_status['clients'][0]['won'] is True and game_server_status['clients'][1]['won'] is True) or (game_server_status['clients'][0]['won'] is False and game_server_status['clients'][1]['won'] is False):
         game['tied'] = True
         game['tie_reason'] = game_server_status['clients'][0]['reason']
         print game['clients'][0]['name'], "and", \
@@ -387,8 +388,8 @@ def compile_client(client):
                            stderr=subprocess.STDOUT))
 
 
-def push_file(local_filename, remote_filename, is_glog):
-    ''' Push this thing to s3 '''
+def push_file(local_filename, remote_filename, is_glog, game=None):
+    ''' Push this thing to s3
     bucket_name = "%s" % (os.environ['S3_PREFIX'])
     access_cred = os.environ['ACCESS_CRED']
     secret_cred = os.environ['SECRET_CRED']
@@ -406,8 +407,16 @@ def push_file(local_filename, remote_filename, is_glog):
             k.set_contents_from_filename(local_filename, {'Content-Type': 'application/json; charset=utf-8', 'Content-Encoding': 'gzip', 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'Origin,X-Requested-With,Content-Type,Accept'}, policy='public-read')
     else:
         k.set_contents_from_filename(local_filename, policy='public-read')
-    return "http://%s.s3.amazonaws.com/%s" % (bucket_name, k.key)
-
+    return "http://%s.s3.amazonaws.com/%s" % (bucket_name, k.key)'''
+    if is_glog:
+        f = open(local_filename, 'r')
+        glog = f.read()
+        f.close()
+        game['glog_name'] = remote_filename
+        game['gamelog'] = glog
+    else:
+        return "None"
+    
 
 def push_datablocks(game):
     ''' Make zip files containing client data and push them to s3 '''
@@ -454,11 +463,13 @@ def push_datablocks(game):
 def push_gamelog(game, glog_location):
     '''Push gamelog to S3'''
     server_path = os.environ['SERVER_PATH']
-    gamelog_filename = "%s/output/gamelogs/%s.json.gz" % (server_path, glog_location)
+    gamelog_filename_zipped = "%s/logs/gamelogs/%s.json.gz" % (server_path, glog_location)
+    subprocess.call(['gunzip', gamelog_filename_zipped], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    gamelog_filename = "%s/logs/gamelogs/%s.json" % (server_path, glog_location)
     # salt exists to stop people from randomly probing for files
     salt = md5.md5(str(random.random())).hexdigest()[:5]
-    remote = "%s-%s.json.gz" % (glog_location, salt)
-    game['gamelog_url'] = push_file(gamelog_filename, remote, True)
+    remote = "%s-%s.json" % (glog_location, salt)
+    push_file(gamelog_filename, remote, True, game)
     os.remove(gamelog_filename)
 
 
@@ -471,25 +482,64 @@ def update_local_repo(client, timeout, job, persistent):
     if not persistent or not os.path.isdir('./%s' % client['name']):
         numFailed = 0
         max_tries = int(round(timeout / 4))
-        while numFailed < max_tries:        #try to clone max_tries times
+        while numFailed < max_tries:        #try to download max_tries times
             if numFailed != 0:
-                sys.stderr.write('Clone failed %s times\n' % numFailed)
+                sys.stderr.write('Download failed %s times\n' % numFailed)
             try:
-                print "git clone %s%s client: %s" % (base_path, client['repo'], client['name'])
-                subprocess.call(['git', 'clone',
-                        '%s%s' % (base_path, client['repo']), client['name']],
-                        stdout=file('%s-gitout.txt' % client['name'], 'w'),
-                        stderr=subprocess.STDOUT)
+                if mode == 'git':
+                    print "git clone %s%s client: %s" % (base_path, client['repo'], client['name'])
+                    subprocess.call(['git', 'clone',
+                                     '%s%s' % (base_path, client['repo']), client['name']],
+                                    stdout=file('%s-gitout.txt' % client['name'], 'w'),
+                                    stderr=subprocess.STDOUT)
 
 
-                subprocess.call(['git', 'checkout', 'master'], cwd=client['name'],
-                        stdout=file('%s-gitout.txt' % client['name'], 'a'),
-                        stderr=subprocess.STDOUT)
-                print "Clone successful!"
-                break
+                    subprocess.call(['git', 'checkout', 'master'], cwd=client['name'],
+                                    stdout=file('%s-gitout.txt' % client['name'], 'a'),
+                                    stderr=subprocess.STDOUT)
+                    print "Clone successful!"
+                    break
+                elif mode == 'file':
+                    print "wget %s:80/gladiator/%s.zip client: %s" % (os.environ['BEANSTALK_HOST'], client['name'], client['name'])
+                    #Cleanup any leftover files before beginning
+                    subprocess.call(['rm', '-rf', client['repo'], '%s.zip*' % (client['name'])],
+                                    stdout=file('%s-gitout.txt' % client['name'], 'w'),
+                                    stderr=subprocess.STDOUT)
+                    #Download client zip from head node
+                    subprocess.call(['wget', '%s:80/gladiator/%s.zip' % (os.environ['BEANSTALK_HOST'], client['name'])],
+                                    stdout=file('%s-gitout.txt' % client['name'], 'w'),
+                                    stderr=subprocess.STDOUT)
+                    #Unzip client
+                    subprocess.call(['unzip', '%s.zip' % (client['name'])],
+                                    stdout=file('%s-gitout.txt' % client['name'], 'w'),
+                                    stderr=subprocess.STDOUT)
+                    #Make client directory
+                    #subprocess.call(['mkdir', client['name']],
+                    #                stdout=file('%s-gitout.txt' % client['name'], 'w'),
+                    #                stderr=subprocess.STDOUT)
+                    path = os.path.dirname(__file__) + client['name']
+                    os.mkdir(path)
+                    #Move client files into client directory
+                    #print 'mv', '%s/*' % (client['repo']), client['name']
+                    #subprocess.call(['mv', '%s/*' % (client['repo']), client['name']],
+                    #                stdout=file('%s-gitout.txt' % client['name'], 'w'),
+                    #                stderr=subprocess.STDOUT)
+                    source = os.path.dirname(__file__) + client['repo']
+                    dest = os.path.dirname(__file__) + client['name']
+                    files = os.listdir(source)
+                    for f in files:
+                        shutil.move(source+'/'+f, dest+'/')
+                    #Cleanup
+                    subprocess.call(['rm', '-rf', client['repo'], '%s.zip' % (client['name'])],
+                                    stdout=file('%s-gitout.txt' % client['name'], 'w'),
+                                    stderr=subprocess.STDOUT)
+                    print "Download successful!"
+                    break
+                else:
+                    assert(False), "Invalid mode"
             except OSError:
                 numFailed += 1      #keep track of how many times
-                print "Clone failed, retrying"
+                print "Download failed, retrying"
                 if numFailed <= 15:
                     sleep(0.01)         #Wait 10ms before attempting to clone again
                 elif numFailed > 15:
@@ -497,15 +547,16 @@ def update_local_repo(client, timeout, job, persistent):
             job.touch()
         if numFailed >= max_tries:
             return False
-    
-    subprocess.call(['git', 'pull'], cwd=client['name'],
-                    stdout=file('%s-gitout.txt' % client['name'], 'a'),
-                    stderr=subprocess.STDOUT)
-    subprocess.call(['git', 'checkout', client['hash']],
-                    stdout=file('%s-gitout.txt' % client['name'], 'a'),
-                    stderr=subprocess.STDOUT,
-                    cwd=client['name'])
-    print "Checking out ", client['hash']
+
+    if mode == 'git':
+        subprocess.call(['git', 'pull'], cwd=client['name'],
+                        stdout=file('%s-gitout.txt' % client['name'], 'a'),
+                        stderr=subprocess.STDOUT)
+        subprocess.call(['git', 'checkout', client['hash']],
+                        stdout=file('%s-gitout.txt' % client['name'], 'a'),
+                        stderr=subprocess.STDOUT,
+                        cwd=client['name'])
+        print "Checking out ", client['hash']
     return True
 
 if __name__ == "__main__":

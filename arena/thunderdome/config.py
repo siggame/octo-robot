@@ -20,6 +20,7 @@ client_port = a.client_port
 web_client_port = a.web_client_port
 api_port = a.api_port
 persistent = a.persistent
+mode = a.mode
 
 arena_ami = 'ami-ab61ccd1' # current gladiator image id
 tournament_ami = 'ami-ab61ccd1' #'ami-a221a9ca' # old touranment

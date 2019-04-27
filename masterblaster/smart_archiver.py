@@ -69,8 +69,11 @@ def main():
         if game.status != request['status']:
             game.status = request['status']
             if game.status in ["Complete", "Failed"]:
-                if 'gamelog_url' in request:
-                    game.gamelog_url = request['gamelog_url']
+                if 'gamelog' in request:
+                    f = open("%s/../var/static/gamelogs/%s" % (os.path.dirname(__file__), request['glog_name']), 'w+')
+                    f.write(request['gamelog'])
+                    f.close()
+                    game.gamelog_url = "http://arena.siggame.io/gamelogs/%s" % (request['glog_name'])
                 if 'completed' in request:
                     game.completed = request['completed']
                 game.tied = request['tied']

@@ -96,7 +96,7 @@ class Game(models.Model):
                               related_name='games_lost')
     status = models.CharField(max_length=20, default='New') # a few states New, Complete, Failed, Building
     priority = models.IntegerField(default=1000)
-    gamelog_url = models.CharField(max_length=200, default='')
+    gamelog_url = models.CharField(max_length=1000, default='')
     p0out_url = models.CharField(max_length=200, default='') # unused
     p1out_url = models.CharField(max_length=200, default='') # unused
     visualized = models.DateTimeField(default=datetime(1970, 1, 1), null=True)
@@ -346,6 +346,7 @@ class ArenaConfig(models.Model):
     web_client_port = models.IntegerField(default=3088) # Port that the web clients will connect to
     api_port = models.IntegerField(default=3080) # Port that the gameserver status will be at
     persistent = models.BooleanField(default=False)
+    mode = models.CharField(max_length=200, default='git')
     
     parameters = {'active' : active,
                   'config_game' : config_name,
@@ -357,7 +358,8 @@ class ArenaConfig(models.Model):
                   'client_port' : client_port,
                   'web_client_port' : web_client_port,
                   'api_port' : api_port,
-                  'persistent' : persistent}
+                  'persistent' : persistent,
+                  'mode' : mode}
     
     def __unicode__(self):
         return "Active" + str(self.active) + "\n Config name " + str(self.config_name) + \

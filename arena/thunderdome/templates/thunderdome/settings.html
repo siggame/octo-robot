@@ -15,6 +15,7 @@ Settings
     {{ setting.beanstalk_host }}
     {{ setting.client_prefix }}
     {{ setting.req_queue_length }}
+    {{ setting.mode }}
   {% endif %}
 {% endfor %}
 
@@ -34,7 +35,7 @@ Settings
   {{ setting.beanstalk_host }}
   {{ setting.client_prefix }}
   {{ setting.req_queue_length }}
-  {{ setting.persistent }}
+  {{ setting.mode }}
   <br>
 {% endfor %}
 

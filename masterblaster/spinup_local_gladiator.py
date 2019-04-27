@@ -11,7 +11,7 @@
 
 
 from arena.settings.aws_secrets import access_cred, secret_cred, s3_prefix
-from thunderdome.config import game_name, client_prefix, beanstalk_host, client_port, web_client_port, api_port
+from thunderdome.config import game_name, client_prefix, beanstalk_host, client_port, web_client_port, api_port, mode
 from masterblaster.generate_gladiator_package import generate_package
 
 
@@ -26,7 +26,7 @@ home_dir = os.path.dirname(file_path)
 octo_robot_dir = os.path.dirname(home_dir)
 
 
-living_corders = '/home/siggame/gladiator/' # this is identical to the gladiator's arena folder
+living_corders = '/home/daniel/gladiator/' # this is identical to the gladiator's arena folder
 server_path = os.path.join(living_corders, 'Cerveau')
 gladiator_pck = os.path.join(octo_robot_dir, 'gladiator_package')
 
@@ -59,12 +59,13 @@ export LIVING_CORDERS='%s'
 export CLIENT_PORT='%d'
 export WEB_CLIENT_PORT='%d'
 export API_PORT='%d'
+export MODE='%s'
 
 cd $LIVING_CORDERS
 
 python gladiator.py 1
 
-""" % (str(access_cred), str(secret_cred), str(s3_prefix), game_name, client_prefix, 'localhost', server_path, beanstalk_host, living_corders, client_port, web_client_port, api_port)
+""" % (str(access_cred), str(secret_cred), str(s3_prefix), game_name, client_prefix, 'localhost', server_path, beanstalk_host, living_corders, client_port, web_client_port, api_port, mode)
 
 writer.write(bash_mesg)
 writer.close()

@@ -1,6 +1,9 @@
 
 import requests
 import json
+import django
+
+django.setup()
 
 from thunderdome.config import api_url_template, game_name
 from thunderdome.config import WEBSITE_USER_NAME, WEBSITE_ARENA_PASSWORD
@@ -17,19 +20,30 @@ def test_api(custom_game_name):
     print r.text
     print r.json()
 
-def update_clients(api_url=None):
+def update_clients(api_url="None", is_file=False):
     '''update the database with the current clients, based on game_name'''
     try:
-        if api_url is None:
+    
+        if api_url == "None":
             api_url = api_url_template + game_name
             r = requests.get(api_url, auth=(WEBSITE_USER_NAME, WEBSITE_ARENA_PASSWORD), verify=False)
+        elif is_file == True:
+            print "Attempting to get clients from file", api_url
+            with open(api_url, 'r') as f:
+                data = json.load(f)
         else:
             print "Attempting to get clients from", api_url
             r = requests.get(api_url)
     
     
         try:
-            data = json.loads(r.text) # TODO: change this to r.json()
+            if is_file == False:
+                data = json.loads(r.text) # TODO: change this to r.json()
+                # check if got an invalid password login
+                if r.status_code != 200:
+                    print "website error code", r.status_code
+                    print data
+                    return
         except ValueError:
             print WEBSITE_USER_NAME
             print WEBSITE_ARENA_PASSWORD
@@ -37,13 +51,14 @@ def update_clients(api_url=None):
             print r.text
             print "couldn't parse text to json"
             return
-    
+        '''
         # check if got an invalid password login
+        
         if r.status_code != 200: 
             print "website error code", r.status_code
             print data
             return
-
+        '''
         update_clients_from_data_block(data)
         print "Clients updated!"
     except:
@@ -91,11 +106,12 @@ def update_clients_from_data_block(data):
             
 def makeClient(block):
     '''Make a client object from the provided API data block'''
+    print "Making client:", block['team']['slug']
     client = Client.objects.create()
     client.name = block['team']['slug']
     client.current_version = block['tag']['commit']
     client.current_tag = block['tag']['name']
-    client.repo = block['repository']['path']    
+    client.repo = block['repository']['path']
     client.stats = ''
     client.embargoed = False
     client.eligible = block['team']['eligible_to_win']
@@ -108,6 +124,7 @@ def makeClient(block):
         if client.name != x.name:
             a = WinRatePrediction.objects.get_or_create(winner=x, loser=client)
             b = WinRatePrediction.objects.get_or_create(winner=client, loser=x)
+    print "Client made!"
     return client
 
 

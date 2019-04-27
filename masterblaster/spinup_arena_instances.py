@@ -2,7 +2,7 @@
 
 from thunderdome.config import arena_ami, access_cred, secret_cred, \
     s3_prefix, beanstalk_host, game_name, client_prefix, client_port, \
-    web_client_port, api_port
+    web_client_port, api_port, mode
 
 import argparse
 import boto
@@ -34,6 +34,7 @@ export BEANSTALK_HOST='%s'
 export CLIENT_PORT='%d'
 export WEB_CLIENT_PORT='%d'
 export API_PORT='%d'
+export MODE='%s'
 
 rm -rf /home/gladiator/arena
 mkdir /home/gladiator/arena
@@ -46,7 +47,7 @@ tar -xf gladiator_package.tgz
 python gladiator.py %s &> glad-stdout.txt
 
 EOF
-""" % (access_cred, secret_cred, s3_prefix, game_name, client_prefix, beanstalk_host, client_port, web_client_port, api_port, numRefs)
+""" % (access_cred, secret_cred, s3_prefix, game_name, client_prefix, beanstalk_host, client_port, web_client_port, api_port, mode, numRefs)
 
 conn = boto.connect_ec2(access_cred, secret_cred)
 

@@ -8,7 +8,7 @@ import sys
 def start_server(current_server=None):
     if not current_server:
         print "Starting server"
-        return subprocess.Popen(['node', 'main.js', '--arena', '--tcp-port', os.environ['CLIENT_PORT'], '--http-port', os.environ['API_PORT'], '--ws-port', os.environ['WEB_CLIENT_PORT']],
+        return subprocess.Popen(['npm', 'run', 'js', '--',  '--arena', '--tcp-port', os.environ['CLIENT_PORT'], '--http-port', os.environ['API_PORT'], '--ws-port', os.environ['WEB_CLIENT_PORT']],
                                  stdout=file('server-stdout.txt', 'w'), stderr=file('server-stderr.txt', 'w'), cwd=os.environ['SERVER_PATH'])
     else:
         print "Restarting server"
