@@ -132,7 +132,12 @@ def main():
     print "Success!"
     if args.v:
         print "Reseting visualization"
-        Game.objects.filter(been_vised=True).update(been_vised=False)
+        Game.objects.filter(been_vised=False).update(been_vised=True)
+        games_to_reset = Game.objects.all()
+        for x in games_to_reset:
+            if x.pk >= start_game:
+                x.been_vised = False
+                x.save()
         print "Success!"
     print "Calculating number of rounds"
     round_calculate = clientNum

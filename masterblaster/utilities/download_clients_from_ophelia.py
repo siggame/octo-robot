@@ -5,7 +5,7 @@ import os
 
 
 
-conn = psycopg2.connect(host="35.206.67.212", database="postgres", user="postgres")
+conn = psycopg2.connect(host="35.208.134.25", database="postgres", user="postgres")
 cur = conn.cursor()
 #Get client list
 cur.execute("SELECT id, name, is_eligible FROM teams ORDER BY id")
@@ -14,7 +14,7 @@ rows = cur.fetchall()
 clients = []
 for x in rows:
     clients.append({"id":x[0], "name":x[1], "eligible":x[2], "language":None, "client_file":None, "version":-1})
-    print clients
+    print x[1]
 
 #Get submissions
 cur.execute("SELECT id, team_id, version, data, lang FROM submissions ORDER BY id")
@@ -32,7 +32,6 @@ for x in clients:
     if x["version"] is not -1:
         work_dir = os.path.dirname(__file__)
         rel_path = "../../var/static/gladiator"
-        print work_dir + rel_path
         with open(os.path.join(work_dir, rel_path) + "/" + x["name"] + ".zip", 'wb') as f:
             f.write(x["client_file"])
         

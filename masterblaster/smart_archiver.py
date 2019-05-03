@@ -159,6 +159,9 @@ def handle_completion(request, game):
         if 'gamservdied' in clidict[gd.client.name]:
 	    gd.client.embargoed = True
             gd.client.embargo_reason = "Gameserver broke, please see an Arena Dev"
+        if 'nodload' in clidict[gd.client.name]:
+            gd.client.embargoed = True
+            gd.client.embargo_reason = "Your client didn't download/decompress"
         if 'discon' in clidict[gd.client.name]:
             game.discon_happened = True
             game.save()

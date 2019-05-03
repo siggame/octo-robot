@@ -51,7 +51,8 @@ def main():
                 pass
             print "schedule a game"
             schedule_a_game(stalk)
-        time.sleep(1)
+        else:
+            time.sleep(1)
     stalk.close()
 
 def schedule_a_game(stalk):
