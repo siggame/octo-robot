@@ -77,38 +77,16 @@ def looping(stalk):
     for i, client in enumerate(game['clients']):
         stalk.put(json.dumps(game))
         job.touch()
-        if game['origin'] != "Tournament":
-            if not update_local_repo(client, game['timeout'], job, game['persistent']):
-                print "Failing the game, someone didn't download"
-                game['status'] = "Failed"
-                game['completed'] = str(datetime.now())
-                game['tied'] = False
-                game['tie_reason'] = "The arena was unable to download or decompress a client"
-                push_datablocks(game)
-                stalk.put(json.dumps(game))
-                job.delete()
-                return
-        else:
-            if not update_local_repo(client, game['timeout'], job, game['persistent']):
-                print "%s didn't download/decompress" % (client['name'])
-                game['status'] = "Complete"
-                game['completed'] = str(datetime.now())
-                game['tied'] = False
-                if client['name'] == game['clients'][0]['name']:
-                    game['winner'] = game['clients'][1]
-                    game['loser'] = game['clients'][0]
-                else:
-                    game['winner'] = game['clients'][0]
-                    game['loser'] = game['clients'][1]
-                reason = ("The arena was unable to download or decompress %s" % (client['name']))
-                game['win_reason'] = str(reason)
-                game['lose_reason'] = str(reason)
-                game['clients'][i]['nodload'] = True
-                push_datablocks(game)
-                stalk.put(json.dumps(game))
-                job.delete()
-                return
-
+        if not update_local_repo(client, game['timeout'], job, game['persistent']):
+            print "Failing the game, someone didn't download"
+            game['status'] = "Failed"
+            game['completed'] = str(datetime.now())
+            game['tied'] = False
+            game['tie_reason'] = "The arena was unable to communicate with the webserver"
+            push_datablocks(game)
+            stalk.put(json.dumps(game))
+            job.delete()
+            return
         subprocess.call(['mkdir', 'arenaupload/'], cwd=client['name'])
     
     # compile the clients
@@ -155,15 +133,15 @@ def looping(stalk):
                 game['status'] = "Complete"
                 game['completed'] = str(datetime.now())
                 game['tied'] = False
-                if client['name'] == game['clients'][0]['name']:
+                if client['name'] == game['clients'][0]:
                     game['winner'] = game['clients'][1]
                     game['loser'] = game['clients'][0]
                 else:
                     game['winner'] = game['clients'][0]
                     game['loser'] = game['clients'][1]
                 reason = (client['name'], "didn't compile (lame).")
-                game['win_reason'] = str(reason)
-                game['lose_reason'] = str(reason)
+                game['win_reason'] = ' '.join(reason)
+                game['lose_reason'] = ' '.join(reason)
                 push_datablocks(game)
                 stalk.put(json.dumps(game))
                 job.delete()
@@ -184,7 +162,7 @@ def looping(stalk):
                                   '-p', os.environ['WEB_CLIENT_PORT'],
                                   '-i', str(i),
                                   '-n', cl['name'],
-                                  '--chesser-master', 'arena.siggame.io:5454',
+                                  '--chesser-master', 'r99acm.device.mst.edu:5454',
                                   '--printIO'
                                  ],
                                  stdout=subprocess.PIPE,
@@ -202,7 +180,6 @@ def looping(stalk):
                                  stdout=subprocess.PIPE,
                                  stderr=file('%s-stderr.txt' % cl['name'], 'w'),
                                  cwd=cl['name'])
-
         players.append(pla)
         limit = 5242880 #5MB
         subprocess.Popen(['tail', '-c', str(limit)],
@@ -352,17 +329,12 @@ def looping(stalk):
     else:
         p1broke = False
 
+
     if p0broke or p1broke:
-        if game_server_status['clients'][0]['name'] == game['clients'][0]['name']:
-            if p0broke:
-                game['clients'][0]['discon'] = True
-            if p1broke:
-                game['clients'][1]['discon'] = True
-        else:
-            if p0broke:
-                game['clients'][1]['discon'] = True
-            if p1broke:
-                game['clients'][0]['discon'] = True
+        if p0broke:
+            game['clients'][0]['discon'] = True
+        if p1broke:
+            game['clients'][1]['discon'] = True
             
     # figure out who won
     print "determining winner..."
@@ -373,34 +345,16 @@ def looping(stalk):
             game['clients'][1]['name'], "tied!"
     else:
         game['tied'] = False
-        if game_server_status['clients'][0]['name'] == game['clients'][0]['name']:
-            print "Gameserver indexs are correct"
-            if game_server_status['clients'][0]['won'] is True:
-                print game['clients'][0]['name'], "wins"
-                game['winner'] = game['clients'][0]
-                game['loser'] = game['clients'][1]
-                game['win_reason'] = game_server_status['clients'][0]['reason']
-                game['lose_reason'] = game_server_status['clients'][1]['reason']
-            else:
-                print game['clients'][1]['name'], "wins"
-                game['winner'] = game['clients'][1]
-                game['loser'] = game['clients'][0]
-                game['win_reason'] = game_server_status['clients'][1]['reason']
-                game['lose_reason'] = game_server_status['clients'][0]['reason']
+        if 'won' in game_server_status['clients'][0]:
+            game['winner'] = game['clients'][0]
+            game['loser'] = game['clients'][1]
+            game['win_reason'] = game_server_status['clients'][0]['reason']
+            game['lose_reason'] = game_server_status['clients'][1]['reason']
         else:
-            print "Gameserver indexs are backwards"
-            if game_server_status['clients'][1]['won'] is True:
-                print game['clients'][0]['name'], "wins"
-                game['winner'] = game['clients'][0]
-                game['loser'] = game['clients'][1]
-                game['win_reason'] = game_server_status['clients'][0]['reason']
-                game['lose_reason'] = game_server_status['clients'][1]['reason']
-            else:
-                print game['clients'][1]['name'], "wins"
-                game['winner'] = game['clients'][1]
-                game['loser'] = game['clients'][0]
-                game['win_reason'] = game_server_status['clients'][1]['reason']
-                game['lose_reason'] = game_server_status['clients'][0]['reason']
+            game['winner'] = game['clients'][1]
+            game['loser'] = game['clients'][0]
+            game['win_reason'] = game_server_status['clients'][1]['reason']
+            game['lose_reason'] = game_server_status['clients'][0]['reason']
 	print game['winner']['name'], "beat", game['loser']['name']
 
     # clean up
@@ -533,7 +487,8 @@ def update_local_repo(client, timeout, job, persistent):
         while numFailed < max_tries:        #try to download max_tries times
             if numFailed != 0:
                 sys.stderr.write('Download failed %s times\n' % numFailed)
-            try:
+            #try:
+            if True:
                 if mode == 'git':
                     print "git clone %s%s client: %s" % (base_path, client['repo'], client['name'])
                     subprocess.call(['git', 'clone',
@@ -548,19 +503,23 @@ def update_local_repo(client, timeout, job, persistent):
                     print "Clone successful!"
                     break
                 elif mode == 'file':
-                    print "wget %s/gladiator/%s.zip client: %s" % (os.environ['BEANSTALK_HOST'], client['name'], client['name'])
+                    print "wget %s:80/gladiator/%s.zip client: %s" % (os.environ['BEANSTALK_HOST'], client['name'], client['name'])
                     #Cleanup any leftover files before beginning
-                    subprocess.call(['rm', '-rf', client['repo'], client['name'], '%s.zip*' % (client['name'])],
+                    subprocess.call(['rm', '-rf', client['repo'], '%s.zip*' % (client['name'])],
                                     stdout=file('%s-gitout.txt' % client['name'], 'w'),
                                     stderr=subprocess.STDOUT)
                     #Download client zip from head node
-                    subprocess.call(['wget', '%s/gladiator/%s.zip' % (os.environ['BEANSTALK_HOST'], client['name'])],
+                    subprocess.call(['wget', '%s:80/gladiator/%s.zip' % (os.environ['BEANSTALK_HOST'], client['name'])],
                                     stdout=file('%s-gitout.txt' % client['name'], 'w'),
                                     stderr=subprocess.STDOUT)
                     #Unzip client
+                    '''
                     subprocess.call(['unzip', '-o', '%s.zip' % (client['name'])],
                                     stdout=file('%s-gitout.txt' % client['name'], 'w'),
                                     stderr=subprocess.STDOUT)
+                    '''
+                    with zipfile.ZipFile('%s.zip' % (client['name']), 'r') as zip_ref:
+                        zip_ref.extractall('client')
                     #Make client directory
                     #subprocess.call(['mkdir', client['name']],
                     #                stdout=file('%s-gitout.txt' % client['name'], 'w'),
@@ -572,19 +531,36 @@ def update_local_repo(client, timeout, job, persistent):
                     #subprocess.call(['mv', '%s/*' % (client['repo']), client['name']],
                     #                stdout=file('%s-gitout.txt' % client['name'], 'w'),
                     #                stderr=subprocess.STDOUT)
-                    source = os.path.dirname(__file__) + client['repo']
+                    print "Check folder deepness"
+                    if 'run' in os.listdir(os.path.dirname(__file__) + 'client' + '/'):
+                        print "0 Deep"
+                        print os.listdir(os.path.dirname(__file__) + 'client' + '/')
+                        #source = str(os.listdir(os.path.dirname(__file__) + 'client' + '/'))
+                        source = ""
+                    elif 'run' in os.listdir(os.path.dirname(__file__) + 'client' + '/' + str(os.listdir(os.path.dirname(__file__) + 'client' + '/')[0]) + '/'):
+                        print "1 Deep"
+                        print os.listdir(os.path.dirname(__file__) + 'client' + '/' + str(os.listdir(os.path.dirname(__file__) + 'client' + '/')[0]) + '/')
+                        #source = str(os.listdir(os.path.dirname(__file__) + 'client' + '/' + str(os.listdir(os.path.dirname(__file__) + 'client' + '/')[0]) + '/')[0])[2:-2] + '/'
+                        source = str(os.listdir(os.path.dirname(__file__) + 'client' + '/')[0]) + '/'
+                    else:
+                        print "2 or more Deep"
+                        print os.listdir(os.path.dirname(__file__) + 'client' + '/' + str(os.listdir(os.path.dirname(__file__) + 'client' + '/')[0]) + '/') + os.listdir(os.path.dirname(__file__) + 'client' + '/' + os.listdir(os.path.dirname(__file__) + 'client' + '/')[0] + '/')
+                        #source = str((os.listdir(os.path.dirname(__file__) + 'client' + '/' + str(os.listdir(os.path.dirname(__file__) + 'client' + '/')[0]) + '/') + str(os.listdir(os.path.dirname(__file__) + 'client' + '/' + str(os.listdir(os.path.dirname(__file__) + 'client' + '/')[0]) + '/'))[0]))[2:-2] + '/'
+                        source = str(os.listdir(os.path.dirname(__file__) + 'client' + '/' + str(os.listdir(os.path.dirname(__file__) + 'client' + '/')[0]) + '/')[0]) + '/'
+                    source = 'client/' + source
                     dest = os.path.dirname(__file__) + client['name']
                     files = os.listdir(source)
                     for f in files:
-                        shutil.move(source+'/'+f, dest+'/')
+                        shutil.move(source+f, dest+'/')
                     #Cleanup
-                    subprocess.call(['rm', '-rf', client['repo'], '%s.zip' % (client['name'])],
+                    subprocess.call(['rm', '-rf', client['repo'], '%s.zip' % (client['name']), 'client'],
                                     stdout=file('%s-gitout.txt' % client['name'], 'w'),
                                     stderr=subprocess.STDOUT)
                     print "Download successful!"
                     break
                 else:
                     assert(False), "Invalid mode"
+            '''
             except OSError:
                 numFailed += 1      #keep track of how many times
                 print "Download failed, retrying"
@@ -592,6 +568,7 @@ def update_local_repo(client, timeout, job, persistent):
                     sleep(0.01)         #Wait 10ms before attempting to clone again
                 elif numFailed > 15:
                     sleep(.5)
+            '''
             job.touch()
         if numFailed >= max_tries:
             return False

@@ -64,6 +64,7 @@ def main():
             try:
                 u = urllib2.urlopen(url)
             except:
+                print "Could not get gamelog for game", x
                 x.score = -2
                 x.save()
                 continue
